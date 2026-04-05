@@ -1,6 +1,6 @@
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.preprocessing import LabelEncoder
 import joblib
@@ -29,7 +29,7 @@ df['especie'] = le_especie.fit_transform(df['especie'])  # 0=Gato, 1=Perro
 le_enfermedad = LabelEncoder()
 df['enfermedad'] = le_enfermedad.fit_transform(df['enfermedad'])
 
-# Guardar los LabelEncoders
+# Guardar LabelEncoders
 joblib.dump(le_especie, LE_ESPECIE_PATH)
 joblib.dump(le_enfermedad, LE_ENFERMEDAD_PATH)
 print("LabelEncoders guardados en:", LE_ESPECIE_PATH, "y", LE_ENFERMEDAD_PATH)
@@ -45,16 +45,13 @@ for especie_name in le_especie.classes_:
     X = df_especie.drop("enfermedad", axis=1)
     y = df_especie["enfermedad"]
 
-    # Revisar NaNs
     if X.isna().sum().sum() > 0:
         raise ValueError(f"Hay valores faltantes en los síntomas para especie '{especie_name}'.")
 
-    # Separación train/test
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
     )
 
-    # Crear y entrenar modelo
     model = RandomForestClassifier(
         n_estimators=300,
         max_depth=10,
@@ -63,18 +60,18 @@ for especie_name in le_especie.classes_:
     )
     model.fit(X_train, y_train)
 
-    # Evaluación
     y_pred = model.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
     print(f"Precisión del modelo: {accuracy * 100:.2f}%")
     print(classification_report(y_test, y_pred))
     print(confusion_matrix(y_test, y_pred))
 
-    # Guardar modelo
-    model_filename = os.path.join(BASE_DIR, f"model_{especie_name}.pkl")
-    joblib.dump(model, model_filename)
+    # Guardar modelo como ruta relativa
+    model_filename = f"model_{especie_name}.pkl"
+    joblib.dump(model, os.path.join(BASE_DIR, model_filename))
     print(f"Modelo guardado en '{model_filename}'")
 
+    # Guardar ruta relativa en diccionario
     models_by_species[especie_name] = model_filename
 
 # Guardar diccionario de modelos por especie
