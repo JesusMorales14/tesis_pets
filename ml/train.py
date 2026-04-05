@@ -8,7 +8,7 @@ import os
 
 # --- Paths ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_PATH = os.path.abspath(os.path.join(BASE_DIR, "..", "..", "data", "dataset.csv"))
+DATA_PATH = os.path.join(BASE_DIR, "..", "data", "dataset.csv")
 LE_ESPECIE_PATH = os.path.join(BASE_DIR, "le_especie.pkl")
 LE_ENFERMEDAD_PATH = os.path.join(BASE_DIR, "le_enfermedad.pkl")
 MODELS_DICT_PATH = os.path.join(BASE_DIR, "models_by_species.pkl")

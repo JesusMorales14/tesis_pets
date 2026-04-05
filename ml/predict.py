@@ -19,7 +19,7 @@ le_especie = joblib.load(LE_ESPECIE_PATH)
 le_enfermedad = joblib.load(LE_ENFERMEDAD_PATH)
 
 # --- Cargar dataset de referencia ---
-DATA_PATH = os.path.abspath(os.path.join(BASE_DIR, "..", "..", "data", "dataset.csv"))
+DATA_PATH = os.path.abspath(os.path.join(BASE_DIR, "..", "data", "dataset.csv"))
 df_reference = pd.read_csv(DATA_PATH)
 print("Dataset cargado desde:", DATA_PATH)
 
