@@ -9,7 +9,6 @@
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-1.8.0-F7931E?style=flat-square&logo=scikitlearn&logoColor=white)](https://scikit-learn.org/)
 [![SQLite](https://img.shields.io/badge/SQLite-3-003B57?style=flat-square&logo=sqlite&logoColor=white)](https://sqlite.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9.0-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![License](https://img.shields.io/badge/Licencia-MIT-green?style=flat-square)](LICENSE)
 
 **Aplicación web fullstack para la detección temprana de enfermedades en mascotas mediante Machine Learning**
 
@@ -39,7 +38,7 @@ Desarrollado como proyecto de tesis para la veterinaria **CityVet** — Chincha 
 
 ## Descripción General
 
-**VetAI** es una plataforma web mobile-first que permite a los dueños de mascotas realizar un pre-diagnóstico inteligente de enfermedades en **perros y gatos** a partir de los síntomas observados. La aplicación utiliza un modelo de **Random Forest** entrenado sobre un dataset veterinario para predecir la enfermedad más probable, estimar su gravedad y facilitar el agendamiento de una cita con el veterinario.
+**CityVet** es una plataforma web mobile-first que permite a los dueños de mascotas realizar un pre-diagnóstico inteligente de enfermedades en **perros y gatos** a partir de los síntomas observados. La aplicación utiliza un modelo de **Random Forest** entrenado sobre un dataset veterinario para predecir la enfermedad más probable, estimar su gravedad y facilitar el agendamiento de una cita con el veterinario.
 
 El sistema está diseñado para la clínica **CityVet** y permite a los veterinarios administrar su agenda desde un panel dedicado, visualizando diagnósticos asociados a cada cita antes de la consulta.
 
@@ -175,16 +174,13 @@ Opción: agendar cita con diagnóstico pre-cargado
 
 ### Frontend
 
-| Tecnología          | Versión   | Uso                               |
-| ------------------- | --------- | --------------------------------- |
-| Angular             | 20.0.0    | Framework SPA                     |
-| Ionic               | 8.0.0     | UI components mobile-first        |
-| TypeScript          | 5.9.0     | Lenguaje del cliente              |
-| RxJS                | 7.8.0     | Programación reactiva             |
-| Capacitor           | —         | Acceso a hardware nativo (cámara) |
-| @ionic/pwa-elements | —         | PWA / cámara web                  |
-| FontAwesome         | —         | Iconografía complementaria        |
-| Karma + Jasmine     | 6.4 / 5.1 | Testing unitario                  |
+| Tecnología  | Versión | Uso                                                                 |
+| ----------- | ------- | ------------------------------------------------------------------- |
+| Angular     | 20.0.0  | Framework SPA                                                       |
+| Ionic       | 8.0.0   | UI components mobile-first                                          |
+| TypeScript  | 5.9.0   | Lenguaje del cliente                                                |
+| RxJS        | 7.8.0   | Tipado reactivo en servicios (`Observable`, `BehaviorSubject`, `tap`) |
+| FontAwesome | 7.2.0   | Iconografía complementaria                                          |
 
 ---
 
@@ -556,7 +552,7 @@ npm run lint
 
 ## Autores
 
-**Jesús Silva Morales**  
+**Jesús Alberto Silva Morales**  
 Desarrollador fullstack y autor del proyecto de tesis  
 [jesusalbertosilvamorales@gmail.com](mailto:jesusalbertosilvamorales@gmail.com)
 
