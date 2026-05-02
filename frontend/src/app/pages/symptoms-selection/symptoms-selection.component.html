@@ -1,0 +1,185 @@
+<ion-header>
+  <ion-toolbar class="custom-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button
+        defaultHref="/tabs/tab2"
+        text=""
+        icon="arrow-back-outline"
+      ></ion-back-button>
+    </ion-buttons>
+    <ion-title class="title">Síntomas</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="resetAll()">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="symptom-content">
+  <!-- Hero -->
+  <div
+    class="species-hero"
+    [class.teal]="especie === 'gato'"
+    [class.blue]="especie === 'perro'"
+  >
+    <div class="species-info">
+      <p class="species-label">Analizando síntomas para</p>
+      <h2 class="species-name">{{ especieLabel }}</h2>
+    </div>
+    <div class="species-counter">
+      <span class="counter-number">{{ selectedSymptoms.length }}</span>
+      <span class="counter-label">síntomas</span>
+    </div>
+  </div>
+
+  <!-- Botón agregar -->
+  <div class="add-section">
+    <button class="add-btn" (click)="openPicker()">
+      <ion-icon name="add-circle-outline"></ion-icon>
+      <span>{{
+        selectedSymptoms.length === 0
+          ? "Agregar síntomas"
+          : "Agregar más síntomas"
+      }}</span>
+    </button>
+  </div>
+
+  <!-- Estado vacío -->
+  <div class="empty-state" *ngIf="selectedSymptoms.length === 0">
+    <div class="empty-icon">🐾</div>
+    <h3>Aún no has agregado síntomas</h3>
+    <p>Toca "Agregar síntomas" para empezar el diagnóstico</p>
+  </div>
+
+  <!-- Lista de síntomas seleccionados -->
+  <div class="symptoms-list" *ngIf="selectedSymptoms.length > 0">
+    <div
+      class="symptom-card"
+      *ngFor="let item of selectedSymptoms"
+      [class.expanded]="item.expanded"
+      [class.has-severity]="item.severity > 0"
+    >
+      <!-- Cabecera de la tarjeta -->
+      <div class="card-head">
+        <div class="card-head-info">
+          <span class="symptom-name">{{ getSymptomLabel(item.key) }}</span>
+          <span
+            class="severity-pill"
+            [class.leve]="item.severity === 1"
+            [class.moderado]="item.severity === 2"
+            [class.grave]="item.severity === 3"
+            [class.empty]="item.severity === 0"
+          >
+            {{ getSeverityLabel(item.severity) }}
+          </span>
+        </div>
+
+        <div class="card-actions">
+          <button
+            class="define-btn"
+            *ngIf="!item.expanded"
+            (click)="toggleExpand(item)"
+          >
+            {{ item.severity === 0 ? "Definir gravedad" : "Cambiar" }}
+            <ion-icon name="chevron-down-outline"></ion-icon>
+          </button>
+          <button
+            class="define-btn collapse"
+            *ngIf="item.expanded"
+            (click)="toggleExpand(item)"
+          >
+            Cerrar
+            <ion-icon name="chevron-up-outline"></ion-icon>
+          </button>
+          <button class="remove-btn" (click)="removeSymptom(item.key)">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+      <!-- Severidad expandida -->
+      <div class="severity-section" *ngIf="item.expanded">
+        <p class="severity-question">¿Qué tan grave es?</p>
+        <div class="severity-buttons">
+          <button
+            class="sev-btn leve"
+            [class.selected]="item.severity === 1"
+            (click)="setSeverity(item, 1)"
+          >
+            <ion-icon name="remove-circle-outline"></ion-icon>
+            <span>Leve</span>
+          </button>
+          <button
+            class="sev-btn moderado"
+            [class.selected]="item.severity === 2"
+            (click)="setSeverity(item, 2)"
+          >
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            <span>Moderado</span>
+          </button>
+          <button
+            class="sev-btn grave"
+            [class.selected]="item.severity === 3"
+            (click)="setSeverity(item, 3)"
+          >
+            <ion-icon name="warning-outline"></ion-icon>
+            <span>Grave</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Indicador de progreso -->
+    <div
+      class="progress-indicator"
+      *ngIf="getReadyCount() < selectedSymptoms.length"
+    >
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <span>
+        Define la gravedad de
+        {{ selectedSymptoms.length - getReadyCount() }}
+        síntoma{{
+          selectedSymptoms.length - getReadyCount() === 1 ? "" : "s"
+        }}
+        más
+      </span>
+    </div>
+  </div>
+
+  <!-- Botón de predicción -->
+  <div class="predict-footer" *ngIf="selectedSymptoms.length > 0">
+    <button
+      class="predict-btn"
+      [class.blue]="especie === 'perro'"
+      [class.teal]="especie === 'gato'"
+      [disabled]="isLoading || !canPredict()"
+      (click)="predict()"
+    >
+      <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+      <ion-icon *ngIf="!isLoading" name="analytics-outline"></ion-icon>
+      <span>{{ isLoading ? "Analizando..." : "Analizar síntomas" }}</span>
+    </button>
+  </div>
+
+  <!-- Error -->
+  <div class="error-card" *ngIf="errorMsg">
+    <ion-icon name="alert-circle-outline"></ion-icon>
+    <p>{{ errorMsg }}</p>
+  </div>
+
+</ion-content>
+
+<!-- Botón flotante de tema -->
+<button
+  class="theme-toggle-fab"
+  (click)="toggleTheme()"
+  [attr.aria-label]="themeService.isDark ? 'Activar modo claro' : 'Activar modo oscuro'"
+>
+  <span class="toggle-track" [class.dark]="themeService.isDark">
+    <ion-icon class="toggle-icon sun" name="sunny"
+              [class.visible]="themeService.isDark"></ion-icon>
+    <ion-icon class="toggle-icon moon" name="moon"
+              [class.visible]="!themeService.isDark"></ion-icon>
+  </span>
+</button>

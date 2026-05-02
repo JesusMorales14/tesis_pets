@@ -1,0 +1,101 @@
+<!-- Buscador -->
+<div class="search-box">
+  <ion-icon name="search-outline" class="search-icon"></ion-icon>
+  <input
+    class="search-input"
+    type="text"
+    [(ngModel)]="searchTerm"
+    placeholder="Buscar enfermedad o categoría..."
+  />
+  @if (searchTerm) {
+    <ion-icon
+      name="close-circle"
+      class="search-clear"
+      (click)="searchTerm = ''"
+    ></ion-icon>
+  }
+</div>
+
+<!-- Filtro especie -->
+<div class="filter-chips">
+  <button
+    class="chip"
+    [class.active]="speciesFilter === 'todos'"
+    (click)="speciesFilter = 'todos'"
+  >
+    Todos
+  </button>
+  <button
+    class="chip"
+    [class.active]="speciesFilter === 'perro'"
+    (click)="speciesFilter = 'perro'"
+  >
+    <i class="fas fa-dog"></i>
+    Perros
+  </button>
+
+  <button
+    class="chip"
+    [class.active]="speciesFilter === 'gato'"
+    (click)="speciesFilter = 'gato'"
+  >
+    <i class="fas fa-cat"></i>
+    Gatos
+  </button>
+</div>
+
+<!-- Contador -->
+<p class="result-count">
+  {{ filtered.length }} enfermedad{{
+    filtered.length !== 1 ? "es" : ""
+  }}
+  encontrada{{ filtered.length !== 1 ? "s" : "" }}
+</p>
+
+<!-- Tarjetas -->
+<div class="disease-list">
+  @for (disease of filtered; track disease.id) {
+    <button class="disease-card" (click)="diseaseSelected.emit(disease)">
+      <div class="card-accent" [style.background]="disease.categoryColor"></div>
+
+      <div
+        class="card-icon-wrap"
+        [style.background]="disease.categoryColor + '22'"
+      >
+        <ion-icon
+          [name]="disease.icon"
+          [style.color]="disease.categoryColor"
+        ></ion-icon>
+      </div>
+
+      <div class="card-body">
+        <div class="card-top">
+          <span class="disease-name">{{ disease.displayName }}</span>
+          <span class="urgency-badge urgency-{{ disease.urgency }}">
+            {{ urgencyLabel(disease.urgency) }}
+          </span>
+        </div>
+        <p class="disease-short">{{ disease.shortDescription }}</p>
+        <div class="card-tags">
+          <span class="tag tag--species">{{
+            speciesLabel(disease.species)
+          }}</span>
+          <span class="tag tag--category">{{ disease.categoryLabel }}</span>
+          @if (disease.contagious) {
+            <span class="tag tag--contagious">⚠ Contagioso</span>
+          }
+        </div>
+      </div>
+
+      <ion-icon name="chevron-forward-outline" class="card-arrow"></ion-icon>
+    </button>
+  }
+
+  @if (filtered.length === 0) {
+    <div class="empty-state">
+      <ion-icon name="search-outline"></ion-icon>
+      <p>Sin resultados</p>
+      <small>Prueba otro término o cambia el filtro de especie</small>
+    </div>
+  }
+</div>

@@ -1,0 +1,55 @@
+// For information on how to create your own theme, please refer to:
+// https://ionicframework.com/docs/theming/
+:root {
+  --ion-color-primary: #2f5fb3;
+  --ion-color-primary-contrast: #ffffff;
+
+  --ion-background-color: #f4f5f8;
+  --ion-text-color: #111118;
+  --ion-card-background: #ffffff;
+
+  // Grises y steps
+  --ion-color-medium: #6b6b7e;
+  --ion-color-light: #ffffff;
+  --ion-color-step-50: #f4f4f8;
+  --ion-color-step-100: #ebebf0;
+
+  // Gradientes para tarjetas animales
+  --animal-card-blue-gradient: linear-gradient(135deg, #2f6df6 0%, #185fa5 100%);
+  --animal-card-teal-gradient: linear-gradient(135deg, #0f6e56 0%, #0a4d3c 100%);
+
+  // Superficies personalizadas
+  --app-surface: #ffffff;
+  --app-surface-alt: #f0f1f6;
+  --app-border: rgba(0, 0, 0, 0.07);
+  --app-shadow: rgba(0, 0, 0, 0.08);
+
+  // Toggle tema
+  --theme-toggle-bg: #ffffff;
+  --theme-toggle-icon: #2f5fb3;
+  --theme-toggle-shadow: rgba(0, 0, 0, 0.14);
+}
+
+// Dark mode — se activa con la clase .dark o .ion-palette-dark en <html>
+.dark {
+  --ion-background-color: #0f0f16;
+  --ion-text-color: #f0f0f8;
+  --ion-card-background: #1a1a26;
+
+  --ion-color-medium: #9e9ebd;
+  --ion-color-light: #1a1a26;
+  --ion-color-step-50: #1e1e2c;
+  --ion-color-step-100: #252536;
+
+  --animal-card-blue-gradient: linear-gradient(135deg, #3b7be6 0%, #1a4f8a 100%);
+  --animal-card-teal-gradient: linear-gradient(135deg, #1a8568 0%, #0f5a46 100%);
+
+  --app-surface: #1a1a26;
+  --app-surface-alt: #12121c;
+  --app-border: rgba(255, 255, 255, 0.07);
+  --app-shadow: rgba(0, 0, 0, 0.35);
+
+  --theme-toggle-bg: #25253a;
+  --theme-toggle-icon: #f0c040;
+  --theme-toggle-shadow: rgba(0, 0, 0, 0.45);
+}

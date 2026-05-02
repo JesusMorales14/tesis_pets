@@ -1,0 +1,42 @@
+<!-- Vista Lista -->
+@if (view === 'list') {
+
+  <!-- Banner -->
+  <div class="hi-banner">
+    <div class="hi-banner__text">
+      <h1>Enciclopedia <span class="accent">Veterinaria</span></h1>
+      <p>Conoce, previene y actúa a tiempo</p>
+    </div>
+    <div class="hi-banner__icon">
+      <ion-icon name="book-outline"></ion-icon>
+    </div>
+  </div>
+
+  <!-- Selector modo -->
+  <div class="mode-selector">
+    <button class="mode-btn" [class.active]="mode === 'enfermedades'" (click)="mode = 'enfermedades'">
+      <ion-icon name="medical-outline"></ion-icon>
+      Enfermedades
+    </button>
+    <button class="mode-btn" [class.active]="mode === 'cuidados'" (click)="mode = 'cuidados'">
+      <ion-icon name="heart-outline"></ion-icon>
+      Guía de Cuidados
+    </button>
+  </div>
+
+  @if (mode === 'enfermedades') {
+    <app-disease-list
+      [diseases]="allDiseases"
+      (diseaseSelected)="onDiseaseSelected($event)"
+    ></app-disease-list>
+  }
+
+  @if (mode === 'cuidados') {
+    <app-care-guide [sections]="careGuide"></app-care-guide>
+  }
+}
+
+<!-- Vista Detalle -->
+@if (view === 'detail' && selectedDisease) {
+  <app-disease-detail [disease]="selectedDisease"></app-disease-detail>
+}

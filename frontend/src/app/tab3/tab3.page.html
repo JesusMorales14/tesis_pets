@@ -1,0 +1,18 @@
+<ion-header>
+  @if (currentView === 'list') {
+    <app-header></app-header>
+  } @else {
+    <ion-toolbar class="back-toolbar">
+      <ion-buttons slot="start">
+        <ion-button (click)="goBackFromDetail()" class="back-btn">
+          <ion-icon name="arrow-back-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+      <ion-title class="back-title">{{ currentDiseaseName }}</ion-title>
+    </ion-toolbar>
+  }
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <app-health-info (viewChange)="onViewChange($event)"></app-health-info>
+</ion-content>

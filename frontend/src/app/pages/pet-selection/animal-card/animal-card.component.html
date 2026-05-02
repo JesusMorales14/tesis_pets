@@ -1,0 +1,37 @@
+<ion-card
+  class="animal-card"
+  [class.selected]="isSelected"
+  [class.blue]="animal.color === 'blue'"
+  [class.teal]="animal.color === 'teal'"
+  (click)="onSelect()"
+>
+  <!-- Imagen superior -->
+  <div class="card-image-section">
+    <img [src]="animal.imageUrl" [alt]="animal.name" class="animal-photo" />
+    <div class="image-fade"></div>
+
+    <div class="selected-badge" *ngIf="isSelected">
+      <ion-icon name="checkmark-circle"></ion-icon>
+      Seleccionado
+    </div>
+  </div>
+
+  <!-- Info inferior -->
+  <div class="card-body">
+    <div class="card-body-left">
+      <h3 class="animal-name">{{ animal.name }}</h3>
+      <p class="animal-sub">{{ animal.subtitle }}</p>
+    </div>
+    <button class="paw-btn" (click)="$event.stopPropagation(); onSelect()">
+      <ion-icon name="paw-outline"></ion-icon>
+    </button>
+  </div>
+
+  <!-- Botón de navegación -->
+  <div class="card-footer">
+    <button class="select-btn" (click)="$event.stopPropagation(); onNavigate()">
+      <span>Seleccionar</span>
+      <ion-icon name="arrow-forward-outline"></ion-icon>
+    </button>
+  </div>
+</ion-card>

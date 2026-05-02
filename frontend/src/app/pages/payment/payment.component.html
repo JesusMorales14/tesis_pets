@@ -1,0 +1,353 @@
+<!-- Header dinámico según paso -->
+@if (step !== 3) {
+  <ion-header>
+    <ion-toolbar class="custom-toolbar">
+      <ion-buttons slot="start">
+        <ion-button fill="clear" (click)="goBack()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+      <ion-title class="title">
+        @if (step === 1) { Método de Pago }
+        @if (step === 2 && metodo === 'yape')    { Pagar con Yape }
+        @if (step === 2 && metodo === 'tarjeta') { Datos de Tarjeta }
+      </ion-title>
+    </ion-toolbar>
+  </ion-header>
+}
+
+<ion-content class="payment-content">
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       PASO 3 — ÉXITO
+  ══════════════════════════════════════════════════════════════════ -->
+  @if (step === 3) {
+    <div class="success-wrap">
+      <div class="success-icon">
+        <ion-icon name="checkmark-circle"></ion-icon>
+      </div>
+      <h1>¡Cita registrada!</h1>
+      <p>Tu solicitud fue enviada. El veterinario confirmará tu cita en breve.</p>
+
+      <div class="success-detail">
+        <div class="detail-row">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <span>{{ fechaLabel }}</span>
+        </div>
+        <div class="detail-row">
+          <ion-icon name="time-outline"></ion-icon>
+          <span>{{ hora }}</span>
+        </div>
+        <div class="detail-row">
+          <ion-icon name="paw-outline"></ion-icon>
+          <span>{{ (result?.diagnostico ?? '') | titlecase }} · {{ especie | titlecase }}</span>
+        </div>
+        <div class="detail-row">
+          <ion-icon name="cash-outline"></ion-icon>
+          <span>S/. 50.00 · {{ metodo === 'yape' ? 'Yape' : 'Tarjeta' }}</span>
+        </div>
+      </div>
+
+      <button class="home-btn" (click)="goHome()">
+        <ion-icon name="home-outline"></ion-icon>
+        <span>Volver al inicio</span>
+      </button>
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       PASO 1 — ELEGIR MÉTODO
+  ══════════════════════════════════════════════════════════════════ -->
+  @if (step === 1) {
+
+    <!-- Resumen de cita -->
+    <div class="section">
+      <p class="section-label">Resumen de tu cita</p>
+      <div class="summary-card">
+        <div class="summary-row">
+          <ion-icon name="paw-outline"></ion-icon>
+          <div>
+            <strong>{{ (result?.diagnostico ?? '') | titlecase }}</strong>
+            <span>{{ especie | titlecase }} · {{ result?.gravedad | titlecase }}</span>
+          </div>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-row">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <div>
+            <strong>{{ fechaLabel }}</strong>
+            <span>{{ hora }} — Veterinaria Pet Care</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Métodos -->
+    <div class="section">
+      <p class="section-label">Selecciona método de pago</p>
+
+      <div class="payment-card" [class.selected]="metodo === 'yape'" (click)="selectMetodo('yape')">
+        <div class="payment-logo yape-logo">
+          <ion-icon name="phone-portrait-outline"></ion-icon>
+        </div>
+        <div class="payment-info">
+          <strong>Yape</strong>
+          <p>Pago rápido desde tu celular</p>
+        </div>
+        @if (metodo === 'yape') {
+          <ion-icon name="checkmark-circle" class="check-icon"></ion-icon>
+        }
+      </div>
+
+      <div class="payment-card" [class.selected]="metodo === 'tarjeta'" (click)="selectMetodo('tarjeta')">
+        <div class="payment-logo card-logo">
+          <ion-icon name="card-outline"></ion-icon>
+        </div>
+        <div class="payment-info">
+          <strong>Tarjeta de débito / crédito</strong>
+          <p>Visa, Mastercard y más</p>
+        </div>
+        @if (metodo === 'tarjeta') {
+          <ion-icon name="checkmark-circle" class="check-icon"></ion-icon>
+        }
+      </div>
+    </div>
+
+    <!-- Total -->
+    <div class="section">
+      <div class="total-row">
+        <span>Total a pagar</span>
+        <span class="total-price">S/. 50.00</span>
+      </div>
+    </div>
+
+    <div class="section confirm-section">
+      <button class="confirm-btn" [class.disabled-btn]="!metodo" (click)="continuar()" [disabled]="!metodo">
+        <ion-icon name="arrow-forward-outline"></ion-icon>
+        <span>Continuar</span>
+      </button>
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       PASO 2a — YAPE
+  ══════════════════════════════════════════════════════════════════ -->
+  @if (step === 2 && metodo === 'yape') {
+
+    <!-- Card estilo Yape -->
+    <div class="section">
+      <div class="yape-card">
+        <div class="yape-header">
+          <div class="yape-logo-wrap">
+            <ion-icon name="phone-portrait-outline"></ion-icon>
+          </div>
+          <div>
+            <span class="yape-brand">YAPE</span>
+            <span class="yape-sub">Pago seguro</span>
+          </div>
+        </div>
+        <div class="yape-to">
+          <span class="yape-to-label">Enviar a</span>
+          <span class="yape-to-name">Veterinaria Pet Care</span>
+          <span class="yape-to-phone">📱 987 654 321</span>
+        </div>
+        <div class="yape-amount">S/. 50.00</div>
+      </div>
+    </div>
+
+    <!-- Formulario Yape -->
+    <div class="section">
+      <p class="section-label">Confirma tu pago</p>
+
+      <div class="form-group">
+        <label class="form-label">Tu número de celular</label>
+        <div class="input-wrap">
+          <ion-icon name="call-outline" class="input-icon"></ion-icon>
+          <input
+            type="tel"
+            class="form-input"
+            [(ngModel)]="yapePhone"
+            placeholder="987 654 321"
+            maxlength="9"
+          />
+        </div>
+        <span class="field-hint">9 dígitos, sin espacios</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Código de aprobación Yape</label>
+        <div class="input-wrap">
+          <ion-icon name="keypad-outline" class="input-icon"></ion-icon>
+          <input
+            type="text"
+            class="form-input"
+            [(ngModel)]="yapeCode"
+            placeholder="000000"
+            maxlength="6"
+          />
+        </div>
+        <span class="field-hint">Código de 6 dígitos que aparece en tu app Yape</span>
+      </div>
+    </div>
+
+    @if (errorMsg) {
+      <div class="section">
+        <div class="error-banner">
+          <ion-icon name="alert-circle-outline"></ion-icon>{{ errorMsg }}
+        </div>
+      </div>
+    }
+
+    <div class="section confirm-section">
+      <button
+        class="confirm-btn yape-btn"
+        [class.disabled-btn]="!yapeValid || isProcessing"
+        [disabled]="!yapeValid || isProcessing"
+        (click)="confirmarPago()"
+      >
+        @if (isProcessing) { <ion-spinner name="crescent"></ion-spinner> }
+        @else { <ion-icon name="checkmark-outline"></ion-icon> }
+        <span>{{ isProcessing ? 'Procesando…' : 'Confirmar pago Yape' }}</span>
+      </button>
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       PASO 2b — TARJETA
+  ══════════════════════════════════════════════════════════════════ -->
+  @if (step === 2 && metodo === 'tarjeta') {
+
+    <!-- Vista previa de la tarjeta -->
+    <div class="section">
+      <div class="card-preview" [class.visa]="cardBrand === 'visa'" [class.mc]="cardBrand === 'mastercard'">
+        <div class="card-preview-top">
+          <div class="card-chip"></div>
+          <div class="card-brand-logo">
+            @if (cardBrand === 'visa') { <span class="brand-visa">VISA</span> }
+            @if (cardBrand === 'mastercard') {
+              <div class="brand-mc">
+                <span class="mc-circle mc-red"></span>
+                <span class="mc-circle mc-orange"></span>
+              </div>
+            }
+            @if (cardBrand === 'amex') { <span class="brand-amex">AMEX</span> }
+          </div>
+        </div>
+        <div class="card-number-display">
+          {{ cardNumber || '0000 0000 0000 0000' }}
+        </div>
+        <div class="card-preview-bottom">
+          <div>
+            <span class="card-label">TITULAR</span>
+            <span class="card-value">{{ cardName || 'NOMBRE APELLIDO' }}</span>
+          </div>
+          <div>
+            <span class="card-label">VENCE</span>
+            <span class="card-value">{{ cardExpiry || 'MM/AA' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Formulario tarjeta -->
+    <div class="section">
+      <p class="section-label">Datos de la tarjeta</p>
+
+      <div class="form-group">
+        <label class="form-label">Número de tarjeta <span class="required">*</span></label>
+        <div class="input-wrap">
+          <ion-icon name="card-outline" class="input-icon"></ion-icon>
+          <input
+            type="text"
+            class="form-input"
+            [value]="cardNumber"
+            (input)="onCardNumberInput($event)"
+            placeholder="0000 0000 0000 0000"
+            maxlength="19"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Nombre del titular <span class="required">*</span></label>
+        <div class="input-wrap">
+          <ion-icon name="person-outline" class="input-icon"></ion-icon>
+          <input
+            type="text"
+            class="form-input"
+            [(ngModel)]="cardName"
+            placeholder="Como aparece en la tarjeta"
+            style="text-transform: uppercase"
+          />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group half">
+          <label class="form-label">Fecha de vencimiento <span class="required">*</span></label>
+          <div class="input-wrap">
+            <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
+            <input
+              type="text"
+              class="form-input"
+              [value]="cardExpiry"
+              (input)="onExpiryInput($event)"
+              placeholder="MM/AA"
+              maxlength="5"
+            />
+          </div>
+        </div>
+
+        <div class="form-group half">
+          <label class="form-label">CVV / CVC <span class="required">*</span></label>
+          <div class="input-wrap">
+            <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+            <input
+              type="password"
+              class="form-input"
+              [(ngModel)]="cardCvv"
+              placeholder="•••"
+              maxlength="4"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="secure-hint">
+        <ion-icon name="shield-checkmark-outline"></ion-icon>
+        <span>Tus datos están cifrados y protegidos</span>
+      </div>
+    </div>
+
+    <!-- Total -->
+    <div class="section">
+      <div class="total-row">
+        <span>Total a cobrar</span>
+        <span class="total-price">S/. 50.00</span>
+      </div>
+    </div>
+
+    @if (errorMsg) {
+      <div class="section">
+        <div class="error-banner">
+          <ion-icon name="alert-circle-outline"></ion-icon>{{ errorMsg }}
+        </div>
+      </div>
+    }
+
+    <div class="section confirm-section">
+      <button
+        class="confirm-btn"
+        [class.disabled-btn]="!cardValid || isProcessing"
+        [disabled]="!cardValid || isProcessing"
+        (click)="confirmarPago()"
+      >
+        @if (isProcessing) { <ion-spinner name="crescent"></ion-spinner> }
+        @else { <ion-icon name="lock-closed-outline"></ion-icon> }
+        <span>{{ isProcessing ? 'Procesando…' : 'Pagar S/. 50.00' }}</span>
+      </button>
+    </div>
+  }
+
+  <div class="bottom-spacer"></div>
+</ion-content>

@@ -1,0 +1,60 @@
+<p class="care-intro">Consejos para una mejor salud en tu mascota</p>
+
+<div class="filter-chips">
+  <button
+    class="chip"
+    [class.active]="speciesFilter === 'ambos'"
+    (click)="speciesFilter = 'ambos'"
+  >
+    <i class="fas fa-paw"></i>
+    Todos
+  </button>
+
+  <button
+    class="chip"
+    [class.active]="speciesFilter === 'perro'"
+    (click)="speciesFilter = 'perro'"
+  >
+    <i class="fas fa-dog"></i>
+    Perros
+  </button>
+
+  <button
+    class="chip"
+    [class.active]="speciesFilter === 'gato'"
+    (click)="speciesFilter = 'gato'"
+  >
+    <i class="fas fa-cat"></i>
+    Gatos
+  </button>
+</div>
+
+<div class="care-list">
+  @for (section of filtered; track section.title) {
+    <div class="care-card">
+      <div class="care-card__header">
+        <div class="care-card__icon" [style.background]="section.color + '22'">
+          <ion-icon
+            [name]="section.icon"
+            [style.color]="section.color"
+          ></ion-icon>
+        </div>
+        <div>
+          <h3 class="care-card__title">{{ section.title }}</h3>
+          <p class="care-card__subtitle">{{ section.subtitle }}</p>
+        </div>
+      </div>
+      <ul class="care-tips">
+        @for (tip of section.tips; track tip) {
+          <li>
+            <ion-icon
+              name="checkmark-circle-outline"
+              class="tip-check"
+            ></ion-icon>
+            <span>{{ tip }}</span>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+</div>

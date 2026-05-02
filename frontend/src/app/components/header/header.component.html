@@ -1,0 +1,16 @@
+<ion-toolbar class="custom-toolbar">
+  <ion-title slot="start" class="title">CityVet</ion-title>
+
+  <ion-buttons slot="end">
+    <!-- Avatar / ícono de usuario — navega a perfil -->
+    <button class="user-btn" (click)="goToProfile()" [attr.aria-label]="auth.isLoggedIn ? 'Mi perfil' : 'Iniciar sesión'">
+      @if (auth.isLoggedIn) {
+        <div class="user-avatar-wrap">
+          <span class="user-initial">{{ auth.currentUser?.nombre?.charAt(0)?.toUpperCase() }}</span>
+        </div>
+      } @else {
+        <ion-icon name="person-circle-sharp" class="avatar-icon"></ion-icon>
+      }
+    </button>
+  </ion-buttons>
+</ion-toolbar>

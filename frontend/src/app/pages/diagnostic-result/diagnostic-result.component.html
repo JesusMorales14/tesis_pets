@@ -1,0 +1,211 @@
+<ion-header>
+  <ion-toolbar class="custom-toolbar">
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="title">Resultado del Análisis</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="result-content">
+
+  <!-- ── HERO: confianza + gravedad ─────────────────────────────────── -->
+  <div class="hero" [class.leve]="result?.gravedad === 'leve'"
+                    [class.moderada]="result?.gravedad === 'moderada'"
+                    [class.grave]="result?.gravedad === 'grave'">
+
+    <div class="confidence-ring-wrap">
+      <svg class="confidence-ring" viewBox="0 0 120 120">
+        <circle class="ring-bg" cx="60" cy="60" r="52"/>
+        <circle class="ring-fill" cx="60" cy="60" r="52"
+          [style.stroke-dashoffset]="326.73 - (326.73 * getProbabilityPercent() / 100)"/>
+      </svg>
+      <div class="ring-inner">
+        <span class="pct">{{ getProbabilityPercent() }}%</span>
+        <span class="pct-label">Confianza IA</span>
+      </div>
+    </div>
+
+    <div class="hero-badge">
+      <ion-icon [name]="getGravedadIcon()"></ion-icon>
+      <span>{{ result?.gravedad | titlecase }}</span>
+    </div>
+
+    <p class="hero-species">
+      <ion-icon name="paw-outline"></ion-icon>
+      {{ especie | titlecase }}
+    </p>
+  </div>
+
+  <!-- ── DIAGNÓSTICO PRINCIPAL ──────────────────────────────────────── -->
+  <div class="section diagnosis-section">
+    <p class="section-eyebrow">Diagnóstico principal</p>
+    <h1 class="diagnosis-name">{{ getDiagnosticoLabel() | titlecase }}</h1>
+    <p class="diagnosis-desc" *ngIf="diseaseInfo">{{ diseaseInfo.descripcion }}</p>
+  </div>
+
+  <!-- ── ATENCIÓN INMEDIATA ─────────────────────────────────────────── -->
+  <div class="alert-banner urgent" *ngIf="diseaseInfo?.requiereAtencionInmediata">
+    <ion-icon name="warning"></ion-icon>
+    <div>
+      <strong>Requiere atención veterinaria inmediata</strong>
+      <p>Este diagnóstico puede ser grave. Lleva a tu mascota al veterinario cuanto antes.</p>
+    </div>
+  </div>
+
+  <div class="alert-banner safe" *ngIf="diseaseInfo && !diseaseInfo.requiereAtencionInmediata">
+    <ion-icon name="checkmark-circle"></ion-icon>
+    <div>
+      <strong>No requiere atención de emergencia</strong>
+      <p>Agenda una consulta en los próximos días para confirmar el diagnóstico.</p>
+    </div>
+  </div>
+
+  <!-- ── NIVEL DE CUIDADO ───────────────────────────────────────────── -->
+  <div class="section" *ngIf="diseaseInfo">
+    <p class="section-label">Nivel de cuidado requerido</p>
+    <div class="care-level-card"
+         [class.care-bajo]="diseaseInfo.nivelCuidado === 'bajo'"
+         [class.care-medio]="diseaseInfo.nivelCuidado === 'medio'"
+         [class.care-alto]="diseaseInfo.nivelCuidado === 'alto'"
+         [class.care-critico]="diseaseInfo.nivelCuidado === 'critico'">
+      <ion-icon [name]="getCareLevel().icon"></ion-icon>
+      <span class="care-label">{{ getCareLevel().label }}</span>
+    </div>
+  </div>
+
+  <!-- ── SÍNTOMAS SELECCIONADOS ─────────────────────────────────────── -->
+  <div class="section" *ngIf="selectedSymptoms.length > 0">
+    <p class="section-label">Síntomas reportados</p>
+    <div class="chips-wrap">
+      <span
+        *ngFor="let s of selectedSymptoms"
+        class="chip"
+        [class.chip-leve]="s.severity === 1"
+        [class.chip-moderado]="s.severity === 2"
+        [class.chip-grave]="s.severity === 3"
+      >
+        <ion-icon [name]="getSeverityIcon(s.severity)"></ion-icon>
+        {{ s.label }}
+        <em>· {{ getSeverityLabel(s.severity) }}</em>
+      </span>
+    </div>
+  </div>
+
+  <!-- ── POR QUÉ ESTE DIAGNÓSTICO ──────────────────────────────────── -->
+  <div class="section" *ngIf="selectedSymptoms.length > 0">
+    <p class="section-label">
+      <ion-icon name="analytics-outline"></ion-icon>
+      ¿Por qué este diagnóstico?
+    </p>
+    <div class="info-card reasoning-card">
+      <p>
+        El modelo de IA analizó
+        <strong>{{ selectedSymptoms.length }} síntoma{{ selectedSymptoms.length === 1 ? '' : 's' }}</strong>
+        reportados. Los síntomas de mayor peso en la predicción fueron:
+      </p>
+      <ul>
+        <li *ngFor="let s of selectedSymptoms">
+          <ion-icon [name]="getSeverityIcon(s.severity)" [class]="getSeverityClass(s.severity)"></ion-icon>
+          {{ s.label }}
+          <span class="sev-tag" [class]="getSeverityClass(s.severity)">{{ getSeverityLabel(s.severity) }}</span>
+        </li>
+      </ul>
+      <p class="disclaimer-small">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        Este resultado es orientativo. Solo un veterinario puede confirmar el diagnóstico.
+      </p>
+    </div>
+  </div>
+
+  <!-- ── CUIDADOS RECOMENDADOS ─────────────────────────────────────── -->
+  <div class="section" *ngIf="diseaseInfo">
+    <p class="section-label">
+      <ion-icon name="medkit-outline"></ion-icon>
+      Cuidados recomendados
+    </p>
+    <div class="info-card">
+      <ul>
+        <li *ngFor="let c of diseaseInfo.cuidados">
+          <ion-icon name="chevron-forward-outline"></ion-icon>
+          {{ c }}
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ── QUÉ OBSERVAR ─────────────────────────────────────────────── -->
+  <div class="section" *ngIf="diseaseInfo">
+    <p class="section-label">
+      <ion-icon name="eye-outline"></ion-icon>
+      Señales de alerta a vigilar
+    </p>
+    <div class="info-card warning-card">
+      <ul>
+        <li *ngFor="let o of diseaseInfo.queObservar">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          {{ o }}
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ── PREVENCIÓN ────────────────────────────────────────────────── -->
+  <div class="section" *ngIf="diseaseInfo">
+    <p class="section-label">
+      <ion-icon name="shield-checkmark-outline"></ion-icon>
+      Cómo prevenir esta enfermedad
+    </p>
+    <div class="info-card prevention-card">
+      <ul>
+        <li *ngFor="let p of diseaseInfo.prevencion">
+          <ion-icon name="checkmark-outline"></ion-icon>
+          {{ p }}
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ── RESERVAR CITA ─────────────────────────────────────────────── -->
+  <div class="section appointment-section">
+    <div class="appointment-card">
+      <div class="appointment-icon">
+        <ion-icon name="calendar-outline"></ion-icon>
+      </div>
+      <div class="appointment-text">
+        <strong>Reserva una cita veterinaria</strong>
+        <p>
+          {{ diseaseInfo?.requiereAtencionInmediata
+              ? 'Tu mascota necesita atención urgente. Agenda ahora.'
+              : 'Confirma este diagnóstico con un profesional.' }}
+        </p>
+      </div>
+    </div>
+    <button
+      class="schedule-btn"
+      [class.urgent-btn]="diseaseInfo?.requiereAtencionInmediata"
+      (click)="goToSchedule()"
+    >
+      <ion-icon name="calendar-outline"></ion-icon>
+      <span>{{ diseaseInfo?.requiereAtencionInmediata ? 'Reservar cita urgente' : 'Reservar cita' }}</span>
+    </button>
+  </div>
+
+  <div class="bottom-spacer"></div>
+</ion-content>
+
+<!-- Botón flotante de tema -->
+<button
+  class="theme-toggle-fab"
+  (click)="toggleTheme()"
+  [attr.aria-label]="themeService.isDark ? 'Activar modo claro' : 'Activar modo oscuro'"
+>
+  <span class="toggle-track" [class.dark]="themeService.isDark">
+    <ion-icon class="toggle-icon sun" name="sunny"
+              [class.visible]="themeService.isDark"></ion-icon>
+    <ion-icon class="toggle-icon moon" name="moon"
+              [class.visible]="!themeService.isDark"></ion-icon>
+  </span>
+</button>

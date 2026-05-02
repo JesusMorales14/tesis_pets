@@ -1,0 +1,11 @@
+<button
+  class="chip-btn"
+  [class.leve]="level === 'leve'"
+  [class.moderado]="level === 'moderado'"
+  [class.grave]="level === 'grave'"
+  [class.selected]="selected"
+  (click)="onClick()"
+>
+  <ion-icon *ngIf="icon" [name]="icon"></ion-icon>
+  <span>{{ label }}</span>
+</button>

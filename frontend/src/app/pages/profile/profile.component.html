@@ -1,0 +1,124 @@
+<ion-header>
+  <ion-toolbar class="custom-toolbar">
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="title">Mi cuenta</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="profile-content">
+  <div class="profile-wrap">
+
+    <!-- ── NO AUTENTICADO ─────────────────────────────────────────────── -->
+    @if (!auth.isLoggedIn) {
+      <div class="not-logged-hero">
+        <div class="profile-logo">
+          <ion-icon name="person-circle-outline"></ion-icon>
+        </div>
+        <h2>Mi cuenta</h2>
+        <p>Inicia sesión para ver tus citas y reservar nuevas consultas veterinarias.</p>
+      </div>
+
+      <div class="auth-btns">
+        <button class="primary-btn" (click)="goToLogin()">
+          <ion-icon name="log-in-outline"></ion-icon>
+          <span>Iniciar sesión</span>
+        </button>
+        <button class="secondary-btn" (click)="goToRegister()">
+          <ion-icon name="person-add-outline"></ion-icon>
+          <span>Registrarse</span>
+        </button>
+      </div>
+    }
+
+    <!-- ── AUTENTICADO ────────────────────────────────────────────────── -->
+    @if (auth.isLoggedIn) {
+
+      <!-- Avatar y nombre -->
+      <div class="user-hero">
+        <div class="user-avatar">
+          <span>{{ auth.currentUser?.nombre?.charAt(0)?.toUpperCase() }}</span>
+        </div>
+        <div class="user-info">
+          <h2>{{ auth.currentUser?.nombre }}</h2>
+          <p>{{ auth.currentUser?.email }}</p>
+          <span class="role-badge" [class.admin-badge]="auth.isAdmin">
+            <ion-icon [name]="auth.isAdmin ? 'shield-checkmark-outline' : 'person-outline'"></ion-icon>
+            {{ auth.isAdmin ? 'Administrador' : 'Usuario' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Admin panel access -->
+      @if (auth.isAdmin) {
+        <div class="admin-access" (click)="goToAdmin()">
+          <div class="admin-access-left">
+            <div class="admin-icon">
+              <ion-icon name="settings-outline"></ion-icon>
+            </div>
+            <div>
+              <strong>Panel de Administración</strong>
+              <p>Gestionar citas y disponibilidad</p>
+            </div>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+        </div>
+      }
+
+      <!-- Mis citas -->
+      <div class="section-block">
+        <div class="section-header" (click)="toggleAppointments()">
+          <div class="section-header-left">
+            <ion-icon name="calendar-outline"></ion-icon>
+            <span>Mis citas</span>
+            @if (appointments.length > 0) {
+              <span class="badge">{{ appointments.length }}</span>
+            }
+          </div>
+          <ion-icon [name]="showAppointments ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+        </div>
+
+        @if (showAppointments) {
+          @if (isLoadingAppts) {
+            <div class="loading-row">
+              <ion-spinner name="crescent"></ion-spinner><span>Cargando…</span>
+            </div>
+          }
+          @if (!isLoadingAppts && appointments.length === 0) {
+            <div class="empty-state">
+              <ion-icon name="calendar-outline"></ion-icon>
+              <span>No tienes citas registradas</span>
+            </div>
+          }
+          @for (a of appointments; track a.id) {
+            <div class="appt-item">
+              <div class="appt-left">
+                <div class="appt-date">{{ formatFecha(a.fecha) }}</div>
+                <div class="appt-hora">{{ a.hora }}</div>
+                <div class="appt-diag">{{ a.diagnostico | titlecase }} · {{ a.especie | titlecase }}</div>
+              </div>
+              <div class="appt-estado"
+                   [style.color]="getEstadoColor(a.estado)"
+                   [style.background]="getEstadoColor(a.estado) + '22'">
+                {{ a.estado | titlecase }}
+              </div>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Cerrar sesión -->
+      <div class="logout-section">
+        <button class="logout-btn" (click)="logout()">
+          <ion-icon name="log-out-outline"></ion-icon>
+          <span>Cerrar sesión</span>
+        </button>
+      </div>
+
+    }
+
+  </div>
+</ion-content>

@@ -1,0 +1,22 @@
+<ion-card class="step-card" *ngFor="let step of steps; trackBy: trackByStep">
+  <ion-card-content>
+    <div class="step-top">
+      <div class="icon-wrap" [ngClass]="step.iconBg">
+        <ion-icon [name]="step.icon"></ion-icon>
+      </div>
+
+      <span class="step-number">{{ step.number | number: "2.0-0" }}</span>
+    </div>
+
+    <h3>{{ step.title }}</h3>
+    <p>{{ step.description }}</p>
+
+    <!-- CTA -->
+    <div class="card-action">
+      <a [routerLink]="step.route" class="action-link">
+        {{ step.cta }}
+        <ion-icon name="arrow-forward-outline"></ion-icon>
+      </a>
+    </div>
+  </ion-card-content>
+</ion-card>

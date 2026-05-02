@@ -1,0 +1,541 @@
+/* ============================== */
+/* HEADER (estilo CityVet)        */
+/* ============================== */
+.custom-toolbar {
+  --background: var(--app-surface);
+  --color: var(--ion-text-color);
+  --border-width: 0;
+  --min-height: 60px;
+
+  padding-top: env(safe-area-inset-top);
+  padding-left: 12px;
+  padding-right: 12px;
+  box-shadow: 0 1px 0 var(--app-border);
+}
+
+.title {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--ion-color-primary);
+  text-align: center;
+}
+
+ion-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+ion-button {
+  --padding-start: 4px;
+  --padding-end: 4px;
+}
+
+ion-header ion-icon {
+  font-size: 22px;
+  color: var(--ion-text-color);
+}
+
+ion-back-button {
+  --color: var(--ion-text-color);
+  --icon-font-size: 22px;
+}
+
+ion-back-button,
+ion-header ion-icon {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+ion-header ion-icon:hover {
+  transform: scale(1.1);
+}
+
+/* ============================== */
+/* HERO DE ESPECIE                */
+/* ============================== */
+.species-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+
+  &.blue {
+    background: linear-gradient(135deg, #2f6df6 0%, #185fa5 100%);
+  }
+  &.teal {
+    background: linear-gradient(135deg, #0f6e56 0%, #0a4d3c 100%);
+  }
+
+  .species-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.75);
+    margin: 0 0 4px;
+  }
+
+  .species-name {
+    font-size: 26px;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0;
+  }
+
+  .species-counter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    padding: 10px 18px;
+
+    .counter-number {
+      font-size: 28px;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1;
+    }
+
+    .counter-label {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+  }
+}
+
+/* ============================== */
+/* BOTÓN AGREGAR SÍNTOMAS         */
+/* ============================== */
+.add-section {
+  padding: 16px 16px 0;
+}
+
+.add-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  border: 2px dashed rgba(0, 0, 0, 0.15);
+  border-radius: 14px;
+  background: var(--ion-card-background, #ffffff);
+  color: var(--ion-text-color, #1c1c1c);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  ion-icon {
+    font-size: 20px;
+    color: var(--ion-color-primary, #185fa5);
+  }
+
+  &:hover {
+    border-color: var(--ion-color-primary, #185fa5);
+    background: rgba(24, 95, 165, 0.04);
+  }
+}
+
+/* ============================== */
+/* ESTADO VACÍO                   */
+/* ============================== */
+.empty-state {
+  text-align: center;
+  padding: 40px 24px;
+
+  .empty-icon {
+    font-size: 56px;
+    margin-bottom: 12px;
+  }
+
+  h3 {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--ion-text-color, #1c1c1c);
+    margin: 0 0 6px;
+  }
+
+  p {
+    font-size: 14px;
+    color: var(--ion-color-medium, #6b6b6b);
+    margin: 0;
+  }
+}
+
+/* ============================== */
+/* TARJETAS DE SÍNTOMA            */
+/* ============================== */
+.symptoms-list {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.symptom-card {
+  background: var(--ion-card-background, #ffffff);
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  transition: all 0.25s ease;
+
+  &.expanded {
+    border-color: var(--ion-color-primary, #185fa5);
+    box-shadow: 0 4px 16px rgba(24, 95, 165, 0.1);
+  }
+
+  &.has-severity {
+    border-color: rgba(0, 0, 0, 0.06);
+  }
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px;
+  gap: 10px;
+}
+
+.card-head-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.symptom-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ion-text-color, #1c1c1c);
+}
+
+.severity-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  align-self: flex-start;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &.empty {
+    background: var(--ion-color-step-100, #f0f0f0);
+    color: var(--ion-color-medium, #6b6b6b);
+  }
+  &.leve {
+    background: rgba(76, 217, 100, 0.15);
+    color: #2a7d3f;
+  }
+  &.moderado {
+    background: rgba(255, 165, 0, 0.15);
+    color: #9b6200;
+  }
+  &.grave {
+    background: rgba(255, 59, 48, 0.15);
+    color: #c0392b;
+  }
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.define-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--ion-color-step-50, #f4f4f8);
+  color: var(--ion-color-medium, #6b6b6b);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  ion-icon {
+    font-size: 14px;
+  }
+
+  &:hover {
+    background: var(--ion-color-primary, #185fa5);
+    color: #ffffff;
+    border-color: var(--ion-color-primary, #185fa5);
+  }
+
+  &.collapse {
+    background: var(--ion-color-primary, #185fa5);
+    color: #ffffff;
+    border-color: var(--ion-color-primary, #185fa5);
+  }
+}
+
+.remove-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: var(--ion-color-step-100, #f0f0f0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  ion-icon {
+    font-size: 16px;
+    color: var(--ion-color-medium, #6b6b6b);
+  }
+
+  &:hover {
+    background: rgba(255, 59, 48, 0.15);
+
+    ion-icon {
+      color: #ff3b30;
+    }
+  }
+}
+
+/* Sección de severidad expandida */
+.severity-section {
+  padding: 0 14px 14px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  padding-top: 14px;
+  animation: slideDown 0.25s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.severity-question {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ion-color-medium, #6b6b6b);
+  margin: 0 0 10px;
+}
+
+.severity-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.sev-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 6px;
+  border-radius: 12px;
+  border: 1.5px solid transparent;
+  background: var(--ion-color-step-50, #f4f4f8);
+  color: var(--ion-color-medium, #6b6b6b);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  ion-icon {
+    font-size: 18px;
+  }
+
+  &.leve {
+    &:hover,
+    &.selected {
+      background: rgba(76, 217, 100, 0.15);
+      border-color: #4cd964;
+      color: #2a7d3f;
+    }
+  }
+
+  &.moderado {
+    &:hover,
+    &.selected {
+      background: rgba(255, 165, 0, 0.15);
+      border-color: #ffa500;
+      color: #9b6200;
+    }
+  }
+
+  &.grave {
+    &:hover,
+    &.selected {
+      background: rgba(255, 59, 48, 0.15);
+      border-color: #ff3b30;
+      color: #c0392b;
+    }
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+/* ============================== */
+/* INDICADOR DE PROGRESO          */
+/* ============================== */
+.progress-indicator {
+  margin-top: 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255, 165, 0, 0.08);
+  border: 1px solid rgba(255, 165, 0, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  ion-icon {
+    font-size: 18px;
+    color: #9b6200;
+    flex-shrink: 0;
+  }
+
+  span {
+    font-size: 12px;
+    font-weight: 600;
+    color: #9b6200;
+  }
+}
+
+/* ============================== */
+/* FOOTER CON BOTÓN DE ANÁLISIS   */
+/* ============================== */
+.predict-footer {
+  padding: 8px 16px 16px;
+  position: sticky;
+  bottom: 0;
+  background: var(--ion-background-color, #f4f4f8);
+  z-index: 10;
+}
+
+.predict-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 16px;
+  border-radius: 40px;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.25s ease;
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  &.blue {
+    background: linear-gradient(135deg, #2f6df6 0%, #185fa5 100%);
+    box-shadow: 0 4px 16px rgba(47, 109, 246, 0.4);
+  }
+
+  &.teal {
+    background: linear-gradient(135deg, #0f6e56 0%, #0a4d3c 100%);
+    box-shadow: 0 4px 16px rgba(15, 110, 86, 0.4);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+}
+
+/* ============================== */
+/* FLOATING THEME BUTTON          */
+/* ============================== */
+.theme-toggle-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 16px;
+  z-index: 1000;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  filter: drop-shadow(0 4px 10px var(--theme-toggle-shadow));
+
+  &:active .toggle-track { transform: scale(0.9); }
+}
+
+.toggle-track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--theme-toggle-bg);
+  border: 1.5px solid var(--app-border);
+  transition: background 0.3s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+
+  &.dark {
+    background: #25253a;
+    border-color: rgba(240, 192, 64, 0.25);
+  }
+}
+
+.toggle-icon {
+  position: absolute;
+  font-size: 20px;
+  opacity: 0;
+  transform: scale(0.5) rotate(-30deg);
+  transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  &.visible { opacity: 1; transform: scale(1) rotate(0deg); }
+  &.sun  { color: #f0c040; }
+  &.moon { color: var(--ion-color-primary); }
+}
+
+/* ============================== */
+/* ERROR                          */
+/* ============================== */
+.error-card {
+  margin: 0 16px 16px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255, 59, 48, 0.08);
+  border: 1px solid rgba(255, 59, 48, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  ion-icon {
+    font-size: 20px;
+    color: #ff3b30;
+  }
+
+  p {
+    font-size: 13px;
+    color: #c0392b;
+    margin: 0;
+  }
+}
+

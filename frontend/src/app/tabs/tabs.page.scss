@@ -1,0 +1,130 @@
+/* ── TAB BAR ──────────────────────────────────────────────────────── */
+.custom-tab-bar {
+  --background: var(--app-surface);
+  --border: none;
+  height: 70px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  box-shadow: 0 -1px 0 var(--app-border);
+}
+
+ion-tab-button {
+  flex: 1;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--ion-color-medium);
+  transition: transform 0.2s ease, color 0.2s ease;
+
+  ion-icon { font-size: 24px; }
+}
+
+ion-tab-button.tab-selected {
+  color: var(--ion-color-primary);
+}
+
+ion-tab-button:active {
+  transform: scale(0.95);
+}
+
+/* ── FAB CENTRAL (pata) ───────────────────────────────────────────── */
+.fab-center {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 68px;
+  height: 68px;
+  background: var(--ion-color-primary);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  z-index: 999;
+  border: 4px solid var(--app-surface);
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.25s ease;
+
+  ion-icon {
+    font-size: 30px;
+    color: #ffffff;
+  }
+}
+
+.fab-center.active::after {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 3px solid #2f80ff;
+  transform: scale(1.18);
+  pointer-events: none;
+}
+
+.fab-center:active {
+  transform: translateX(-50%) translateY(-6px) scale(1.05);
+  box-shadow: 0 15px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* ── BOTÓN TEMA: SOL / LUNA ───────────────────────────────────────── */
+.theme-toggle-fab {
+  position: fixed;
+  bottom: 88px;  // justo sobre el tab bar
+  right: 16px;
+  z-index: 1000;
+
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+
+  // sombra exterior
+  filter: drop-shadow(0 4px 10px var(--theme-toggle-shadow));
+
+  &:active .toggle-track {
+    transform: scale(0.9);
+  }
+}
+
+.toggle-track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--theme-toggle-bg);
+  border: 1.5px solid var(--app-border);
+  transition: background 0.3s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+
+  // anillo de color al activar
+  &.dark {
+    background: #25253a;
+    border-color: rgba(240, 192, 64, 0.25);
+  }
+}
+
+.toggle-icon {
+  position: absolute;
+  font-size: 20px;
+  transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  opacity: 0;
+  transform: scale(0.5) rotate(-30deg);
+
+  &.visible {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+
+  &.sun  { color: #f0c040; }
+  &.moon { color: var(--ion-color-primary); }
+}

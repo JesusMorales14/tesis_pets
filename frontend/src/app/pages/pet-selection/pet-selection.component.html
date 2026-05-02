@@ -1,0 +1,37 @@
+<ion-content class="pet-selection">
+  <div class="header-bg"></div>
+  <div class="container">
+    <div class="hero-section">
+      <h1 class="main-title">
+        ¿A quién<br />
+        chequeamos <span class="highlight">hoy?</span>
+      </h1>
+      <p class="description">
+        Los síntomas y predicciones se adaptarán a la mascota seleccionada.
+      </p>
+    </div>
+
+    <div class="animals-section">
+      <div class="section-header">
+        <h2 class="section-title">Elige a tu compañero</h2>
+        <div class="section-line"></div>
+      </div>
+      <div class="animals-grid">
+        <app-animal-card
+          [animal]="canino"
+          [isSelected]="selectedAnimal?.id === canino.id"
+          (selected)="selectAnimal($event)"
+          (navigate)="navigateToDetail($event)"
+        ></app-animal-card>
+        <app-animal-card
+          [animal]="felino"
+          [isSelected]="selectedAnimal?.id === felino.id"
+          (selected)="selectAnimal($event)"
+          (navigate)="navigateToDetail($event)"
+        ></app-animal-card>
+      </div>
+    </div>
+
+    <app-predict-today></app-predict-today>
+  </div>
+</ion-content>

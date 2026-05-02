@@ -1,0 +1,104 @@
+<!-- Hero -->
+<div
+  class="detail-hero"
+  [style.background]="'linear-gradient(150deg, ' + disease.categoryColor + '18 0%, transparent 65%)'"
+>
+  <div class="hero-icon" [style.background]="disease.categoryColor + '28'">
+    <ion-icon [name]="disease.icon" [style.color]="disease.categoryColor"></ion-icon>
+  </div>
+  <h2 class="hero-name">{{ disease.displayName }}</h2>
+  <div class="hero-badges">
+    <span class="urgency-badge urgency-{{ disease.urgency }}">
+      {{ urgencyLabel(disease.urgency) }}
+    </span>
+    <span class="badge badge--species">{{ speciesLabel(disease.species) }}</span>
+    @if (disease.contagious) {
+      <span class="badge badge--contagious">⚠ Contagioso</span>
+    }
+  </div>
+</div>
+
+<!-- Segmentos -->
+<div class="segment-wrap">
+  <ion-segment [(ngModel)]="activeSegment" mode="md" class="hi-segment" scrollable="true">
+    <ion-segment-button value="descripcion"><ion-label>Info</ion-label></ion-segment-button>
+    <ion-segment-button value="sintomas"><ion-label>Síntomas</ion-label></ion-segment-button>
+    <ion-segment-button value="prevencion"><ion-label>Prevención</ion-label></ion-segment-button>
+    <ion-segment-button value="tratamiento"><ion-label>Tratamiento</ion-label></ion-segment-button>
+    <ion-segment-button value="cuidados"><ion-label>Cuidados</ion-label></ion-segment-button>
+  </ion-segment>
+</div>
+
+<div class="seg-content">
+
+  <!-- Info -->
+  @if (activeSegment === 'descripcion') {
+    <p class="description-text">{{ disease.description }}</p>
+    <div class="info-alert">
+      <div class="info-alert__icon"><ion-icon name="alert-circle-outline"></ion-icon></div>
+      <div>
+        <span class="info-alert__label">¿Cuándo ir al veterinario?</span>
+        <p class="info-alert__text">{{ disease.whenToVet }}</p>
+      </div>
+    </div>
+  }
+
+  <!-- Síntomas -->
+  @if (activeSegment === 'sintomas') {
+    <p class="seg-intro">Identifica a tiempo. Más síntomas presentes = mayor urgencia.</p>
+    <div class="symptom-list">
+      @for (s of disease.symptoms; track s.name) {
+        <div class="symptom-item">
+          <div class="symptom-dot sev-{{ s.severity }}"></div>
+          <span class="symptom-name">{{ s.name }}</span>
+          <span class="severity-label sev-{{ s.severity }}">{{ s.severity }}</span>
+        </div>
+      }
+    </div>
+    <div class="legend">
+      <span><span class="legend-dot sev-leve"></span>Leve</span>
+      <span><span class="legend-dot sev-moderada"></span>Moderada</span>
+      <span><span class="legend-dot sev-grave"></span>Grave</span>
+    </div>
+  }
+
+  <!-- Prevención -->
+  @if (activeSegment === 'prevencion') {
+    <p class="seg-intro">Acciones concretas para reducir el riesgo.</p>
+    <div class="step-list">
+      @for (tip of disease.prevention; track tip; let i = $index) {
+        <div class="step-item">
+          <div class="step-num">{{ i + 1 }}</div>
+          <p>{{ tip }}</p>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Tratamiento -->
+  @if (activeSegment === 'tratamiento') {
+    <p class="seg-intro">Solo el veterinario puede prescribir tratamientos. Información orientativa.</p>
+    <div class="step-list">
+      @for (step of disease.treatment; track step; let i = $index) {
+        <div class="step-item step-item--treatment">
+          <div class="step-num step-num--treatment">{{ i + 1 }}</div>
+          <p>{{ step }}</p>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Cuidados en casa -->
+  @if (activeSegment === 'cuidados') {
+    <p class="seg-intro">Lo que puedes hacer en casa para apoyar la recuperación.</p>
+    <div class="care-list">
+      @for (care of disease.homeCare; track care) {
+        <div class="care-item">
+          <ion-icon name="checkmark-circle-outline" class="care-check"></ion-icon>
+          <p>{{ care }}</p>
+        </div>
+      }
+    </div>
+  }
+
+</div>

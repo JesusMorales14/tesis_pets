@@ -1,0 +1,88 @@
+<ion-content class="auth-content">
+  <div class="auth-wrap">
+
+    <div class="auth-topbar">
+      <button class="back-btn" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </button>
+    </div>
+
+    <div class="auth-hero">
+      <div class="auth-logo">
+        <ion-icon name="paw"></ion-icon>
+      </div>
+      <h1>Crear cuenta</h1>
+      <p>Regístrate para reservar citas veterinarias</p>
+    </div>
+
+    <div class="auth-card">
+
+      <div class="form-group">
+        <label class="form-label">Nombre completo</label>
+        <div class="input-wrap">
+          <ion-icon name="person-outline" class="input-icon"></ion-icon>
+          <input type="text" class="form-input" [(ngModel)]="nombre" placeholder="Tu nombre" autocomplete="name" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Correo electrónico</label>
+        <div class="input-wrap">
+          <ion-icon name="mail-outline" class="input-icon"></ion-icon>
+          <input type="email" class="form-input" [(ngModel)]="email" placeholder="ejemplo@correo.com" autocomplete="email" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Contraseña</label>
+        <div class="input-wrap">
+          <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+          <input [type]="showPassword ? 'text' : 'password'" class="form-input" [(ngModel)]="password" placeholder="Mínimo 6 caracteres" />
+          <button class="eye-btn" (click)="togglePassword()" type="button">
+            <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Confirmar contraseña</label>
+        <div class="input-wrap">
+          <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+          <input [type]="showPassword ? 'text' : 'password'" class="form-input" [(ngModel)]="confirmPassword" placeholder="Repite tu contraseña" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label admin-label">
+          <ion-icon name="shield-outline"></ion-icon>
+          Código de administrador
+          <span class="optional-tag">Opcional</span>
+        </label>
+        <div class="input-wrap">
+          <ion-icon name="key-outline" class="input-icon"></ion-icon>
+          <input [type]="showAdminCode ? 'text' : 'password'" class="form-input" [(ngModel)]="adminCode" placeholder="Solo si eres veterinario/admin" />
+          <button class="eye-btn" (click)="toggleAdminCode()" type="button">
+            <ion-icon [name]="showAdminCode ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="error-banner" *ngIf="errorMsg">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        {{ errorMsg }}
+      </div>
+
+      <button class="auth-btn" (click)="register()" [disabled]="isLoading">
+        <ion-spinner name="crescent" *ngIf="isLoading"></ion-spinner>
+        <ion-icon name="person-add-outline" *ngIf="!isLoading"></ion-icon>
+        <span>{{ isLoading ? 'Creando cuenta…' : 'Crear cuenta' }}</span>
+      </button>
+    </div>
+
+    <div class="auth-footer">
+      <p>¿Ya tienes cuenta?</p>
+      <button class="link-btn" (click)="goToLogin()">Iniciar sesión</button>
+    </div>
+
+  </div>
+</ion-content>

@@ -1,0 +1,72 @@
+<ion-content class="auth-content">
+  <div class="auth-wrap">
+
+    <!-- Header con botón atrás -->
+    <div class="auth-topbar">
+      <button class="back-btn" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </button>
+    </div>
+
+    <!-- Logo / Hero -->
+    <div class="auth-hero">
+      <div class="auth-logo">
+        <ion-icon name="paw"></ion-icon>
+      </div>
+      <h1>Bienvenido</h1>
+      <p>Inicia sesión para reservar tu cita veterinaria</p>
+    </div>
+
+    <!-- Formulario -->
+    <div class="auth-card">
+      <div class="form-group">
+        <label class="form-label">Correo electrónico</label>
+        <div class="input-wrap">
+          <ion-icon name="mail-outline" class="input-icon"></ion-icon>
+          <input
+            type="email"
+            class="form-input"
+            [(ngModel)]="email"
+            placeholder="ejemplo@correo.com"
+            autocomplete="email"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Contraseña</label>
+        <div class="input-wrap">
+          <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+          <input
+            [type]="showPassword ? 'text' : 'password'"
+            class="form-input"
+            [(ngModel)]="password"
+            placeholder="••••••••"
+            autocomplete="current-password"
+          />
+          <button class="eye-btn" (click)="togglePassword()" type="button">
+            <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="error-banner" *ngIf="errorMsg">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        {{ errorMsg }}
+      </div>
+
+      <button class="auth-btn" (click)="login()" [disabled]="isLoading">
+        <ion-spinner name="crescent" *ngIf="isLoading"></ion-spinner>
+        <ion-icon name="log-in-outline" *ngIf="!isLoading"></ion-icon>
+        <span>{{ isLoading ? 'Iniciando sesión…' : 'Iniciar sesión' }}</span>
+      </button>
+    </div>
+
+    <!-- Enlace a registro -->
+    <div class="auth-footer">
+      <p>¿No tienes cuenta?</p>
+      <button class="link-btn" (click)="goToRegister()">Regístrate aquí</button>
+    </div>
+
+  </div>
+</ion-content>

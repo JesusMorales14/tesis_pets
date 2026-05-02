@@ -1,0 +1,75 @@
+<div class="picker-container">
+  <div class="picker-header">
+    <h2>Selecciona síntomas</h2>
+    <button class="close-btn" (click)="cancel()">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </div>
+
+  <!-- Buscador -->
+  <div class="search-wrap">
+    <ion-icon name="search-outline" class="search-icon"></ion-icon>
+    <input
+      type="text"
+      [(ngModel)]="searchTerm"
+      placeholder="Buscar síntoma..."
+      class="search-input"
+    />
+    <button *ngIf="searchTerm" class="clear-btn" (click)="clearSearch()">
+      <ion-icon name="close-circle"></ion-icon>
+    </button>
+  </div>
+
+  <!-- Filtro de categorías -->
+  <div class="category-filter">
+    <button
+      class="cat-pill"
+      [class.active]="activeCategory === 'all'"
+      (click)="setCategory('all')"
+    >
+      Todos
+    </button>
+    <button
+      class="cat-pill"
+      *ngFor="let g of symptomGroups"
+      [class.active]="activeCategory === g.groupKey"
+      (click)="setCategory(g.groupKey)"
+    >
+      <ion-icon [name]="g.icon"></ion-icon>
+      {{ g.label }}
+    </button>
+  </div>
+
+  <!-- Lista de síntomas (la única que scrollea) -->
+  <div class="symptoms-list">
+    <ng-container *ngFor="let group of filteredGroups">
+      <div class="group-title">{{ group.label }}</div>
+      <button
+        class="symptom-row"
+        *ngFor="let s of group.symptoms"
+        [class.selected]="isSelected(s)"
+        (click)="toggleSymptom(s)"
+      >
+        <span class="symptom-label">{{ s.label }}</span>
+        <span class="check" [class.checked]="isSelected(s)">
+          <ion-icon name="checkmark-outline" *ngIf="isSelected(s)"></ion-icon>
+        </span>
+      </button>
+    </ng-container>
+
+    <div class="empty-results" *ngIf="filteredGroups.length === 0">
+      <ion-icon name="search-outline"></ion-icon>
+      <p>No se encontraron síntomas</p>
+      <span>Prueba con otra búsqueda</span>
+    </div>
+  </div>
+
+  <!-- Footer FIJO al fondo del container -->
+  <div class="picker-footer" *ngIf="getSelectedCount() > 0">
+    <button class="confirm-btn" (click)="confirm()">
+      <ion-icon name="checkmark-circle"></ion-icon>
+      <span>Confirmar</span>
+      <span class="badge">{{ getSelectedCount() }}</span>
+    </button>
+  </div>
+</div>

@@ -1,0 +1,101 @@
+.symptom-group {
+  background: var(--ion-card-background, #ffffff);
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  cursor: pointer;
+  user-select: none;
+
+  .group-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .group-icon-wrap {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--ion-color-step-50, #f4f4f8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    ion-icon {
+      font-size: 18px;
+      color: var(--ion-color-primary, #185fa5);
+    }
+  }
+
+  .group-label {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ion-text-color, #1c1c1c);
+  }
+
+  .chevron {
+    font-size: 18px;
+    color: var(--ion-color-medium, #6b6b6b);
+  }
+}
+
+.group-body {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.symptom-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.symptom-name-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.symptom-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ion-text-color, #1c1c1c);
+}
+
+.symptom-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: var(--ion-color-step-100, #f0f0f0);
+  color: var(--ion-color-medium, #6b6b6b);
+
+  &.leve {
+    background: rgba(76, 217, 100, 0.15);
+    color: #2a7d3f;
+  }
+  &.moderado {
+    background: rgba(255, 165, 0, 0.15);
+    color: #9b6200;
+  }
+  &.grave {
+    background: rgba(255, 59, 48, 0.15);
+    color: #c0392b;
+  }
+}
+
+.severity-btns {
+  display: flex;
+  gap: 8px;
+}

@@ -1,0 +1,211 @@
+.custom-toolbar {
+  --background: var(--app-surface); --color: var(--ion-text-color);
+  --border-width: 0; --min-height: 60px;
+  padding-top: env(safe-area-inset-top);
+  box-shadow: 0 1px 0 var(--app-border);
+}
+.title { font-size: 18px; font-weight: 700; color: var(--ion-color-primary); text-align: center; }
+.payment-content { --background: var(--ion-background-color); }
+.section { padding: 20px 16px 0; }
+.section-label {
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.7px; color: var(--ion-color-medium); margin: 0 0 10px;
+}
+
+// ── ÉXITO ──────────────────────────────────────────────────────────────
+.success-wrap {
+  display: flex; flex-direction: column; align-items: center;
+  padding: calc(env(safe-area-inset-top) + 60px) 24px 40px;
+  gap: 16px; text-align: center;
+  h1 { font-size: 28px; font-weight: 800; color: var(--ion-text-color); margin: 0; }
+  p  { font-size: 14px; color: var(--ion-color-medium); margin: 0; line-height: 1.6; }
+}
+.success-icon {
+  width: 96px; height: 96px; border-radius: 50%;
+  background: rgba(46,204,113,0.12);
+  display: flex; align-items: center; justify-content: center;
+  ion-icon { font-size: 56px; color: #27ae60; }
+}
+.success-detail {
+  background: var(--app-surface); border-radius: 16px; padding: 16px; width: 100%;
+  box-shadow: 0 2px 12px var(--app-shadow); display: flex; flex-direction: column; gap: 12px;
+}
+.detail-row {
+  display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--ion-text-color);
+  ion-icon { font-size: 18px; color: var(--ion-color-primary); flex-shrink: 0; }
+}
+.home-btn {
+  width: 100%; display: flex; align-items: center; justify-content: center;
+  gap: 10px; padding: 16px; border-radius: 40px; border: none;
+  background: linear-gradient(135deg, #2f6df6 0%, #185fa5 100%);
+  color: #fff; font-size: 16px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(47,109,246,0.35);
+  ion-icon { font-size: 20px; }
+  &:active { transform: scale(0.98); }
+}
+
+// ── RESUMEN ────────────────────────────────────────────────────────────
+.summary-card {
+  background: var(--app-surface); border-radius: 16px; padding: 16px;
+  box-shadow: 0 2px 12px var(--app-shadow);
+}
+.summary-row {
+  display: flex; align-items: flex-start; gap: 12px;
+  ion-icon { font-size: 20px; color: var(--ion-color-primary); flex-shrink: 0; margin-top: 2px; }
+  strong { display: block; font-size: 14px; font-weight: 700; color: var(--ion-text-color); }
+  span   { font-size: 12px; color: var(--ion-color-medium); }
+}
+.summary-divider { height: 1px; background: var(--app-border); margin: 12px 0; }
+
+// ── MÉTODOS ────────────────────────────────────────────────────────────
+.payment-card {
+  display: flex; align-items: center; gap: 14px; background: var(--app-surface);
+  border-radius: 16px; padding: 16px; margin-bottom: 10px;
+  box-shadow: 0 2px 12px var(--app-shadow); border: 2px solid transparent;
+  cursor: pointer; transition: all 0.2s;
+  &.selected { border-color: var(--ion-color-primary); background: rgba(47,109,246,0.04); }
+  &:active { transform: scale(0.99); }
+}
+.payment-logo {
+  width: 48px; height: 48px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  ion-icon { font-size: 24px; color: #fff; }
+}
+.yape-logo { background: linear-gradient(135deg, #7b2ff7 0%, #5a00c8 100%); }
+.card-logo  { background: linear-gradient(135deg, #1a56db 0%, #0d47a1 100%); }
+.payment-info {
+  flex: 1;
+  strong { display: block; font-size: 14px; font-weight: 700; color: var(--ion-text-color); }
+  p      { font-size: 12px; color: var(--ion-color-medium); margin: 2px 0 0; }
+}
+.check-icon { font-size: 22px; color: var(--ion-color-primary); }
+
+// ── TOTAL ──────────────────────────────────────────────────────────────
+.total-row {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--app-surface); border-radius: 14px; padding: 16px;
+  box-shadow: 0 2px 12px var(--app-shadow);
+  font-size: 16px; font-weight: 700; color: var(--ion-text-color);
+}
+.total-price { font-size: 22px; font-weight: 800; color: #27ae60; }
+
+// ── YAPE CARD ──────────────────────────────────────────────────────────
+.yape-card {
+  background: linear-gradient(135deg, #7b2ff7 0%, #4a00b4 100%);
+  border-radius: 20px; padding: 20px;
+  box-shadow: 0 8px 24px rgba(123,47,247,0.4);
+  color: #fff;
+}
+.yape-header {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+}
+.yape-logo-wrap {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center;
+  ion-icon { font-size: 24px; color: #fff; }
+}
+.yape-brand { display: block; font-size: 18px; font-weight: 900; color: #fff; }
+.yape-sub   { font-size: 11px; color: rgba(255,255,255,0.7); }
+.yape-to {
+  display: flex; flex-direction: column; gap: 4px; margin-bottom: 16px;
+}
+.yape-to-label { font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; }
+.yape-to-name  { font-size: 16px; font-weight: 700; color: #fff; }
+.yape-to-phone { font-size: 14px; color: rgba(255,255,255,0.85); }
+.yape-amount   { font-size: 32px; font-weight: 900; color: #fff; }
+
+// ── TARJETA PREVIEW ────────────────────────────────────────────────────
+.card-preview {
+  background: linear-gradient(135deg, #1a3a7c 0%, #0d47a1 100%);
+  border-radius: 18px; padding: 20px;
+  box-shadow: 0 8px 24px rgba(13,71,161,0.4);
+  color: #fff; min-height: 180px;
+  display: flex; flex-direction: column; justify-content: space-between;
+
+  &.visa { background: linear-gradient(135deg, #1565c0 0%, #0d47a1 100%); }
+  &.mc   { background: linear-gradient(135deg, #1a1a2e 0%, #2c2c54 100%); }
+}
+.card-preview-top {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-chip {
+  width: 36px; height: 28px; border-radius: 6px;
+  background: linear-gradient(135deg, #f0c040 0%, #d4a017 100%);
+}
+.brand-visa  { font-size: 22px; font-weight: 900; color: #fff; font-style: italic; }
+.brand-mc {
+  display: flex;
+  .mc-circle {
+    width: 26px; height: 26px; border-radius: 50%;
+    &.mc-red    { background: #eb001b; }
+    &.mc-orange { background: #f79e1b; margin-left: -10px; opacity: 0.85; }
+  }
+}
+.brand-amex { font-size: 14px; font-weight: 900; color: #fff; letter-spacing: 1px; }
+.card-number-display {
+  font-size: 18px; font-weight: 700; letter-spacing: 3px; color: #fff;
+  font-family: monospace; text-align: center; padding: 10px 0;
+}
+.card-preview-bottom {
+  display: flex; justify-content: space-between;
+}
+.card-label { display: block; font-size: 9px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; }
+.card-value { display: block; font-size: 13px; font-weight: 700; color: #fff; margin-top: 2px; text-transform: uppercase; }
+
+// ── FORMULARIOS ────────────────────────────────────────────────────────
+.form-group { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+.form-row   { display: flex; gap: 10px; .half { flex: 1; } }
+.form-label {
+  font-size: 12px; font-weight: 700; color: var(--ion-text-color);
+}
+.required { color: #e74c3c; }
+
+.input-wrap {
+  display: flex; align-items: center; background: var(--ion-background-color);
+  border: 1.5px solid var(--app-border); border-radius: 12px; padding: 0 12px;
+  transition: border-color 0.2s;
+  &:focus-within { border-color: var(--ion-color-primary); }
+}
+.input-icon { font-size: 17px; color: var(--ion-color-medium); flex-shrink: 0; margin-right: 9px; }
+.form-input {
+  flex: 1; background: transparent; border: none; outline: none;
+  font-size: 15px; color: var(--ion-text-color); padding: 13px 0;
+  &::placeholder { color: var(--ion-color-medium); opacity: 0.6; }
+}
+.field-hint { font-size: 11px; color: var(--ion-color-medium); }
+
+.secure-hint {
+  display: flex; align-items: center; gap: 6px; margin-top: 4px;
+  font-size: 12px; color: #27ae60;
+  ion-icon { font-size: 15px; }
+}
+
+// ── ERROR ──────────────────────────────────────────────────────────────
+.error-banner {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(255,59,48,0.1); border: 1.5px solid rgba(255,59,48,0.3);
+  border-radius: 10px; padding: 10px 14px; font-size: 13px; color: #c0392b;
+  ion-icon { font-size: 16px; flex-shrink: 0; }
+}
+
+// ── BOTÓN CONFIRMAR ────────────────────────────────────────────────────
+.confirm-section { padding-bottom: 8px; }
+.confirm-btn {
+  width: 100%; display: flex; align-items: center; justify-content: center;
+  gap: 10px; padding: 16px; border-radius: 40px; border: none;
+  background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
+  color: #fff; font-size: 16px; font-weight: 700; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(39,174,96,0.4); transition: all 0.2s;
+  &.disabled-btn { opacity: 0.5; cursor: not-allowed; }
+  &:active:not(.disabled-btn) { transform: scale(0.98); }
+  ion-icon { font-size: 20px; }
+  ion-spinner { width: 20px; height: 20px; }
+
+  &.yape-btn {
+    background: linear-gradient(135deg, #7b2ff7 0%, #5a00c8 100%);
+    box-shadow: 0 4px 16px rgba(123,47,247,0.4);
+  }
+}
+
+.bottom-spacer { height: 32px; }

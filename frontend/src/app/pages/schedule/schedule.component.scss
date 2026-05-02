@@ -1,0 +1,384 @@
+.custom-toolbar {
+  --background: var(--app-surface);
+  --color: var(--ion-text-color);
+  --border-width: 0;
+  --min-height: 60px;
+  padding-top: env(safe-area-inset-top);
+  box-shadow: 0 1px 0 var(--app-border);
+}
+
+.title { font-size: 18px; font-weight: 700; color: var(--ion-color-primary); text-align: center; }
+
+.schedule-content { --background: var(--ion-background-color); }
+
+.section { padding: 20px 16px 0; }
+
+.section-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--ion-color-medium);
+  margin: 0 0 10px;
+}
+
+// ── DIAGNOSIS CARD ────────────────────────────────────────────────────
+.diagnosis-card {
+  background: var(--app-surface);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 12px var(--app-shadow);
+  border-left: 4px solid var(--ion-color-primary);
+}
+
+.diag-left { flex: 1; }
+
+.species-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(47,109,246,0.1);
+  color: var(--ion-color-primary);
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 6px;
+
+  &.gato { background: rgba(155,93,0,0.1); color: #9b5e00; }
+  ion-icon { font-size: 13px; }
+}
+
+.diag-name {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ion-text-color);
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.gravedad-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+
+  ion-icon { font-size: 20px; }
+
+  &.leve     { background: rgba(52,199,89,0.12); color: #1e8449; }
+  &.moderada { background: rgba(255,165,0,0.12); color: #d68910; }
+  &.grave    { background: rgba(255,59,48,0.1);  color: #c0392b; }
+}
+
+// ── CLINIC CARD ───────────────────────────────────────────────────────
+.clinic-card {
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px var(--app-shadow);
+  background: var(--app-surface);
+}
+
+.clinic-map-bg {
+  height: 100px;
+  background: linear-gradient(135deg, #b0bec5 0%, #cfd8dc 50%, #90a4ae 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.map-dots {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+.clinic-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 8px;
+  gap: 12px;
+}
+
+.clinic-text {
+  flex: 1;
+  h3 {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--ion-color-primary);
+    margin: 0 0 4px;
+  }
+  p {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: var(--ion-color-medium);
+    margin: 0;
+    ion-icon { font-size: 13px; flex-shrink: 0; }
+  }
+}
+
+.clinic-status {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+
+  &.abierto { background: #2ecc71; color: #fff; }
+  &.cerrado { background: rgba(255,59,48,0.15); color: #c0392b; border: 1px solid rgba(255,59,48,0.3); }
+}
+
+.clinic-hours {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 16px 12px;
+  font-size: 12px;
+  color: var(--ion-color-medium);
+  ion-icon { font-size: 13px; }
+}
+
+// ── DATE PICKER ───────────────────────────────────────────────────────
+.date-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  .section-label { margin: 0; }
+}
+
+.month-year {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ion-color-primary);
+}
+
+.dates-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+.date-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 56px;
+  padding: 8px 6px;
+  border-radius: 14px;
+  background: var(--app-surface);
+  border: 1.5px solid var(--app-border);
+  cursor: pointer;
+  gap: 2px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+
+  &.selected {
+    background: #1a3a7c;
+    border-color: #1a3a7c;
+    .date-today, .date-month, .date-num, .date-day { color: #fff; }
+  }
+
+  &:active { transform: scale(0.95); }
+}
+
+.date-today {
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--ion-color-primary);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.date-month { font-size: 10px; font-weight: 600; color: var(--ion-color-medium); text-transform: uppercase; }
+.date-num   { font-size: 22px; font-weight: 800; color: var(--ion-text-color); line-height: 1; }
+.date-day   { font-size: 10px; font-weight: 600; color: var(--ion-color-medium); text-transform: uppercase; }
+
+// ── TIME SLOTS ────────────────────────────────────────────────────────
+.slots-loading, .slots-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  color: var(--ion-color-medium);
+  font-size: 14px;
+  ion-icon { font-size: 22px; }
+  ion-spinner { width: 22px; height: 22px; color: var(--ion-color-primary); }
+}
+
+.slots-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.slot-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: calc(33.33% - 6px);
+  padding: 10px 8px;
+  border-radius: 14px;
+  border: 1.5px solid var(--app-border);
+  background: var(--app-surface);
+  cursor: pointer;
+  transition: all 0.18s;
+  gap: 3px;
+
+  &:active:not(.slot-disabled) { transform: scale(0.96); }
+
+  &.slot-selected {
+    background: #2f6df6;
+    border-color: #2f6df6;
+    .slot-time { color: #fff; }
+    .slot-tag { color: #fff; }
+  }
+
+  &.slot-urgente:not(.slot-selected) {
+    background: rgba(255,99,71,0.1);
+    border-color: rgba(255,99,71,0.35);
+    .slot-time { color: #c0392b; }
+  }
+
+  &.slot-disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    background: var(--app-border);
+  }
+}
+
+.slot-time {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ion-text-color);
+}
+
+.slot-tag {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: var(--ion-color-medium);
+}
+
+.urgente-tag { color: #c0392b !important; }
+
+// ── COST CARD ─────────────────────────────────────────────────────────
+.cost-card {
+  background: var(--app-surface);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 12px var(--app-shadow);
+}
+
+.cost-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+
+  ion-icon {
+    font-size: 28px;
+    color: #27ae60;
+  }
+
+  strong { display: block; font-size: 14px; font-weight: 700; color: var(--ion-text-color); }
+  p      { font-size: 12px; color: var(--ion-color-medium); margin: 2px 0 0; }
+}
+
+.cost-price {
+  font-size: 22px;
+  font-weight: 800;
+  color: #27ae60;
+  flex-shrink: 0;
+}
+
+// ── CONFIRM ───────────────────────────────────────────────────────────
+.confirm-section { padding-bottom: 8px; }
+
+.login-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(47,109,246,0.08);
+  border: 1.5px solid rgba(47,109,246,0.2);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--ion-color-primary);
+  margin-bottom: 12px;
+  ion-icon { font-size: 20px; flex-shrink: 0; }
+}
+
+.confirm-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 16px;
+  border-radius: 40px;
+  border: none;
+  background: linear-gradient(135deg, #2f6df6 0%, #185fa5 100%);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(47,109,246,0.35);
+  transition: all 0.2s;
+  ion-icon { font-size: 20px; }
+  &:active { transform: scale(0.98); }
+  &.disabled-btn { opacity: 0.5; cursor: not-allowed; }
+}
+
+.bottom-spacer { height: 32px; }
+
+// ── THEME TOGGLE ──────────────────────────────────────────────────────
+.theme-toggle-fab {
+  position: fixed; bottom: 24px; right: 16px; z-index: 1000;
+  width: 46px; height: 46px; border-radius: 50%; border: none;
+  padding: 0; cursor: pointer; background: transparent;
+  filter: drop-shadow(0 4px 10px var(--theme-toggle-shadow));
+  &:active .toggle-track { transform: scale(0.9); }
+}
+
+.toggle-track {
+  display: flex; align-items: center; justify-content: center;
+  width: 46px; height: 46px; border-radius: 50%;
+  background: var(--theme-toggle-bg); border: 1.5px solid var(--app-border);
+  transition: background 0.3s ease, transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+  position: relative; overflow: hidden;
+  &.dark { background: #25253a; border-color: rgba(240,192,64,0.25); }
+}
+
+.toggle-icon {
+  position: absolute; font-size: 20px; opacity: 0;
+  transform: scale(0.5) rotate(-30deg);
+  transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+  &.visible { opacity: 1; transform: scale(1) rotate(0deg); }
+  &.sun  { color: #f0c040; }
+  &.moon { color: var(--ion-color-primary); }
+}

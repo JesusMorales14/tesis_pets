@@ -1,0 +1,54 @@
+<div class="symptom-group">
+  <div class="group-header" (click)="onToggle()">
+    <div class="group-header-left">
+      <div class="group-icon-wrap">
+        <ion-icon [name]="category.icon"></ion-icon>
+      </div>
+      <span class="group-label">{{ category.label }}</span>
+    </div>
+    <ion-icon
+      [name]="collapsed ? 'chevron-down-outline' : 'chevron-up-outline'"
+      class="chevron"
+    ></ion-icon>
+  </div>
+
+  <div class="group-body" *ngIf="!collapsed">
+    <div class="symptom-item" *ngFor="let symptom of category.symptoms">
+      <div class="symptom-name-row">
+        <span class="symptom-name">{{ symptom.label }}</span>
+        <span
+          class="symptom-badge"
+          [class.leve]="symptoms[symptom.key] === 1"
+          [class.moderado]="symptoms[symptom.key] === 2"
+          [class.grave]="symptoms[symptom.key] === 3"
+        >
+          {{ severityLabels[symptoms[symptom.key] || 0] }}
+        </span>
+      </div>
+
+      <div class="severity-btns">
+        <app-chip
+          label="Leve"
+          icon="remove-circle-outline"
+          level="leve"
+          [selected]="symptoms[symptom.key] === 1"
+          (chipClick)="onSeverity(symptom.key, 1)"
+        ></app-chip>
+        <app-chip
+          label="Moderado"
+          icon="alert-circle-outline"
+          level="moderado"
+          [selected]="symptoms[symptom.key] === 2"
+          (chipClick)="onSeverity(symptom.key, 2)"
+        ></app-chip>
+        <app-chip
+          label="Grave"
+          icon="warning-outline"
+          level="grave"
+          [selected]="symptoms[symptom.key] === 3"
+          (chipClick)="onSeverity(symptom.key, 3)"
+        ></app-chip>
+      </div>
+    </div>
+  </div>
+</div>

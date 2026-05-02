@@ -1,0 +1,153 @@
+<ion-header>
+  <ion-toolbar class="custom-toolbar">
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="title">Reservar Cita</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="schedule-content">
+
+  <!-- ── CARD: DIAGNÓSTICO ───────────────────────────────────────────── -->
+  <div class="section">
+    <p class="section-label">Diagnóstico de tu mascota</p>
+    <div class="diagnosis-card" [style.border-left-color]="getGravedadColor()">
+      <div class="diag-left">
+        <div class="species-badge" [class.gato]="especie === 'gato'">
+          <ion-icon [name]="especie === 'gato' ? 'fish-outline' : 'paw-outline'"></ion-icon>
+          <span>{{ especie | titlecase }}</span>
+        </div>
+        <h2 class="diag-name">{{ (result?.diagnostico ?? '') | titlecase }}</h2>
+      </div>
+      <div class="gravedad-badge"
+           [class.leve]="result?.gravedad === 'leve'"
+           [class.moderada]="result?.gravedad === 'moderada'"
+           [class.grave]="result?.gravedad === 'grave'">
+        <ion-icon name="warning-outline"></ion-icon>
+        <span>{{ result?.gravedad | titlecase }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CARD: CLÍNICA ──────────────────────────────────────────────── -->
+  <div class="section">
+    <p class="section-label">Clínica Recomendada</p>
+    <div class="clinic-card">
+      <div class="clinic-map-bg">
+        <div class="map-dots"></div>
+      </div>
+      <div class="clinic-info">
+        <div class="clinic-text">
+          <h3>Veterinaria Pet Care</h3>
+          <p>
+            <ion-icon name="location-outline"></ion-icon>
+            Av. Los Héroes 234, San Juan de Miraflores
+          </p>
+        </div>
+        <div class="clinic-status" [class.abierto]="clinicAbierta" [class.cerrado]="!clinicAbierta">
+          {{ clinicAbierta ? 'ABIERTO' : 'CERRADO' }}
+        </div>
+      </div>
+      <div class="clinic-hours">
+        <ion-icon name="time-outline"></ion-icon>
+        Horario: 9:00 am – 10:00 pm
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DATE PICKER ────────────────────────────────────────────────── -->
+  <div class="section">
+    <div class="date-header">
+      <p class="section-label">Selecciona Fecha</p>
+      <span class="month-year">{{ currentMonthYear }}</span>
+    </div>
+    <div class="dates-scroll">
+      <div
+        *ngFor="let d of dates"
+        class="date-card"
+        [class.selected]="selectedDate?.isoDate === d.isoDate"
+        (click)="selectDate(d)"
+      >
+        <span class="date-today" *ngIf="d.isToday">HOY</span>
+        <span class="date-month">{{ d.monthAbbr }}</span>
+        <span class="date-num">{{ d.dayNum }}</span>
+        <span class="date-day">{{ d.dayAbbr }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── TIME SLOTS ─────────────────────────────────────────────────── -->
+  <div class="section">
+    <p class="section-label">Horarios Disponibles</p>
+
+    <div class="slots-loading" *ngIf="isLoadingSlots">
+      <ion-spinner name="crescent"></ion-spinner>
+      <span>Cargando horarios…</span>
+    </div>
+
+    <div class="slots-empty" *ngIf="!isLoadingSlots && timeSlots.length === 0">
+      <ion-icon name="calendar-outline"></ion-icon>
+      <span>No hay horarios disponibles para este día</span>
+    </div>
+
+    <div class="slots-grid" *ngIf="!isLoadingSlots && timeSlots.length > 0">
+      <button
+        *ngFor="let slot of timeSlots"
+        class="slot-btn"
+        [class.slot-selected]="selectedSlot?.hora === slot.hora"
+        [class.slot-urgente]="isFirstAvailable(slot)"
+        [class.slot-disabled]="!slot.disponible"
+        [disabled]="!slot.disponible"
+        (click)="selectSlot(slot)"
+      >
+        <span class="slot-time">{{ slot.hora }}</span>
+        <span class="slot-tag" *ngIf="selectedSlot?.hora === slot.hora">TU SELECCIÓN</span>
+        <span class="slot-tag urgente-tag" *ngIf="isFirstAvailable(slot) && selectedSlot?.hora !== slot.hora">URGENTE</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── COSTO ──────────────────────────────────────────────────────── -->
+  <div class="section">
+    <p class="section-label">Costo estimado</p>
+    <div class="cost-card">
+      <div class="cost-left">
+        <ion-icon name="cash-outline"></ion-icon>
+        <div>
+          <strong>Consulta veterinaria</strong>
+          <p>Incluye diagnóstico y evaluación</p>
+        </div>
+      </div>
+      <div class="cost-price">S/. 50.00</div>
+    </div>
+  </div>
+
+  <!-- ── BOTÓN CONFIRMAR ────────────────────────────────────────────── -->
+  <div class="section confirm-section">
+    <div class="login-hint" *ngIf="!isLoggedIn">
+      <ion-icon name="person-circle-outline"></ion-icon>
+      <span>Deberás iniciar sesión para confirmar la cita</span>
+    </div>
+    <button
+      class="confirm-btn"
+      [class.disabled-btn]="!canConfirm()"
+      (click)="confirmar()"
+    >
+      <ion-icon name="calendar-check-outline"></ion-icon>
+      <span>{{ isLoggedIn ? 'Continuar al pago' : 'Iniciar sesión y continuar' }}</span>
+    </button>
+  </div>
+
+  <div class="bottom-spacer"></div>
+</ion-content>
+
+<button class="theme-toggle-fab" (click)="themeService.toggle()"
+        [attr.aria-label]="themeService.isDark ? 'Modo claro' : 'Modo oscuro'">
+  <span class="toggle-track" [class.dark]="themeService.isDark">
+    <ion-icon class="toggle-icon sun" name="sunny"  [class.visible]="themeService.isDark"></ion-icon>
+    <ion-icon class="toggle-icon moon" name="moon"  [class.visible]="!themeService.isDark"></ion-icon>
+  </span>
+</button>

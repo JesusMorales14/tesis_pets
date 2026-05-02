@@ -1,0 +1,154 @@
+<ion-header>
+  <ion-toolbar class="custom-toolbar">
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="title">Panel de Administración</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="admin-content">
+
+  <!-- Toast -->
+  @if (toastMsg) {
+    <div class="toast-msg" [class.toast-error]="toastError">
+      <ion-icon [name]="toastError ? 'close-circle-outline' : 'checkmark-circle-outline'"></ion-icon>
+      {{ toastMsg }}
+    </div>
+  }
+
+  <!-- ── DATE PICKER ────────────────────────────────────────────────── -->
+  <div class="section">
+    <div class="date-header">
+      <p class="section-label">Selecciona Día</p>
+      <span class="month-year">{{ currentMonthYear }}</span>
+    </div>
+    <div class="dates-scroll">
+      @for (d of dates; track d.isoDate) {
+        <div class="date-card" [class.selected]="selectedDate?.isoDate === d.isoDate" (click)="selectDate(d)">
+          @if (d.isToday) { <span class="date-today">HOY</span> }
+          <span class="date-month">{{ d.monthAbbr }}</span>
+          <span class="date-num">{{ d.dayNum }}</span>
+          <span class="date-day">{{ d.dayAbbr }}</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- ── GESTIÓN DE HORARIOS ────────────────────────────────────────── -->
+  <div class="section">
+    <p class="section-label">Gestión de Horarios</p>
+
+    <div class="legend-row">
+      <span class="legend-dot libre"></span><span>Libre</span>
+      <span class="legend-dot ocupado"></span><span>Con cita</span>
+      <span class="legend-dot bloqueado"></span><span>Bloqueado</span>
+    </div>
+
+    @if (isLoadingSlots) {
+      <div class="slots-loading">
+        <ion-spinner name="crescent"></ion-spinner><span>Cargando horarios…</span>
+      </div>
+    } @else {
+      <div class="slots-grid">
+        @for (slot of slots; track slot.hora) {
+          <button
+            class="admin-slot"
+            [class.slot-libre]="slot.tipo === 'libre'"
+            [class.slot-ocupado]="slot.tipo === 'ocupado'"
+            [class.slot-bloqueado]="slot.tipo === 'bloqueado'"
+            (click)="toggleSlot(slot)"
+          >
+            <span class="slot-time">{{ slot.hora }}</span>
+            @if (slot.tipo === 'bloqueado') { <ion-icon name="lock-closed-outline"></ion-icon> }
+            @if (slot.tipo === 'ocupado')   { <ion-icon name="person-outline"></ion-icon> }
+            @if (slot.tipo === 'libre')     { <ion-icon name="add-circle-outline"></ion-icon> }
+          </button>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- ── CITAS DEL DÍA ──────────────────────────────────────────────── -->
+  <div class="section">
+    <p class="section-label">Citas del día ({{ appointments.length }})</p>
+
+    @if (isLoadingAppts) {
+      <div class="slots-loading">
+        <ion-spinner name="crescent"></ion-spinner><span>Cargando citas…</span>
+      </div>
+    }
+
+    @if (!isLoadingAppts && appointments.length === 0) {
+      <div class="empty-state">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <span>No hay citas para este día</span>
+      </div>
+    }
+
+    @for (a of appointments; track a.id) {
+      <div class="appt-card">
+        <div class="appt-header">
+          <div class="appt-time">
+            <ion-icon name="time-outline"></ion-icon>
+            {{ a.hora }}
+          </div>
+          <div class="appt-estado-badge"
+               [class.estado-pendiente]="a.estado === 'pendiente'"
+               [class.estado-confirmada]="a.estado === 'confirmada'"
+               [class.estado-cancelada]="a.estado === 'cancelada'">
+            @if (a.estado === 'pendiente')  { <ion-icon name="time-outline"></ion-icon> Pendiente }
+            @if (a.estado === 'confirmada') { <ion-icon name="checkmark-circle"></ion-icon> Aceptada }
+            @if (a.estado === 'cancelada')  { <ion-icon name="close-circle"></ion-icon> Rechazada }
+          </div>
+        </div>
+
+        <div class="appt-body">
+          <div class="appt-row">
+            <ion-icon name="person-outline"></ion-icon>
+            <span><strong>{{ a.user_nombre }}</strong> · {{ a.user_email }}</span>
+          </div>
+          <div class="appt-row">
+            <ion-icon name="paw-outline"></ion-icon>
+            <span>{{ a.diagnostico | titlecase }} · {{ a.especie | titlecase }}</span>
+          </div>
+          <div class="appt-row">
+            <ion-icon name="card-outline"></ion-icon>
+            <span>{{ a.metodo_pago === 'yape' ? 'Yape' : 'Tarjeta' }} · S/. 50.00</span>
+          </div>
+        </div>
+
+        <!-- Acciones solo si está pendiente -->
+        @if (a.estado === 'pendiente') {
+          <div class="appt-actions">
+            <button class="estado-btn confirmar" (click)="updateEstado(a, 'confirmada')">
+              <ion-icon name="checkmark-circle-outline"></ion-icon> Aceptar cita
+            </button>
+            <button class="estado-btn cancelar" (click)="updateEstado(a, 'cancelada')">
+              <ion-icon name="close-circle-outline"></ion-icon> Rechazar
+            </button>
+          </div>
+        }
+
+        <!-- Resultado final -->
+        @if (a.estado === 'confirmada') {
+          <div class="resultado-banner resultado-ok">
+            <ion-icon name="checkmark-circle"></ion-icon>
+            <span>Cita aceptada correctamente</span>
+          </div>
+        }
+        @if (a.estado === 'cancelada') {
+          <div class="resultado-banner resultado-ko">
+            <ion-icon name="close-circle"></ion-icon>
+            <span>Cita rechazada</span>
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+
+  <div class="bottom-spacer"></div>
+</ion-content>
