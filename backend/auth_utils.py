@@ -1,11 +1,26 @@
+import os
+import secrets
 from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
-SECRET_KEY = "vet_secret_key_thesis_2024_petcare"
-ALGORITHM = "HS256"
-EXPIRE_DAYS = 7
-ADMIN_CODE = "VET_ADMIN_2024"
+# SECRET_KEY y ADMIN_CODE NUNCA deben tener un valor por defecto fijo en el
+# código fuente: este proyecto es público en GitHub, así que un valor fijo
+# aquí equivale a publicarlo. En producción, defínelos como variables de
+# entorno (ver backend/.env.example). Sin .env (desarrollo local / tests /
+# CI), se genera un valor aleatorio distinto en cada arranque del proceso:
+# los tokens dejan de ser válidos al reiniciar y el código de admin cambia
+# cada vez, pero es la única opción que no expone un secreto real en el
+# repositorio. ADMIN_CODE generado se imprime una vez para poder usarlo en
+# desarrollo local.
+SECRET_KEY = os.getenv("SECRET_KEY") or secrets.token_hex(32)
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
+EXPIRE_DAYS = int(os.getenv("TOKEN_EXPIRE_DAYS", "7"))
+
+ADMIN_CODE = os.getenv("ADMIN_CODE")
+if not ADMIN_CODE:
+    ADMIN_CODE = secrets.token_hex(8)
+    print(f"[auth_utils] ADMIN_CODE no definido en el entorno — usando uno generado para esta sesión: {ADMIN_CODE}")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

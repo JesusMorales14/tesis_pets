@@ -1,0 +1,62 @@
+.app-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 20px 16px 28px;
+  flex-wrap: wrap;
+}
+
+.page-btn {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 6px;
+  border-radius: 10px;
+  border: 1.5px solid var(--app-border);
+  background: var(--app-surface);
+  color: var(--ion-text-color);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+
+  &:hover:not(:disabled):not(.active) {
+    border-color: var(--ion-color-primary);
+    color: var(--ion-color-primary);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.94);
+  }
+
+  &.active {
+    background: var(--ion-color-primary);
+    border-color: var(--ion-color-primary);
+    color: #fff;
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+
+  ion-icon {
+    font-size: 16px;
+    pointer-events: none;
+  }
+}
+
+.nav-btn {
+  color: var(--ion-color-medium);
+}
+
+.ellipsis {
+  min-width: 20px;
+  text-align: center;
+  color: var(--ion-color-medium);
+  font-size: 13px;
+  user-select: none;
+}

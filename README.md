@@ -38,7 +38,7 @@ Desarrollado como proyecto de tesis para la veterinaria **CityVet** — Chincha 
 
 ## Descripción General
 
-**CityVet** es una plataforma web mobile-first que permite a los dueños de mascotas realizar un pre-diagnóstico inteligente de enfermedades en **perros y gatos** a partir de los síntomas observados. La aplicación utiliza un modelo de **Random Forest** entrenado sobre un dataset veterinario para predecir la enfermedad más probable, estimar su gravedad y facilitar el agendamiento de una cita con el veterinario.
+**CityVet** es una plataforma web mobile-first que permite a los dueños de mascotas realizar un pre-diagnóstico inteligente de enfermedades en **perros y gatos** a partir de los síntomas observados. La aplicación utiliza un modelo de **regresión logística** entrenado y validado por cross-validation sobre un dataset veterinario para predecir la enfermedad más probable, estimar su gravedad y facilitar el agendamiento de una cita con el veterinario.
 
 El sistema está diseñado para la clínica **CityVet** y permite a los veterinarios administrar su agenda desde un panel dedicado, visualizando diagnósticos asociados a cada cita antes de la consulta.
 
@@ -49,7 +49,7 @@ El sistema está diseñado para la clínica **CityVet** y permite a los veterina
 ### Para el usuario
 
 - **Diagnóstico por síntomas** — Selección intuitiva de hasta 44 síntomas organizados en 10 categorías, con nivel de severidad (0–3) para cada uno.
-- **Predicción con IA** — Modelo Random Forest independiente para perros y gatos, con calibración de probabilidades mediante _Temperature Scaling_.
+- **Predicción con IA** — Modelo de regresión logística independiente para perros y gatos, validado por cross-validation, con probabilidad real (sin distorsión artificial) y diagnóstico diferencial cuando el caso es ambiguo.
 - **Resultado detallado** — Enfermedad predicha, porcentaje de confianza, fase estimada (1–10) y nivel de gravedad (leve / moderada / grave).
 - **Agendamiento de cita** — Selección de fecha y horario con disponibilidad en tiempo real; el diagnóstico se asocia automáticamente a la reserva.
 - **Base de conocimiento** — Información sobre más de 50 enfermedades veterinarias: síntomas, prevención, cuidados y nivel de urgencia.
@@ -114,8 +114,8 @@ El sistema está diseñado para la clínica **CityVet** y permite a los veterina
 ┌─────────▼─────────┐                  ┌──────────▼──────────────┐
 │  SQLite Database   │                  │  Modelos ML (Joblib)    │
 │                    │                  │                          │
-│  users             │                  │  model_perro.pkl (5.2MB)│
-│  appointments      │                  │  model_gato.pkl  (9.2MB)│
+│  users             │                  │  model_perro.pkl (~8 KB)│
+│  appointments      │                  │  model_gato.pkl  (~9 KB)│
 │  unavailable_slots │                  │  le_especie.pkl          │
 │                    │                  │  le_enfermedad.pkl       │
 │  veterinary.db     │                  │  data/dataset.csv        │
@@ -135,17 +135,19 @@ Selecciona síntomas por categoría
 POST /predict  ──►  Backend carga modelo por especie
                          │
                          ▼
-                    Random Forest predice enfermedad
+                    Regresión logística predice enfermedad
+                    (probabilidad real, sin calibración artificial)
                          │
                          ▼
-                    Temperature Scaling (T=0.4) calibra probabilidad
+                    Si el 2.º diagnóstico está cerca del principal,
+                    se informa como diferencial a confirmar
                          │
                          ▼
                     Estimación de fase/gravedad vs. dataset histórico
                          │
          ◄───────────────┘
          ▼
-Pantalla de resultado: diagnóstico · confianza · fase · gravedad
+Pantalla de resultado: diagnóstico · confianza · fase · gravedad · diferencial
          │
          ▼
 Opción: agendar cita con diagnóstico pre-cargado
@@ -164,7 +166,7 @@ Opción: agendar cita con diagnóstico pre-cargado
 | Uvicorn          | 0.42.0        | Servidor ASGI               |
 | SQLAlchemy       | 2.0.41        | ORM para base de datos      |
 | SQLite           | 3             | Base de datos relacional    |
-| scikit-learn     | 1.8.0         | Modelo Random Forest        |
+| scikit-learn     | 1.8.0         | Modelo de clasificación     |
 | pandas           | 3.0.2         | Procesamiento de datos      |
 | numpy            | 2.4.4         | Operaciones numéricas       |
 | joblib           | 1.5.3         | Serialización de modelos ML |
@@ -176,11 +178,31 @@ Opción: agendar cita con diagnóstico pre-cargado
 
 | Tecnología  | Versión | Uso                                                                 |
 | ----------- | ------- | ------------------------------------------------------------------- |
-| Angular     | 20.0.0  | Framework SPA                                                       |
-| Ionic       | 8.0.0   | UI components mobile-first                                          |
-| TypeScript  | 5.9.0   | Lenguaje del cliente                                                |
+| Angular     | 21.2    | Framework SPA — standalone, signals, `inject()`, control flow (`@if`/`@for`), nuevo build system basado en esbuild |
+| Ionic       | 8.8     | UI components mobile-first                                          |
+| TypeScript  | 5.9.3   | Lenguaje del cliente                                                |
 | RxJS        | 7.8.0   | Tipado reactivo en servicios (`Observable`, `BehaviorSubject`, `tap`) |
 | FontAwesome | 7.2.0   | Iconografía complementaria                                          |
+
+### Arquitectura del frontend
+
+Desde la migración a Angular 21, el proyecto usa una organización explícita por
+responsabilidad en `frontend/src/app/`, con alias de import (`@core/*`,
+`@shared/*`, `@layout/*`, `@pages/*` definidos en `tsconfig.json`) en vez de
+rutas relativas (`../../../..`):
+
+- **`core/`** — servicios singleton (`services/`), guards (`guards/`),
+  modelos de datos (`models/`) y constantes (`constants/`) usados en toda la app.
+- **`shared/`** — componentes reutilizables sin lógica de negocio propia
+  (`components/`: header, footer, paginación).
+- **`layout/`** — el shell de la aplicación: `app-shell` (sidebar de escritorio)
+  y `tabs`/`tab1`/`tab2`/`tab3` (navegación móvil por pestañas).
+- **`pages/`** — páginas de features, una carpeta por pantalla.
+
+Todos los componentes son standalone (sin `NgModule`), el bootstrap se hace vía
+`bootstrapApplication` + `ApplicationConfig` (`app.config.ts`, `app.routes.ts`)
+en lugar de `AppModule`, y la inyección de dependencias usa `inject()` en vez
+de constructores.
 
 ---
 
@@ -190,7 +212,7 @@ Asegúrate de tener instalado en tu sistema:
 
 - **Node.js** ≥ 18.x y **npm** ≥ 9.x  
   Verificar: `node -v && npm -v`
-- **Angular CLI** ≥ 20 e **Ionic CLI** ≥ 7
+- **Angular CLI** ≥ 21 e **Ionic CLI** ≥ 7
   ```bash
   npm install -g @angular/cli @ionic/cli
   ```
@@ -383,13 +405,50 @@ La API REST sigue convenciones estándar. Con el servidor activo, la documentaci
 
 ### Modelos entrenados
 
-| Archivo                    | Tamaño | Descripción                        |
-| -------------------------- | ------ | ---------------------------------- |
-| `ml/model_perro.pkl`       | 5.2 MB | RandomForestClassifier para perros |
-| `ml/model_gato.pkl`        | 9.2 MB | RandomForestClassifier para gatos  |
-| `ml/le_especie.pkl`        | —      | LabelEncoder de especies           |
-| `ml/le_enfermedad.pkl`     | —      | LabelEncoder de enfermedades       |
-| `ml/models_by_species.pkl` | —      | Índice de rutas por especie        |
+| Archivo                    | Descripción                                          |
+| --------------------------- | ---------------------------------------------------- |
+| `ml/model_perro.pkl`       | Pipeline (StandardScaler + LogisticRegression) perros |
+| `ml/model_gato.pkl`        | Pipeline (StandardScaler + LogisticRegression) gatos  |
+| `ml/le_especie.pkl`        | LabelEncoder de especies                              |
+| `ml/le_enfermedad.pkl`     | LabelEncoder de enfermedades                          |
+| `ml/models_by_species.pkl` | Índice de rutas por especie                           |
+
+### Selección y validación del modelo
+
+Con 10-20 muestras por enfermedad, un único split 80/20 (usado en versiones
+anteriores) es demasiado ruidoso para reportar una métrica confiable — puede
+variar más de 10 puntos según la semilla. `ml/train.py` evalúa cada modelo con
+**validación cruzada estratificada repetida (5 folds × 10 repeticiones)** y
+compara varios algoritmos (regresión logística, Random Forest, ExtraTrees,
+Gradient Boosting, SVM, KNN) antes de elegir el de mejor accuracy validada:
+la regresión logística regularizada resultó consistentemente superior en este
+dataset pequeño.
+
+**Accuracy validada por cross-validation** (no accuracy de entrenamiento):
+
+| Especie | Accuracy CV | Nota |
+| ------- | ----------- | ---- |
+| Perro   | ~98%        | Sin combinaciones de síntomas ambiguas tras la limpieza del dataset. |
+| Gato    | ~97%        | Sin combinaciones de síntomas ambiguas tras la limpieza del dataset. |
+
+**Bugs de datos encontrados y corregidos** (no eran limitaciones del modelo,
+sino errores de generación del dataset que hacían matemáticamente imposible
+superar ~81% en gatos): a 4 enfermedades felinas (cistitis, leucemia,
+inmunodeficiencia felina, enfermedad renal crónica) y 2 caninas (displasia de
+cadera, otitis) se les habían asignado por error las columnas de síntomas de
+OTRA enfermedad (p. ej. cistitis tenía síntomas de piel en vez de urinarios),
+haciendo que filas de enfermedades distintas tuvieran el mismo vector de
+síntomas. Se reasignaron a las señales clínicas que realmente las distinguen,
+reutilizando las columnas ya existentes. También se corrigió la columna
+`confusion`, que tenía valores 1-9 en 34 filas en vez de la escala 0-3
+documentada.
+
+`/predict` ya no fuerza una confianza alta artificial: informa la
+probabilidad real y, si el segundo diagnóstico más probable está a menos de
+15 puntos porcentuales del primero, lo agrega como **diagnóstico diferencial
+a confirmar por el veterinario** en vez de ocultar la incertidumbre — esto
+puede seguir ocurriendo ante síntomas realmente atípicos o incompletos, como
+en la práctica clínica real.
 
 ### Pipeline de predicción
 
@@ -400,12 +459,11 @@ Síntomas del usuario (vector 44 dimensiones)
 Carga modelo según especie (caché en memoria)
          │
          ▼
-RandomForestClassifier.predict_proba()
+Pipeline.predict_proba()  →  probabilidad real, sin distorsión artificial
          │
          ▼
-Temperature Scaling (T = 0.4)
-   softmax(logits / T) → distribución concentrada
-   Resultado: ≥ 88 % de confianza cuando el modelo es determinante
+¿2.º diagnóstico a <15 pts del principal?
+   Sí → se agrega como diagnóstico diferencial
          │
          ▼
 Estimación de fase
@@ -441,8 +499,8 @@ tesis_pets/
 │   ├── veterinary.db               # Base de datos SQLite (generada automáticamente)
 │   ├── ml/
 │   │   ├── predict.py              # Motor de predicción (carga modelos, pipeline ML)
-│   │   ├── model_perro.pkl         # Modelo Random Forest — perros
-│   │   ├── model_gato.pkl          # Modelo Random Forest — gatos
+│   │   ├── model_perro.pkl         # Pipeline de clasificación — perros
+│   │   ├── model_gato.pkl          # Pipeline de clasificación — gatos
 │   │   ├── le_especie.pkl          # LabelEncoder especie
 │   │   ├── le_enfermedad.pkl       # LabelEncoder enfermedad
 │   │   └── models_by_species.pkl   # Índice de modelos por especie
@@ -527,6 +585,10 @@ uvicorn main:app --reload --port 8000
 
 # Producción
 uvicorn main:app --host 0.0.0.0 --port 8000 --workers 2
+
+# Tests (dataset integrity, pipeline de ML, API, rate limiting)
+pip install -r requirements-dev.txt
+pytest tests/ -v
 ```
 
 ### Frontend

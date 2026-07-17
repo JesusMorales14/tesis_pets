@@ -1,3 +1,21 @@
+
+// Theming para los pocos componentes de Angular Material que usamos
+// (menú de cuenta, tooltips, paginador). Solo define custom properties
+// --mat-sys-*; no toca fondo/color/tipografía globales, que siguen
+// gobernados por las variables de Ionic en theme/variables.scss para
+// mantener look & feel y modo oscuro consistentes en toda la app.
+@use '@angular/material' as mat;
+
+html {
+  @include mat.theme((
+    color: (
+      primary: mat.$azure-palette,
+      tertiary: mat.$blue-palette,
+    ),
+    density: 0,
+  ));
+}
+
 /*
  * App Global CSS
  * ----------------------------------------------------------------------------
@@ -65,5 +83,26 @@ ion-modal.symptom-picker-modal {
     border-radius: 24px 24px 0 0;
     height: 85vh;
     max-height: 85vh;
+  }
+}
+
+html, body { height: 100%; }
+body { margin: 0; }
+
+// Exportar/imprimir un resultado (ver diagnostic-result.component) no debe
+// incluir el menú lateral de navegación del app-shell — solo el contenido
+// clínico. Regla global porque el menú vive fuera del componente que lo
+// dispara.
+@media print {
+  ion-menu { display: none !important; }
+}
+
+// Botón "destructivo" en los ion-alert de confirmación (eliminar mascota,
+// eliminar cuenta, etc.) — Ionic no lo colorea distinto por defecto, y sin
+// esto se ve idéntico al botón de cancelar.
+ion-alert.destructive-alert {
+  .alert-button[role="destructive"] {
+    color: #c0392b;
+    font-weight: 700;
   }
 }

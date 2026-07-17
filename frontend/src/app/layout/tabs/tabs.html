@@ -1,0 +1,42 @@
+<ion-tabs (ionTabsDidChange)="setCurrentTab($event.tab)">
+  <!-- TAB BAR (oculta visualmente en desktop, ver tabs.page.scss) -->
+  <ion-tab-bar slot="bottom" class="custom-tab-bar">
+    @for (item of navItems; track item.tab) {
+      <ion-tab-button [tab]="item.tab" [href]="item.route">
+        <ion-icon [name]="item.icon"></ion-icon>
+      </ion-tab-button>
+    }
+  </ion-tab-bar>
+
+  @if (!breakpointService.isDesktop()) {
+    <!-- FAB central (pata) — atajo mobile, redundante con el sidebar en desktop -->
+    <button
+      class="fab-center"
+      [class.active]="selectedTab === 'tab2'"
+      (click)="goHome()"
+      aria-label="Inicio"
+    >
+      <ion-icon name="paw"></ion-icon>
+    </button>
+
+    <!-- Botón de tema: sol / luna — en desktop el toggle vive en el sidebar -->
+    <button
+      class="theme-toggle-fab"
+      (click)="toggleTheme()"
+      [attr.aria-label]="themeService.isDark ? 'Activar modo claro' : 'Activar modo oscuro'"
+    >
+      <span class="toggle-track" [class.dark]="themeService.isDark">
+        <ion-icon
+          class="toggle-icon sun"
+          name="sunny"
+          [class.visible]="themeService.isDark"
+        ></ion-icon>
+        <ion-icon
+          class="toggle-icon moon"
+          name="moon"
+          [class.visible]="!themeService.isDark"
+        ></ion-icon>
+      </span>
+    </button>
+  }
+</ion-tabs>

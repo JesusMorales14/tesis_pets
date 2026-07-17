@@ -1,0 +1,123 @@
+.custom-toolbar {
+  --background: var(--ion-background-color);
+}
+
+.title {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.export-content {
+  --background: var(--ion-background-color);
+}
+
+.export-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 20px 20px 48px;
+}
+
+.loading-row {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 40px 0; color: var(--ion-color-medium); font-size: 14px;
+  ion-spinner { width: 20px; height: 20px; }
+}
+
+.error-banner {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(255,59,48,0.1); border: 1.5px solid rgba(255,59,48,0.3);
+  border-radius: 10px; padding: 12px 14px; font-size: 13px; color: #c0392b;
+  ion-icon { font-size: 18px; flex-shrink: 0; }
+}
+
+.print-header {
+  display: none;
+}
+
+.export-pdf-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; margin-bottom: 20px; padding: 12px; border-radius: 12px;
+  border: 1.5px solid var(--app-border); background: var(--app-surface);
+  color: var(--ion-text-color); font-size: 14px; font-weight: 700; cursor: pointer;
+  &:active { transform: scale(0.98); }
+}
+
+section {
+  margin-bottom: 28px;
+
+  h2 {
+    font-size: 16px; font-weight: 800; color: var(--ion-text-color);
+    margin: 0 0 12px; padding-bottom: 8px; border-bottom: 1px solid var(--app-border);
+  }
+}
+
+.info-card {
+  background: var(--app-surface-alt); border-radius: 12px; padding: 14px 16px;
+  p { margin: 0 0 6px; font-size: 13.5px; color: var(--ion-text-color); }
+  p:last-child { margin-bottom: 0; }
+}
+
+.pet-block {
+  background: var(--app-surface-alt); border-radius: 12px; padding: 16px;
+  margin-bottom: 14px;
+
+  h3 { margin: 0 0 2px; font-size: 15px; font-weight: 800; color: var(--ion-text-color); }
+  h4 {
+    margin: 14px 0 6px; font-size: 11.5px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.4px; color: var(--ion-color-primary);
+  }
+}
+
+.pet-meta { margin: 0; font-size: 12.5px; color: var(--ion-color-medium); text-transform: capitalize; }
+
+.muted { font-size: 13px; color: var(--ion-color-medium); margin: 0; }
+
+.data-list {
+  margin: 0; padding-left: 18px;
+  display: flex; flex-direction: column; gap: 8px;
+
+  li { font-size: 13px; line-height: 1.5; color: var(--ion-text-color); }
+}
+
+.symptom-tags {
+  display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px;
+}
+
+.symptom-tag {
+  font-size: 10.5px; padding: 2px 8px; border-radius: 10px;
+  background: var(--app-surface); border: 1px solid var(--app-border);
+  color: var(--ion-color-medium); text-transform: capitalize;
+}
+
+.disclaimer-small {
+  font-size: 11.5px; color: var(--ion-color-medium); line-height: 1.5;
+  padding-top: 12px; border-top: 1px solid var(--app-border);
+}
+
+/* ── EXPORTAR / IMPRIMIR ────────────────────────────────────────────
+   Mismo enfoque que diagnostic-result.component: Ionic renderiza el
+   contenido de ion-content en un shadow-root con scroll propio, así que
+   hay que forzar overflow:visible en su parte interna o el PDF sale
+   cortado a una sola pantalla. */
+@media print {
+  .no-print { display: none !important; }
+
+  .print-header {
+    display: block; padding: 0 0 16px; margin-bottom: 16px;
+    font-size: 12px; color: #444; border-bottom: 1px solid #ccc;
+  }
+
+  ion-content {
+    --overflow: visible;
+    position: relative !important;
+  }
+
+  ion-content::part(scroll) {
+    overflow: visible !important;
+    position: relative !important;
+    height: auto !important;
+  }
+
+  .pet-block, .info-card { background: #fff !important; border: 1px solid #ddd; }
+  .symptom-tag { background: #fff !important; }
+}

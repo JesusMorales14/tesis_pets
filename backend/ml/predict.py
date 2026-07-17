@@ -101,21 +101,45 @@ def predict_sickness(data: dict):
         input_vector = [int(data.get(col, 0)) for col in symptom_columns]
         if len(input_vector) != len(symptom_columns):
             raise ValueError("El vector de síntomas no coincide con el dataset de referencia")
-        full_input = [especie_num] + input_vector
 
-        # Predicción
-        input_df = pd.DataFrame([full_input], columns=["especie"] + symptom_columns)
+        # "especie" no se usa como feature del modelo: es constante dentro
+        # de cada modelo por especie y por lo tanto no aporta información.
+        input_df = pd.DataFrame([input_vector], columns=symptom_columns)
         predicted_enfermedad_num = model.predict(input_df)[0]
         predicted_enfermedad_texto = le_enfermedad.inverse_transform([predicted_enfermedad_num])[0]
 
+        # Probabilidades reales del modelo (regresión logística calibrada por
+        # validación cruzada). A diferencia de una versión anterior, ya NO se
+        # aplica "temperature scaling" artificial para inflar la confianza:
+        # ese truco ocultaba los casos genuinamente ambiguos (p. ej. Leucemia
+        # Felina vs. Inmunodeficiencia Felina, indistinguibles por síntomas y
+        # que en la práctica requieren un análisis de sangre) detrás de un
+        # número de confianza falso. Mostrar la probabilidad real permite
+        # señalar cuándo el diagnóstico necesita confirmación clínica.
         raw_probs = model.predict_proba(input_df)[0]
-        # Temperature scaling: T < 1 concentra la distribución hacia la clase dominante.
-        # Con T=0.4 sobre un modelo bien entrenado se obtiene ≥88% cuando el RF ya lidera clara.
-        T = 0.4
-        log_p = np.log(raw_probs + 1e-10)
-        scaled = np.exp(log_p / T)
-        scaled /= scaled.sum()
-        probability = float(scaled.max())
+        order = np.argsort(raw_probs)[::-1]
+        probability = float(raw_probs[order[0]])
+
+        # Diagnóstico diferencial: si la 2ª y/o 3ª opción están cerca de la
+        # primera, se informan como alternativas a confirmar por el
+        # veterinario en vez de esconder la incertidumbre. La 3ª solo se
+        # muestra cuando el caso es lo bastante ambiguo como para que
+        # también esté cerca del líder (no solo cerca de la 2ª) — así un
+        # caso claro con una 2ª opción lejana no arrastra una 3ª irrelevante.
+        CLOSENESS_THRESHOLD = 0.15
+        diagnostico_alternativo = None
+        probabilidad_alternativa = None
+        diagnostico_tercero = None
+        probabilidad_tercero = None
+        if len(order) > 1 and (probability - raw_probs[order[1]]) < CLOSENESS_THRESHOLD:
+            segunda_enfermedad_num = model.classes_[order[1]]
+            diagnostico_alternativo = le_enfermedad.inverse_transform([segunda_enfermedad_num])[0]
+            probabilidad_alternativa = float(raw_probs[order[1]])
+
+            if len(order) > 2 and (probability - raw_probs[order[2]]) < CLOSENESS_THRESHOLD:
+                tercera_enfermedad_num = model.classes_[order[2]]
+                diagnostico_tercero = le_enfermedad.inverse_transform([tercera_enfermedad_num])[0]
+                probabilidad_tercero = float(raw_probs[order[2]])
 
         # Estimar fase
         phase = estimate_phase(np.array(input_vector), predicted_enfermedad_texto, especie_original)
@@ -126,7 +150,11 @@ def predict_sickness(data: dict):
             "diagnostico": predicted_enfermedad_texto,
             "probabilidad": probability,
             "fase": phase,
-            "gravedad": gravedad_msg
+            "gravedad": gravedad_msg,
+            "diagnostico_alternativo": diagnostico_alternativo,
+            "probabilidad_alternativa": probabilidad_alternativa,
+            "diagnostico_tercero": diagnostico_tercero,
+            "probabilidad_tercero": probabilidad_tercero,
         }
 
     except Exception as e:

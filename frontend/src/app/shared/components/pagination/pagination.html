@@ -1,0 +1,36 @@
+@if (totalPages > 1) {
+  <nav class="app-pagination" aria-label="Paginación de resultados">
+    <button
+      class="page-btn nav-btn"
+      [disabled]="page === 1"
+      (click)="goTo(page - 1)"
+      aria-label="Página anterior"
+    >
+      <ion-icon name="chevron-back-outline"></ion-icon>
+    </button>
+
+    @for (p of pageItems; track $index) {
+      @if (p === ELLIPSIS) {
+        <span class="ellipsis">…</span>
+      } @else {
+        <button
+          class="page-btn"
+          [class.active]="p === page"
+          [attr.aria-current]="p === page ? 'page' : null"
+          (click)="goTo(p)"
+        >
+          {{ p }}
+        </button>
+      }
+    }
+
+    <button
+      class="page-btn nav-btn"
+      [disabled]="page === totalPages"
+      (click)="goTo(page + 1)"
+      aria-label="Página siguiente"
+    >
+      <ion-icon name="chevron-forward-outline"></ion-icon>
+    </button>
+  </nav>
+}

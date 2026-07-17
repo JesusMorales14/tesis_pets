@@ -1,0 +1,18 @@
+// Centra y limita el ancho del contenido en pantallas anchas, con padding
+// progresivo por breakpoint. Se aplica a la parte "scroll" de ion-content
+// (o al wrapper raíz de un componente de presentación), no a ion-content
+// en sí, que debe permanecer 100% ancho/alto para su scroll nativo.
+@mixin page-container($max-width: 1080px) {
+  width: 100%;
+  max-width: $max-width;
+  margin-inline: auto;
+  padding-inline: 16px;
+
+  @media (min-width: 768px) {
+    padding-inline: 32px;
+  }
+
+  @media (min-width: 992px) {
+    padding-inline: 48px;
+  }
+}

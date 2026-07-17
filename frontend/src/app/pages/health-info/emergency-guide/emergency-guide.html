@@ -1,0 +1,98 @@
+<!-- Aviso general -->
+<div class="disclaimer">
+  <ion-icon name="information-circle"></ion-icon>
+  <p>
+    Esta guía es orientativa y <strong>no reemplaza la atención veterinaria</strong>.
+    Ante cualquier duda, llama primero a tu veterinario o clínica de emergencia.
+  </p>
+</div>
+
+<!-- Señales universales de alerta -->
+<div class="section-card redflags">
+  <div class="section-title">
+    <ion-icon name="alert-circle"></ion-icon>
+    <h3>Señales de que es una emergencia</h3>
+  </div>
+  <p class="section-sub">
+    Si tu mascota presenta CUALQUIERA de estas señales, acude de inmediato a un
+    veterinario, sin importar el diagnóstico que sospeches:
+  </p>
+  <ul class="flag-list">
+    @for (flag of redFlags; track flag) {
+      <li><ion-icon name="close-circle"></ion-icon><span>{{ flag }}</span></li>
+    }
+  </ul>
+</div>
+
+<!-- Escenarios de primeros auxilios -->
+<div class="section-title standalone">
+  <ion-icon name="medkit"></ion-icon>
+  <h3>Primeros auxilios por situación</h3>
+</div>
+<p class="section-sub standalone">
+  Toca una situación para ver cómo reconocerla y qué hacer mientras te trasladas al veterinario.
+</p>
+
+<div class="scenario-list">
+  @for (s of scenarios; track s.id) {
+    <div class="scenario-card" [class.expanded]="isExpanded(s)">
+      <button class="scenario-header" (click)="toggle(s)">
+        <div class="scenario-icon" [style.background]="s.color + '22'">
+          <ion-icon [name]="s.icon" [style.color]="s.color"></ion-icon>
+        </div>
+        <div class="scenario-heading">
+          <span class="scenario-title">{{ s.title }}</span>
+          <span class="scenario-desc">{{ s.shortDescription }}</span>
+        </div>
+        <ion-icon
+          class="chevron"
+          [name]="isExpanded(s) ? 'chevron-up-outline' : 'chevron-down-outline'"
+        ></ion-icon>
+      </button>
+
+      @if (isExpanded(s)) {
+        <div class="scenario-body">
+          <div class="sub-block">
+            <p class="sub-title"><ion-icon name="eye-outline"></ion-icon>Cómo reconocerlo</p>
+            <ul>
+              @for (r of s.recognize; track r) { <li>{{ r }}</li> }
+            </ul>
+          </div>
+
+          <div class="sub-block do">
+            <p class="sub-title"><ion-icon name="checkmark-circle-outline"></ion-icon>Qué hacer ahora</p>
+            <ol>
+              @for (d of s.doNow; track d) { <li>{{ d }}</li> }
+            </ol>
+          </div>
+
+          <div class="sub-block dont">
+            <p class="sub-title"><ion-icon name="close-circle-outline"></ion-icon>Qué NO hacer</p>
+            <ul>
+              @for (d of s.doNotDo; track d) { <li>{{ d }}</li> }
+            </ul>
+          </div>
+
+          <div class="go-now">
+            <ion-icon name="warning"></ion-icon>
+            <p><strong>Ve de inmediato si:</strong> {{ s.goNowIf }}</p>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Botiquín -->
+<div class="section-card kit">
+  <div class="section-title">
+    <ion-icon name="bag-handle"></ion-icon>
+    <h3>Botiquín de primeros auxilios</h3>
+  </div>
+  <p class="section-sub">Ten estos elementos siempre a mano en casa:</p>
+  <ul class="kit-list">
+    @for (item of kit; track item) {
+      <li><ion-icon name="checkmark-outline"></ion-icon><span>{{ item }}</span></li>
+    }
+  </ul>
+</div>

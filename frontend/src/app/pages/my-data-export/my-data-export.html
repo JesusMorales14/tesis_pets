@@ -1,0 +1,125 @@
+<ion-header class="no-print">
+  <ion-toolbar class="custom-toolbar">
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="title">Mis datos</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="exportPdf()" [disabled]="!data">
+        <ion-icon name="download-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="export-content">
+  <div class="export-wrap">
+
+    @if (isLoading) {
+      <div class="loading-row no-print">
+        <ion-spinner name="crescent"></ion-spinner><span>Cargando tus datos…</span>
+      </div>
+    }
+
+    @if (errorMsg) {
+      <div class="error-banner no-print">
+        <ion-icon name="alert-circle-outline"></ion-icon>{{ errorMsg }}
+      </div>
+    }
+
+    @if (data) {
+      <div class="print-header">
+        <strong>CityVet</strong> · Datos personales exportados el {{ todayLabel }}
+      </div>
+
+      <button class="export-pdf-btn no-print" (click)="exportPdf()">
+        <ion-icon name="download-outline"></ion-icon>
+        <span>Guardar como PDF</span>
+      </button>
+
+      <section>
+        <h2>Mi cuenta</h2>
+        <div class="info-card">
+          <p><strong>Nombre:</strong> {{ data.cuenta.nombre }}</p>
+          <p><strong>Correo:</strong> {{ data.cuenta.email }}</p>
+          <p><strong>Cuenta creada:</strong> {{ formatDate(data.cuenta.creada_el) }}</p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Mis mascotas ({{ data.mascotas.length }})</h2>
+        @if (data.mascotas.length === 0) {
+          <p class="muted">No tienes mascotas registradas.</p>
+        }
+        @for (pet of data.mascotas; track pet.id) {
+          <div class="pet-block">
+            <h3>{{ pet.nombre }}</h3>
+            <p class="pet-meta">
+              {{ pet.especie | titlecase }}{{ pet.raza ? ' · ' + pet.raza : '' }}
+              {{ pet.edad_meses ? ' · ' + pet.edad_meses + ' meses' : '' }}
+              {{ pet.peso_kg ? ' · ' + pet.peso_kg + ' kg' : '' }}
+            </p>
+
+            <h4>Vacunas</h4>
+            @if (pet.vacunas.length === 0) {
+              <p class="muted">Sin vacunas registradas.</p>
+            } @else {
+              <ul class="data-list">
+                @for (v of pet.vacunas; track v.id) {
+                  <li>
+                    <strong>{{ v.nombre }}</strong> — aplicada {{ formatSimpleDate(v.fecha_aplicacion) }}
+                    @if (v.fecha_proxima) { · refuerzo {{ formatSimpleDate(v.fecha_proxima) }} }
+                  </li>
+                }
+              </ul>
+            }
+
+            <h4>Historial de diagnósticos</h4>
+            @if (pet.historial_diagnosticos.length === 0) {
+              <p class="muted">Sin diagnósticos guardados.</p>
+            } @else {
+              <ul class="data-list">
+                @for (d of pet.historial_diagnosticos; track d.created_at) {
+                  <li>
+                    <strong>{{ (d.diagnostico | titlecase) }}</strong>
+                    ({{ (d.probabilidad * 100) | number:'1.0-0' }}%, {{ d.gravedad }}) — {{ formatDate(d.created_at) }}
+                    <div class="symptom-tags">
+                      @for (s of symptomEntries(d.sintomas); track s.key) {
+                        <span class="symptom-tag">{{ s.key }} · {{ s.severidad }}</span>
+                      }
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        }
+      </section>
+
+      <section>
+        <h2>Mis citas ({{ data.citas.length }})</h2>
+        @if (data.citas.length === 0) {
+          <p class="muted">No tienes citas registradas.</p>
+        } @else {
+          <ul class="data-list">
+            @for (c of data.citas; track c.id) {
+              <li>
+                {{ formatSimpleDate(c.fecha) }} {{ c.hora }} — <strong>{{ c.diagnostico | titlecase }}</strong>
+                ({{ c.especie | titlecase }}) · {{ c.estado | titlecase }} ·
+                {{ metodoPagoLabel(c.metodo_pago) }} ({{ c.pago_estado }})
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+      <p class="disclaimer-small">
+        Este documento contiene todos los datos personales que CityVet tiene registrados sobre tu cuenta,
+        de acuerdo a la Ley N.° 29733 de Protección de Datos Personales del Perú.
+      </p>
+    }
+
+  </div>
+</ion-content>

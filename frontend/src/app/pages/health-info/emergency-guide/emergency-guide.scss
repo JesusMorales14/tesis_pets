@@ -1,0 +1,258 @@
+.disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 16px 16px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--app-surface-alt);
+  border: 1px solid var(--app-border);
+
+  ion-icon {
+    font-size: 18px;
+    color: var(--ion-color-primary);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ion-color-medium);
+  }
+}
+
+.section-card {
+  margin: 0 16px 20px;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--ion-card-background);
+  border: 1px solid var(--app-border);
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+
+  &.standalone {
+    margin: 0 16px 4px;
+  }
+
+  ion-icon {
+    font-size: 20px;
+    color: var(--ion-color-primary);
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ion-text-color);
+  }
+}
+
+.section-sub {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--ion-color-medium);
+  line-height: 1.5;
+
+  &.standalone {
+    margin: 0 16px 14px;
+  }
+}
+
+.redflags {
+  border-color: rgba(224, 91, 91, 0.3);
+  background: rgba(224, 91, 91, 0.06);
+}
+
+.flag-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  li {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 13.5px;
+    color: var(--ion-text-color);
+    line-height: 1.4;
+
+    ion-icon {
+      color: #e05b5b;
+      font-size: 16px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+  }
+}
+
+.scenario-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 16px;
+  margin-bottom: 24px;
+}
+
+.scenario-card {
+  border-radius: 14px;
+  background: var(--ion-card-background);
+  border: 1px solid var(--app-border);
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+
+  &.expanded {
+    border-color: var(--ion-color-primary);
+  }
+}
+
+.scenario-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.scenario-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  ion-icon { font-size: 22px; }
+}
+
+.scenario-heading {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.scenario-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--ion-text-color);
+}
+
+.scenario-desc {
+  font-size: 12px;
+  color: var(--ion-color-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chevron {
+  font-size: 18px;
+  color: var(--ion-color-medium);
+  flex-shrink: 0;
+}
+
+.scenario-body {
+  padding: 0 16px 16px;
+  border-top: 1px solid var(--app-border);
+  padding-top: 14px;
+}
+
+.sub-block {
+  margin-bottom: 14px;
+
+  &:last-of-type { margin-bottom: 0; }
+
+  .sub-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 6px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ion-text-color);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+
+    ion-icon { font-size: 15px; color: var(--ion-color-primary); }
+  }
+
+  ul, ol {
+    margin: 0;
+    padding-left: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+
+    li {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--ion-text-color);
+    }
+  }
+
+  &.do .sub-title ion-icon { color: #2dbe7a; }
+  &.dont .sub-title ion-icon { color: #e05b5b; }
+}
+
+.go-now {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(224, 91, 91, 0.1);
+  border: 1px solid rgba(224, 91, 91, 0.3);
+  margin-top: 4px;
+
+  ion-icon { color: #c0392b; font-size: 17px; flex-shrink: 0; margin-top: 1px; }
+
+  p {
+    margin: 0;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--ion-text-color);
+  }
+}
+
+.kit {
+  .kit-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    li {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 13.5px;
+      color: var(--ion-text-color);
+      line-height: 1.4;
+
+      ion-icon {
+        color: #2dbe7a;
+        font-size: 16px;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+    }
+  }
+}

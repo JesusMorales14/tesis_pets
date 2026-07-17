@@ -1,0 +1,82 @@
+<ion-content class="pet-selection">
+  <div class="header-bg"></div>
+  <div class="container">
+    <div class="hero-section">
+      <h1 class="main-title">
+        ¿A quién<br />
+        chequeamos <span class="highlight">hoy?</span>
+      </h1>
+      <p class="description">
+        Los síntomas y predicciones se adaptarán a la mascota seleccionada.
+      </p>
+    </div>
+
+    @if (auth.isLoggedIn) {
+      <div class="my-pets-section">
+        <div class="section-header">
+          <h2 class="section-title">Mis mascotas</h2>
+          <div class="section-line"></div>
+        </div>
+
+        @if (isLoadingPets) {
+          <div class="my-pets-grid">
+            @for (i of [1, 2]; track i) {
+              <div class="my-pet-card">
+                <ion-skeleton-text [animated]="true" style="width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;"></ion-skeleton-text>
+                <div class="my-pet-info">
+                  <ion-skeleton-text [animated]="true" style="width: 70px; height: 13px;"></ion-skeleton-text>
+                  <ion-skeleton-text [animated]="true" style="width: 50px; height: 11px; margin-top: 4px;"></ion-skeleton-text>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        @if (!isLoadingPets) {
+          <div class="my-pets-grid">
+            @for (pet of myPets; track pet.id) {
+              <button class="my-pet-card" (click)="selectPet(pet)">
+                <img [src]="petIcon(pet)" [alt]="pet.especie" />
+                <div class="my-pet-info">
+                  <strong>{{ pet.nombre }}</strong>
+                  <span>{{ pet.especie | titlecase }}{{ pet.raza ? ' · ' + pet.raza : '' }}</span>
+                </div>
+              </button>
+            }
+            <button class="add-pet-card" (click)="openAddPetModal()">
+              <ion-icon name="add-circle-outline"></ion-icon>
+              <span>Agregar mascota</span>
+            </button>
+          </div>
+          <p class="my-pets-hint">
+            Selecciona una mascota para guardar el diagnóstico en su historial.
+          </p>
+        }
+      </div>
+    }
+
+    <div class="animals-section">
+      <div class="section-header">
+        <h2 class="section-title">Diagnóstico rápido</h2>
+        <div class="section-line"></div>
+      </div>
+      <p class="quick-hint">Elige la especie sin guardar el resultado en ningún historial.</p>
+      <div class="animals-grid">
+        <app-animal-card
+          [animal]="canino"
+          [isSelected]="selectedAnimal?.id === canino.id"
+          (selected)="selectAnimal($event)"
+          (navigate)="navigateToDetail($event)"
+        ></app-animal-card>
+        <app-animal-card
+          [animal]="felino"
+          [isSelected]="selectedAnimal?.id === felino.id"
+          (selected)="selectAnimal($event)"
+          (navigate)="navigateToDetail($event)"
+        ></app-animal-card>
+      </div>
+    </div>
+
+    <app-predict-today></app-predict-today>
+  </div>
+</ion-content>

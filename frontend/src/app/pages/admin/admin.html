@@ -1,0 +1,322 @@
+<ion-header>
+  <ion-toolbar class="custom-toolbar">
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="title">Panel de Administración</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="admin-content">
+
+  <!-- Toast -->
+  @if (toastMsg) {
+    <div class="toast-msg" [class.toast-error]="toastError">
+      <ion-icon [name]="toastError ? 'close-circle-outline' : 'checkmark-circle-outline'"></ion-icon>
+      {{ toastMsg }}
+    </div>
+  }
+
+  <!-- ── PAGOS PENDIENTES DE REVISIÓN ───────────────────────────────── -->
+  <div class="section">
+    <p class="section-label">
+      Pagos pendientes de revisión
+      @if (pendingPayments.length > 0) {
+        <span class="pending-count">{{ pendingPayments.length }}</span>
+      }
+    </p>
+
+    @if (isLoadingPending) {
+      @for (i of [1, 2]; track i) {
+        <div class="payment-review-card">
+          <ion-skeleton-text [animated]="true" style="width: 84px; height: 84px; border-radius: 10px; flex-shrink: 0;"></ion-skeleton-text>
+          <div class="payment-review-info">
+            <ion-skeleton-text [animated]="true" style="width: 60%; height: 13px;"></ion-skeleton-text>
+            <ion-skeleton-text [animated]="true" style="width: 40%; height: 12px;"></ion-skeleton-text>
+            <ion-skeleton-text [animated]="true" style="width: 50%; height: 12px;"></ion-skeleton-text>
+          </div>
+        </div>
+      }
+    }
+    @if (!isLoadingPending && pendingPayments.length === 0) {
+      <div class="empty-state">
+        <ion-icon name="checkmark-done-outline"></ion-icon>
+        <span>No hay comprobantes esperando revisión</span>
+      </div>
+    }
+
+    @for (p of pendingPayments; track p.id) {
+      <div class="payment-review-card">
+        @if (p.comprobante_url) {
+          <a [href]="apiUrl + p.comprobante_url" target="_blank" rel="noopener" class="comprobante-thumb">
+            <img [src]="apiUrl + p.comprobante_url" alt="Comprobante de pago" />
+          </a>
+        }
+        <div class="payment-review-info">
+          <div class="appt-row">
+            <ion-icon name="person-outline"></ion-icon>
+            <span><strong>{{ p.user_nombre }}</strong> · {{ p.user_email }}</span>
+          </div>
+          <div class="appt-row">
+            <ion-icon name="calendar-outline"></ion-icon>
+            <span>{{ p.fecha }} · {{ p.hora }}</span>
+          </div>
+          <div class="appt-row">
+            <ion-icon name="card-outline"></ion-icon>
+            <span>{{ p.metodo_pago === 'yape' ? 'Yape' : 'Transferencia' }} · {{ p.diagnostico | titlecase }}</span>
+          </div>
+          <div class="appt-actions">
+            <button
+              class="estado-btn confirmar"
+              [disabled]="decidingId === p.id"
+              (click)="decidePayment(p, true)"
+              >
+              <ion-icon name="checkmark-circle-outline"></ion-icon> Aprobar pago
+            </button>
+            <button
+              class="estado-btn cancelar"
+              [disabled]="decidingId === p.id"
+              (click)="decidePayment(p, false)"
+              >
+              <ion-icon name="close-circle-outline"></ion-icon> Rechazar
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- ── CONFIGURACIÓN DE PAGOS ─────────────────────────────────────── -->
+  <div class="section">
+    <div class="config-header" (click)="togglePaymentConfig()">
+      <p class="section-label">Configuración de pagos</p>
+      <ion-icon [name]="showPaymentConfig ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+    </div>
+
+    @if (showPaymentConfig) {
+      <div class="payment-config-card">
+        <p class="config-subtitle">Yape</p>
+        <div class="config-row">
+          <div class="qr-preview">
+            @if (paymentConfig?.yape_qr_url) {
+              <img [src]="apiUrl + paymentConfig!.yape_qr_url" alt="QR de Yape actual" />
+            } @else {
+              <ion-icon name="qr-code-outline"></ion-icon>
+            }
+          </div>
+          <label class="upload-qr-btn">
+            <input type="file" accept="image/png,image/jpeg,image/webp" (change)="onQrSelected($event)" hidden />
+            @if (isUploadingQr) { <ion-spinner name="crescent"></ion-spinner> }
+            @else { <span>{{ paymentConfig?.yape_qr_url ? 'Cambiar QR' : 'Subir QR' }}</span> }
+          </label>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Número de celular Yape</label>
+          <input type="text" class="form-input" [(ngModel)]="paymentConfigForm.yape_phone" placeholder="987 654 321" />
+        </div>
+
+        <p class="config-subtitle">Transferencia bancaria</p>
+        <div class="form-group">
+          <label class="form-label">Banco</label>
+          <input type="text" class="form-input" [(ngModel)]="paymentConfigForm.banco" placeholder="BCP" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo de cuenta</label>
+          <input type="text" class="form-input" [(ngModel)]="paymentConfigForm.tipo_cuenta" placeholder="Ahorros" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Número de cuenta</label>
+          <input type="text" class="form-input" [(ngModel)]="paymentConfigForm.numero_cuenta" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">CCI</label>
+          <input type="text" class="form-input" [(ngModel)]="paymentConfigForm.cci" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Titular de la cuenta</label>
+          <input type="text" class="form-input" [(ngModel)]="paymentConfigForm.titular" placeholder="CityVet SAC" />
+        </div>
+
+        <button class="save-config-btn" [disabled]="isSavingConfig" (click)="savePaymentConfig()">
+          @if (isSavingConfig) { <ion-spinner name="crescent"></ion-spinner> }
+          @else { <ion-icon name="save-outline"></ion-icon> }
+          <span>Guardar datos de pago</span>
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- ── DATE PICKER ────────────────────────────────────────────────── -->
+  <div class="section">
+    <div class="date-header">
+      <p class="section-label">Selecciona Día</p>
+      <span class="month-year">{{ currentMonthYear }}</span>
+    </div>
+    <div class="dates-scroll">
+      @for (d of dates; track d.isoDate) {
+        <div class="date-card" [class.selected]="selectedDate?.isoDate === d.isoDate" (click)="selectDate(d)">
+          @if (d.isToday) { <span class="date-today">HOY</span> }
+          <span class="date-month">{{ d.monthAbbr }}</span>
+          <span class="date-num">{{ d.dayNum }}</span>
+          <span class="date-day">{{ d.dayAbbr }}</span>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- ── GESTIÓN DE HORARIOS ────────────────────────────────────────── -->
+  <div class="section">
+    <p class="section-label">Gestión de Horarios</p>
+
+    <div class="legend-row">
+      <span class="legend-dot libre"></span><span>Libre</span>
+      <span class="legend-dot ocupado"></span><span>Con cita</span>
+      <span class="legend-dot bloqueado"></span><span>Bloqueado</span>
+    </div>
+
+    @if (isLoadingSlots) {
+      <ion-grid class="slots-grid">
+        <ion-row>
+          @for (i of [1,2,3,4,5,6,7,8,9,10,11,12]; track i) {
+            <ion-col size="4" size-md="3" size-lg="2">
+              <ion-skeleton-text [animated]="true" style="width: 100%; height: 52px; border-radius: 12px;"></ion-skeleton-text>
+            </ion-col>
+          }
+        </ion-row>
+      </ion-grid>
+    } @else {
+      <ion-grid class="slots-grid">
+        <ion-row>
+          @for (slot of slots; track slot.hora) {
+            <ion-col size="4" size-md="3" size-lg="2">
+              <button
+                class="admin-slot"
+                [class.slot-libre]="slot.tipo === 'libre'"
+                [class.slot-ocupado]="slot.tipo === 'ocupado'"
+                [class.slot-bloqueado]="slot.tipo === 'bloqueado'"
+                (click)="toggleSlot(slot)"
+              >
+                <span class="slot-time">{{ slot.hora }}</span>
+                @if (slot.tipo === 'bloqueado') { <ion-icon name="lock-closed-outline"></ion-icon> }
+                @if (slot.tipo === 'ocupado')   { <ion-icon name="person-outline"></ion-icon> }
+                @if (slot.tipo === 'libre')     { <ion-icon name="add-circle-outline"></ion-icon> }
+              </button>
+            </ion-col>
+          }
+        </ion-row>
+      </ion-grid>
+    }
+  </div>
+
+  <!-- ── CITAS DEL DÍA ──────────────────────────────────────────────── -->
+  <div class="section">
+    <p class="section-label">Citas del día ({{ appointments.length }})</p>
+
+    @if (isLoadingAppts) {
+      <ion-grid class="appts-grid">
+        <ion-row>
+          @for (i of [1, 2]; track i) {
+            <ion-col size="12" size-lg="6">
+              <div class="appt-card">
+                <div class="appt-header">
+                  <ion-skeleton-text [animated]="true" style="width: 70px; height: 16px;"></ion-skeleton-text>
+                  <ion-skeleton-text [animated]="true" style="width: 90px; height: 22px; border-radius: 20px;"></ion-skeleton-text>
+                </div>
+                <div class="appt-body">
+                  <ion-skeleton-text [animated]="true" style="width: 80%; height: 13px; margin-bottom: 8px;"></ion-skeleton-text>
+                  <ion-skeleton-text [animated]="true" style="width: 60%; height: 13px; margin-bottom: 8px;"></ion-skeleton-text>
+                  <ion-skeleton-text [animated]="true" style="width: 45%; height: 13px;"></ion-skeleton-text>
+                </div>
+              </div>
+            </ion-col>
+          }
+        </ion-row>
+      </ion-grid>
+    }
+
+    @if (!isLoadingAppts && appointments.length === 0) {
+      <div class="empty-state">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <span>No hay citas para este día</span>
+      </div>
+    }
+
+    <ion-grid class="appts-grid">
+      <ion-row>
+        @for (a of pagedAppointments; track a.id) {
+          <ion-col size="12" size-lg="6">
+            <div class="appt-card">
+              <div class="appt-header">
+                <div class="appt-time">
+                  <ion-icon name="time-outline"></ion-icon>
+                  {{ a.hora }}
+                </div>
+                <div class="appt-estado-badge"
+                     [class.estado-pendiente]="a.estado === 'pendiente'"
+                     [class.estado-confirmada]="a.estado === 'confirmada'"
+                     [class.estado-cancelada]="a.estado === 'cancelada'">
+                  @if (a.estado === 'pendiente')  { <ion-icon name="time-outline"></ion-icon> Pendiente }
+                  @if (a.estado === 'confirmada') { <ion-icon name="checkmark-circle"></ion-icon> Aceptada }
+                  @if (a.estado === 'cancelada')  { <ion-icon name="close-circle"></ion-icon> Rechazada }
+                </div>
+              </div>
+
+              <div class="appt-body">
+                <div class="appt-row">
+                  <ion-icon name="person-outline"></ion-icon>
+                  <span><strong>{{ a.user_nombre }}</strong> · {{ a.user_email }}</span>
+                </div>
+                <div class="appt-row">
+                  <ion-icon name="paw-outline"></ion-icon>
+                  <span>{{ a.diagnostico | titlecase }} · {{ a.especie | titlecase }}</span>
+                </div>
+                <div class="appt-row">
+                  <ion-icon name="card-outline"></ion-icon>
+                  <span>{{ a.metodo_pago === 'yape' ? 'Yape' : 'Transferencia' }} · S/. 50.00</span>
+                </div>
+              </div>
+
+              <!-- Acciones solo si está pendiente -->
+              @if (a.estado === 'pendiente') {
+                <div class="appt-actions">
+                  <button class="estado-btn confirmar" (click)="updateEstado(a, 'confirmada')">
+                    <ion-icon name="checkmark-circle-outline"></ion-icon> Aceptar cita
+                  </button>
+                  <button class="estado-btn cancelar" (click)="updateEstado(a, 'cancelada')">
+                    <ion-icon name="close-circle-outline"></ion-icon> Rechazar
+                  </button>
+                </div>
+              }
+
+              <!-- Resultado final -->
+              @if (a.estado === 'confirmada') {
+                <div class="resultado-banner resultado-ok">
+                  <ion-icon name="checkmark-circle"></ion-icon>
+                  <span>Cita aceptada correctamente</span>
+                </div>
+              }
+              @if (a.estado === 'cancelada') {
+                <div class="resultado-banner resultado-ko">
+                  <ion-icon name="close-circle"></ion-icon>
+                  <span>Cita rechazada</span>
+                </div>
+              }
+            </div>
+          </ion-col>
+        }
+      </ion-row>
+    </ion-grid>
+
+    <app-pagination
+      [totalItems]="appointments.length"
+      [pageSize]="apptsPageSize"
+      [page]="apptsPage"
+      (pageChange)="apptsPage = $event"
+    ></app-pagination>
+
+  </div>
+
+  <div class="bottom-spacer"></div>
+</ion-content>

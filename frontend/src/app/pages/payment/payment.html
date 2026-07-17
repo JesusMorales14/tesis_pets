@@ -1,0 +1,268 @@
+<!-- Header dinámico según paso -->
+<ion-header>
+  <ion-toolbar class="custom-toolbar">
+    @if (step === 1) {
+      <ion-buttons slot="start">
+        <ion-button fill="clear" (click)="goBack()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    }
+    <ion-title class="title">
+      @if (step === 1) { Método de Pago }
+      @if (step === 3) { Enviar comprobante }
+      @if (step === 4) { Confirmación }
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="payment-content">
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       PASO 4 — ÉXITO
+  ══════════════════════════════════════════════════════════════════ -->
+  @if (step === 4) {
+    <div class="success-wrap">
+      <div class="success-icon">
+        <ion-icon name="checkmark-circle"></ion-icon>
+      </div>
+      <h1>¡Cita reservada!</h1>
+      <p>Tu horario ya está apartado. Enviamos tu comprobante a la clínica — te avisaremos apenas lo revisen.</p>
+
+      <div class="success-detail">
+        <div class="detail-row">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <span>{{ fechaLabel }}</span>
+        </div>
+        <div class="detail-row">
+          <ion-icon name="time-outline"></ion-icon>
+          <span>{{ hora }}</span>
+        </div>
+        <div class="detail-row">
+          <ion-icon name="paw-outline"></ion-icon>
+          <span>{{ (result?.diagnostico ?? '') | titlecase }} · {{ especie | titlecase }}</span>
+        </div>
+        <div class="detail-row">
+          <ion-icon name="cash-outline"></ion-icon>
+          <span>{{ metodo === 'yape' ? 'Yape' : 'Transferencia' }} · Comprobante enviado a revisión</span>
+        </div>
+      </div>
+
+      <button class="home-btn" (click)="goToProfile()">
+        <ion-icon name="person-outline"></ion-icon>
+        <span>Ver mis citas</span>
+      </button>
+      <button class="home-btn secondary" (click)="goHome()">
+        <ion-icon name="home-outline"></ion-icon>
+        <span>Volver al inicio</span>
+      </button>
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       PASO 1 — ELEGIR MÉTODO
+  ══════════════════════════════════════════════════════════════════ -->
+  @if (step === 1) {
+
+    <!-- Resumen de cita -->
+    <div class="section">
+      <p class="section-label">Resumen de tu cita</p>
+      <div class="summary-card">
+        <div class="summary-row">
+          <ion-icon name="paw-outline"></ion-icon>
+          <div>
+            <strong>{{ (result?.diagnostico ?? '') | titlecase }}</strong>
+            <span>{{ especie | titlecase }} · {{ result?.gravedad | titlecase }}</span>
+          </div>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-row">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <div>
+            <strong>{{ fechaLabel }}</strong>
+            <span>{{ hora }} — CityVet</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Métodos -->
+    <div class="section">
+      <p class="section-label">Selecciona método de pago</p>
+
+      <div class="payment-card" [class.selected]="metodo === 'yape'" (click)="selectMetodo('yape')">
+        <div class="payment-logo yape-logo">
+          <ion-icon name="phone-portrait-outline"></ion-icon>
+        </div>
+        <div class="payment-info">
+          <strong>Yape</strong>
+          <p>Escanea el QR o yapea al número de la clínica</p>
+        </div>
+        @if (metodo === 'yape') {
+          <ion-icon name="checkmark-circle" class="check-icon"></ion-icon>
+        }
+      </div>
+
+      <div class="payment-card" [class.selected]="metodo === 'transferencia'" (click)="selectMetodo('transferencia')">
+        <div class="payment-logo card-logo">
+          <ion-icon name="business-outline"></ion-icon>
+        </div>
+        <div class="payment-info">
+          <strong>Transferencia bancaria</strong>
+          <p>Deposita a la cuenta interbancaria de la clínica</p>
+        </div>
+        @if (metodo === 'transferencia') {
+          <ion-icon name="checkmark-circle" class="check-icon"></ion-icon>
+        }
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="info-hint">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        <span>
+          Tu horario se reserva apenas eliges el método de pago. Después verás los datos para
+          pagar y podrás subir tu comprobante.
+        </span>
+      </div>
+    </div>
+
+    @if (errorMsg) {
+      <div class="section">
+        <div class="error-banner">
+          <ion-icon name="alert-circle-outline"></ion-icon>{{ errorMsg }}
+        </div>
+      </div>
+    }
+
+    <div class="section confirm-section">
+      <button
+        class="confirm-btn"
+        [class.disabled-btn]="!metodo || isProcessing"
+        (click)="continuar()"
+        [disabled]="!metodo || isProcessing"
+        >
+        @if (isProcessing) { <ion-spinner name="crescent"></ion-spinner> }
+        @else { <ion-icon name="arrow-forward-outline"></ion-icon> }
+        <span>{{ isProcessing ? 'Reservando…' : 'Reservar y continuar' }}</span>
+      </button>
+    </div>
+  }
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       PASO 3 — PAGAR Y SUBIR COMPROBANTE
+  ══════════════════════════════════════════════════════════════════ -->
+  @if (step === 3) {
+
+    <div class="section">
+      <div class="info-hint success-hint">
+        <ion-icon name="checkmark-circle"></ion-icon>
+        <span>Tu horario del {{ fechaLabel }}, {{ hora }} ya está reservado.</span>
+      </div>
+    </div>
+
+    @if (metodo === 'yape') {
+      <div class="section">
+        <p class="section-label">Paga con Yape</p>
+        <div class="yape-card">
+          <div class="yape-header">
+            <div class="yape-logo-wrap">
+              <ion-icon name="phone-portrait-outline"></ion-icon>
+            </div>
+            <div>
+              <span class="yape-brand">YAPE</span>
+              <span class="yape-sub">CityVet</span>
+            </div>
+          </div>
+          @if (paymentConfig?.yape_qr_url) {
+            <img class="yape-qr" [src]="apiUrl + paymentConfig!.yape_qr_url" alt="Código QR de Yape" />
+          }
+          <div class="yape-to">
+            <span class="yape-to-label">Número Yape</span>
+            <button class="copy-row" (click)="copyToClipboard(paymentConfig?.yape_phone ?? null, 'yape')">
+              <span class="yape-to-phone">{{ paymentConfig?.yape_phone || 'No configurado todavía' }}</span>
+              @if (paymentConfig?.yape_phone) {
+                <ion-icon [name]="copiedField === 'yape' ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (metodo === 'transferencia') {
+      <div class="section">
+        <p class="section-label">Datos para transferencia</p>
+        <div class="bank-card">
+          <div class="bank-row">
+            <span class="bank-label">Banco</span>
+            <span class="bank-value">{{ paymentConfig?.banco || 'No configurado todavía' }}</span>
+          </div>
+          <div class="bank-row">
+            <span class="bank-label">Tipo de cuenta</span>
+            <span class="bank-value">{{ paymentConfig?.tipo_cuenta || '—' }}</span>
+          </div>
+          <div class="bank-row">
+            <span class="bank-label">N.° de cuenta</span>
+            <button class="copy-row" (click)="copyToClipboard(paymentConfig?.numero_cuenta ?? null, 'cuenta')">
+              <span class="bank-value">{{ paymentConfig?.numero_cuenta || '—' }}</span>
+              @if (paymentConfig?.numero_cuenta) {
+                <ion-icon [name]="copiedField === 'cuenta' ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
+              }
+            </button>
+          </div>
+          <div class="bank-row">
+            <span class="bank-label">CCI</span>
+            <button class="copy-row" (click)="copyToClipboard(paymentConfig?.cci ?? null, 'cci')">
+              <span class="bank-value">{{ paymentConfig?.cci || '—' }}</span>
+              @if (paymentConfig?.cci) {
+                <ion-icon [name]="copiedField === 'cci' ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
+              }
+            </button>
+          </div>
+          <div class="bank-row">
+            <span class="bank-label">Titular</span>
+            <span class="bank-value">{{ paymentConfig?.titular || '—' }}</span>
+          </div>
+        </div>
+      </div>
+    }
+
+    <div class="section">
+      <p class="section-label">Sube tu comprobante</p>
+      <label class="upload-box" [class.has-file]="selectedFile">
+        <input type="file" accept="image/png,image/jpeg,image/webp" (change)="onFileSelected($event)" hidden />
+        @if (!filePreviewUrl) {
+          <ion-icon name="cloud-upload-outline"></ion-icon>
+          <span>Toca para elegir una foto o captura del comprobante</span>
+        } @else {
+          <img [src]="filePreviewUrl" alt="Vista previa del comprobante" />
+          <span class="change-hint">Toca para cambiar la imagen</span>
+        }
+      </label>
+    </div>
+
+    @if (errorMsg) {
+      <div class="section">
+        <div class="error-banner">
+          <ion-icon name="alert-circle-outline"></ion-icon>{{ errorMsg }}
+        </div>
+      </div>
+    }
+
+    <div class="section confirm-section">
+      <button
+        class="confirm-btn"
+        [class.disabled-btn]="!selectedFile || isUploading"
+        [disabled]="!selectedFile || isUploading"
+        (click)="subirComprobante()"
+        >
+        @if (isUploading) { <ion-spinner name="crescent"></ion-spinner> }
+        @else { <ion-icon name="checkmark-outline"></ion-icon> }
+        <span>{{ isUploading ? 'Enviando…' : 'Enviar comprobante' }}</span>
+      </button>
+    </div>
+  }
+
+  <div class="bottom-spacer"></div>
+</ion-content>

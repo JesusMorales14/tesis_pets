@@ -1,0 +1,410 @@
+<ion-header>
+  <ion-toolbar class="custom-toolbar">
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="title">Mi cuenta</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="profile-content">
+  <div class="profile-wrap">
+
+    <!-- ── NO AUTENTICADO ─────────────────────────────────────────────── -->
+    @if (!auth.isLoggedIn) {
+      <div class="not-logged-hero">
+        <div class="profile-logo">
+          <ion-icon name="person-circle-outline"></ion-icon>
+        </div>
+        <h2>Mi cuenta</h2>
+        <p>Inicia sesión para ver tus citas y reservar nuevas consultas veterinarias.</p>
+      </div>
+
+      <div class="auth-btns">
+        <button class="primary-btn" (click)="goToLogin()">
+          <ion-icon name="log-in-outline"></ion-icon>
+          <span>Iniciar sesión</span>
+        </button>
+        <button class="secondary-btn" (click)="goToRegister()">
+          <ion-icon name="person-add-outline"></ion-icon>
+          <span>Registrarse</span>
+        </button>
+      </div>
+    }
+
+    <!-- ── AUTENTICADO ────────────────────────────────────────────────── -->
+    @if (auth.isLoggedIn) {
+
+      <!-- Avatar y nombre -->
+      <div class="user-hero">
+        <div class="user-avatar">
+          <span>{{ auth.currentUser?.nombre?.charAt(0)?.toUpperCase() }}</span>
+        </div>
+        <div class="user-info">
+          <h2>{{ auth.currentUser?.nombre }}</h2>
+          <p>{{ auth.currentUser?.email }}</p>
+          <span class="role-badge" [class.admin-badge]="auth.isAdmin">
+            <ion-icon [name]="auth.isAdmin ? 'shield-checkmark-outline' : 'person-outline'"></ion-icon>
+            {{ auth.isAdmin ? 'Administrador' : 'Usuario' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Admin panel access -->
+      @if (auth.isAdmin) {
+        <div class="admin-access" (click)="goToAdmin()">
+          <div class="admin-access-left">
+            <div class="admin-icon">
+              <ion-icon name="settings-outline"></ion-icon>
+            </div>
+            <div>
+              <strong>Panel de Administración</strong>
+              <p>Gestionar citas y disponibilidad</p>
+            </div>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+        </div>
+      }
+
+      <!-- Mis citas -->
+      <div class="section-block">
+        <div class="section-header" (click)="toggleAppointments()">
+          <div class="section-header-left">
+            <ion-icon name="calendar-outline"></ion-icon>
+            <span>Mis citas</span>
+            @if (appointments.length > 0) {
+              <span class="badge">{{ appointments.length }}</span>
+            }
+          </div>
+          <ion-icon [name]="showAppointments ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+        </div>
+
+        @if (showAppointments) {
+          @if (isLoadingAppts) {
+            @for (i of [1, 2]; track i) {
+              <div class="appt-item">
+                <div class="appt-left">
+                  <ion-skeleton-text [animated]="true" style="width: 90px; height: 13px;"></ion-skeleton-text>
+                  <ion-skeleton-text [animated]="true" style="width: 50px; height: 12px; margin-top: 4px;"></ion-skeleton-text>
+                  <ion-skeleton-text [animated]="true" style="width: 140px; height: 11px; margin-top: 4px;"></ion-skeleton-text>
+                </div>
+                <ion-skeleton-text [animated]="true" style="width: 72px; height: 22px; border-radius: 20px;"></ion-skeleton-text>
+              </div>
+            }
+          }
+          @if (!isLoadingAppts && appointments.length === 0) {
+            <div class="empty-state-rich">
+              <ion-icon name="calendar-outline"></ion-icon>
+              <strong>Aún no reservaste ninguna cita</strong>
+              <p>Cuando tengas un diagnóstico, vas a poder agendar una consulta con un click.</p>
+              <button class="empty-state-cta" (click)="goToDiagnostico()">
+                <ion-icon name="pulse-outline"></ion-icon>
+                <span>Hacer un diagnóstico</span>
+              </button>
+            </div>
+          }
+          @for (a of appointments; track a.id) {
+            <div class="appt-item">
+              <div class="appt-left">
+                <div class="appt-date">
+                  {{ formatFecha(a.fecha) }}
+                  @if (isTomorrow(a.fecha) && a.estado === 'confirmada') {
+                    <span class="tomorrow-tag">Mañana</span>
+                  }
+                </div>
+                <div class="appt-hora">{{ a.hora }}</div>
+                <div class="appt-diag">{{ a.diagnostico | titlecase }} · {{ a.especie | titlecase }}</div>
+              </div>
+              <div class="appt-estado"
+                   [style.color]="getEstadoColor(a.estado)"
+                   [style.background]="getEstadoColor(a.estado) + '22'">
+                {{ a.estado | titlecase }}
+              </div>
+            </div>
+          }
+        }
+      </div>
+
+      <!-- Notificaciones push -->
+      @if (pushSupported) {
+        <div class="section-block notif-block">
+          <div class="section-header-left notif-header">
+            <ion-icon name="notifications-outline"></ion-icon>
+            <span>Notificaciones</span>
+          </div>
+          <div class="notif-body">
+            <p>
+              @if (auth.isAdmin) {
+                Recibe un aviso en este dispositivo apenas llegue un comprobante de pago nuevo.
+              } @else {
+                Recibe un aviso en este dispositivo antes de tus citas agendadas.
+              }
+            </p>
+            @if (pushPermission === 'granted') {
+              <button class="notif-btn active" (click)="disablePushNotifications()" [disabled]="isTogglingPush">
+                <ion-icon name="notifications-off-outline"></ion-icon>
+                <span>Desactivar notificaciones</span>
+              </button>
+            } @else if (pushPermission === 'denied') {
+              <p class="notif-denied">
+                Bloqueaste las notificaciones para este sitio. Actívalas desde la configuración de tu navegador.
+              </p>
+            } @else {
+              <button class="notif-btn" (click)="enablePushNotifications()" [disabled]="isTogglingPush">
+                @if (isTogglingPush) {
+                  <ion-spinner name="crescent"></ion-spinner>
+                } @else {
+                  <ion-icon name="notifications-outline"></ion-icon>
+                }
+                <span>Activar notificaciones</span>
+              </button>
+            }
+            @if (pushError) {
+              <p class="form-msg form-msg--error">{{ pushError }}</p>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Mis mascotas -->
+      <div class="section-block">
+        <div class="section-header" (click)="togglePets()">
+          <div class="section-header-left">
+            <ion-icon name="paw-outline"></ion-icon>
+            <span>Mis mascotas</span>
+            @if (pets.length > 0) {
+              <span class="badge">{{ pets.length }}</span>
+            }
+          </div>
+          <ion-icon [name]="showPets ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+        </div>
+
+        @if (showPets) {
+          @if (isLoadingPets) {
+            @for (i of [1, 2]; track i) {
+              <div class="pet-item">
+                <div class="pet-item-header">
+                  <div class="pet-item-left">
+                    <ion-skeleton-text [animated]="true" style="width: 100px; height: 14px;"></ion-skeleton-text>
+                    <ion-skeleton-text [animated]="true" style="width: 130px; height: 11px; margin-top: 4px;"></ion-skeleton-text>
+                  </div>
+                </div>
+              </div>
+            }
+          }
+          @if (!isLoadingPets && pets.length === 0) {
+            <div class="empty-state-rich">
+              <ion-icon name="paw-outline"></ion-icon>
+              <strong>Registra a tu primera mascota</strong>
+              <p>Así vas a poder llevar su historial de salud, vacunas y diagnósticos en un solo lugar.</p>
+            </div>
+          }
+          @for (pet of pets; track pet.id) {
+            <div class="pet-item">
+              <div class="pet-item-header" (click)="togglePetHistory(pet)">
+                <div class="pet-item-left">
+                  <div class="pet-name-row">
+                    <strong>{{ pet.nombre }}</strong>
+                    @if (petVaccinationBadge(pet); as vBadge) {
+                      <span class="vax-badge" [class]="vBadge">{{ vaccinationStatusLabel(vBadge) }}</span>
+                    }
+                  </div>
+                  <span>
+                    {{ pet.especie | titlecase }}{{ pet.raza ? ' · ' + pet.raza : '' }}{{ pet.peso_kg ? ' · ' + pet.peso_kg + ' kg' : '' }}
+                  </span>
+                </div>
+                <ion-icon [name]="expandedPetId === pet.id ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+              </div>
+
+              <div class="pet-item-actions">
+                <button class="pet-action-btn" (click)="openEditPetModal(pet)">
+                  <ion-icon name="create-outline"></ion-icon> Editar
+                </button>
+                <button class="pet-action-btn danger" (click)="deletePet(pet)">
+                  <ion-icon name="trash-outline"></ion-icon> Eliminar
+                </button>
+              </div>
+
+              @if (expandedPetId === pet.id) {
+                <div class="pet-subsection">
+                  <div class="pet-subsection-title">
+                    <ion-icon name="medkit-outline"></ion-icon>
+                    <span>Vacunas</span>
+                  </div>
+                  @if (!vaccinations[pet.id]?.length) {
+                    <div class="empty-state small">
+                      <span>{{ pet.nombre }} todavía no tiene vacunas registradas</span>
+                    </div>
+                  }
+                  @for (v of vaccinations[pet.id]; track v.id) {
+                    <div class="vax-entry">
+                      <div class="vax-entry-left">
+                        <div class="vax-name">{{ v.nombre }}</div>
+                        <div class="vax-dates">
+                          Aplicada {{ formatFecha(v.fecha_aplicacion) }}
+                          @if (v.fecha_proxima) {
+                            · Refuerzo {{ formatFecha(v.fecha_proxima) }}
+                          }
+                        </div>
+                      </div>
+                      <span class="vax-badge" [class]="vaccinationStatus(v)">
+                        {{ vaccinationStatusLabel(vaccinationStatus(v)) }}
+                      </span>
+                      <button class="vax-delete-btn" (click)="deleteVaccination(pet, v)">
+                        <ion-icon name="trash-outline"></ion-icon>
+                      </button>
+                    </div>
+                  }
+                  <button class="add-vax-btn" (click)="openAddVaccinationModal(pet)">
+                    <ion-icon name="add-circle-outline"></ion-icon>
+                    <span>Registrar vacuna</span>
+                  </button>
+                </div>
+
+                <div class="pet-history">
+                  <div class="pet-subsection-title">
+                    <ion-icon name="document-text-outline"></ion-icon>
+                    <span>Historial de diagnósticos</span>
+                  </div>
+                  @if (loadingHistoryFor === pet.id) {
+                    @for (i of [1, 2]; track i) {
+                      <div class="history-entry">
+                        <div class="history-entry-left">
+                          <ion-skeleton-text [animated]="true" style="width: 70px; height: 10px;"></ion-skeleton-text>
+                          <ion-skeleton-text [animated]="true" style="width: 100px; height: 12px; margin-top: 3px;"></ion-skeleton-text>
+                        </div>
+                        <ion-skeleton-text [animated]="true" style="width: 30px; height: 14px;"></ion-skeleton-text>
+                      </div>
+                    }
+                  }
+                  @if (loadingHistoryFor !== pet.id && !petHistories[pet.id]?.length) {
+                    <div class="empty-state">
+                      <ion-icon name="document-text-outline"></ion-icon>
+                      <span>Los diagnósticos que le hagas a {{ pet.nombre }} van a aparecer aquí</span>
+                    </div>
+                  }
+                  @for (entry of petHistories[pet.id]; track entry.id) {
+                    <div class="history-entry">
+                      <div class="history-entry-left">
+                        <div class="history-date">{{ formatFechaHora(entry.created_at) }}</div>
+                        <div class="history-diag">{{ entry.diagnostico | titlecase }}</div>
+                      </div>
+                      <div class="history-prob">{{ (entry.probabilidad * 100) | number:'1.0-0' }}%</div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          <button class="add-pet-btn" (click)="openAddPetModal()">
+            <ion-icon name="add-circle-outline"></ion-icon>
+            <span>Agregar mascota</span>
+          </button>
+        }
+      </div>
+
+      <!-- Cambiar contraseña -->
+      <div class="section-block">
+        <div class="section-header" (click)="togglePasswordForm()">
+          <div class="section-header-left">
+            <ion-icon name="key-outline"></ion-icon>
+            <span>Cambiar contraseña</span>
+          </div>
+          <ion-icon [name]="showPasswordForm ? 'chevron-up-outline' : 'chevron-down-outline'"></ion-icon>
+        </div>
+
+        @if (showPasswordForm) {
+          <div class="password-form">
+            <div class="form-group">
+              <label class="form-label">Contraseña actual</label>
+              <input
+                type="password"
+                class="form-input"
+                [(ngModel)]="currentPassword"
+                autocomplete="current-password"
+                placeholder="••••••••"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Nueva contraseña</label>
+              <input
+                type="password"
+                class="form-input"
+                [(ngModel)]="newPassword"
+                autocomplete="new-password"
+                placeholder="Mínimo 6 caracteres"
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Confirmar nueva contraseña</label>
+              <input
+                type="password"
+                class="form-input"
+                [(ngModel)]="confirmPassword"
+                autocomplete="new-password"
+                placeholder="••••••••"
+              />
+            </div>
+
+            @if (passwordError) {
+              <p class="form-msg form-msg--error">{{ passwordError }}</p>
+            }
+            @if (passwordSuccess) {
+              <p class="form-msg form-msg--success">{{ passwordSuccess }}</p>
+            }
+
+            <button
+              class="password-submit-btn"
+              [disabled]="isChangingPassword || !currentPassword || !newPassword || !confirmPassword"
+              (click)="submitPasswordChange()"
+            >
+              @if (isChangingPassword) {
+                <ion-spinner name="crescent"></ion-spinner>
+              } @else {
+                <span>Actualizar contraseña</span>
+              }
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- Privacidad y datos -->
+      <div class="section-block">
+        <div class="section-header-left notif-header">
+          <ion-icon name="shield-checkmark-outline"></ion-icon>
+          <span>Privacidad y datos</span>
+        </div>
+        <div class="privacy-actions">
+          <button class="privacy-btn" (click)="goToMyDataExport()">
+            <ion-icon name="document-text-outline"></ion-icon>
+            <span>Ver y descargar mis datos</span>
+          </button>
+          <a class="privacy-link" routerLink="/privacy-policy">Ver política de privacidad</a>
+          <button class="privacy-btn danger" [disabled]="isDeletingAccount" (click)="deleteAccount()">
+            @if (isDeletingAccount) { <ion-spinner name="crescent"></ion-spinner> }
+            @else { <ion-icon name="trash-outline"></ion-icon> }
+            <span>Eliminar mi cuenta</span>
+          </button>
+          @if (accountActionError) {
+            <p class="form-msg form-msg--error">{{ accountActionError }}</p>
+          }
+        </div>
+      </div>
+
+      <!-- Cerrar sesión -->
+      <div class="logout-section">
+        <button class="logout-btn" (click)="logout()">
+          <ion-icon name="log-out-outline"></ion-icon>
+          <span>Cerrar sesión</span>
+        </button>
+      </div>
+
+    }
+
+  </div>
+</ion-content>

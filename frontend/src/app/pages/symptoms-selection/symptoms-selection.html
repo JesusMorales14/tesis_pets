@@ -1,0 +1,213 @@
+<ion-header>
+  <ion-toolbar class="custom-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button
+        defaultHref="/tabs/tab2"
+        text=""
+        icon="arrow-back-outline"
+      ></ion-back-button>
+    </ion-buttons>
+    <ion-title class="title">Síntomas</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="resetAll()">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="symptom-content">
+  <!-- Hero -->
+  <div
+    class="species-hero"
+    [class.teal]="especie === 'gato'"
+    [class.blue]="especie === 'perro'"
+    >
+    <div class="species-info">
+      <p class="species-label">Analizando síntomas para</p>
+      <h2 class="species-name">{{ especieLabel }}</h2>
+    </div>
+    <div class="species-counter">
+      <span class="counter-number">{{ selectedSymptoms.length }}</span>
+      <span class="counter-label">síntomas</span>
+    </div>
+  </div>
+
+  <!-- Botón agregar -->
+  <div class="add-section">
+    <button class="add-btn" (click)="openPicker()">
+      <ion-icon name="add-circle-outline"></ion-icon>
+      <span>{{
+        selectedSymptoms.length === 0
+        ? "Agregar síntomas"
+        : "Agregar más síntomas"
+      }}</span>
+    </button>
+  </div>
+
+  <!-- Estado vacío -->
+  @if (selectedSymptoms.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">🐾</div>
+      <h3>Aún no has agregado síntomas</h3>
+      <p>Toca "Agregar síntomas" para empezar el diagnóstico</p>
+    </div>
+  }
+
+  <!-- Lista de síntomas seleccionados -->
+  @if (selectedSymptoms.length > 0) {
+    <div class="symptoms-list">
+      @for (item of selectedSymptoms; track item) {
+        <div
+          class="symptom-card"
+          [class.expanded]="item.expanded"
+          [class.has-severity]="item.severity > 0"
+          >
+          <!-- Cabecera de la tarjeta -->
+          <div class="card-head">
+            <div class="card-head-info">
+              <span class="symptom-name">{{ getSymptomLabel(item.key) }}</span>
+              <span
+                class="severity-pill"
+                [class.leve]="item.severity === 1"
+                [class.moderado]="item.severity === 2"
+                [class.grave]="item.severity === 3"
+                [class.empty]="item.severity === 0"
+                >
+                {{ getSeverityLabel(item.severity) }}
+              </span>
+            </div>
+            <div class="card-actions">
+              @if (!item.expanded) {
+                <button
+                  class="define-btn"
+                  (click)="toggleExpand(item)"
+                  >
+                  {{ item.severity === 0 ? "Definir gravedad" : "Cambiar" }}
+                  <ion-icon name="chevron-down-outline"></ion-icon>
+                </button>
+              }
+              @if (item.expanded) {
+                <button
+                  class="define-btn collapse"
+                  (click)="toggleExpand(item)"
+                  >
+                  Cerrar
+                  <ion-icon name="chevron-up-outline"></ion-icon>
+                </button>
+              }
+              <button class="remove-btn" (click)="removeSymptom(item.key)">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+          </div>
+          <!-- Severidad expandida -->
+          @if (item.expanded) {
+            <div class="severity-section">
+              <p class="severity-question">
+                ¿Qué tan grave es {{ getSymptomLabel(item.key).toLowerCase() }}?
+              </p>
+              <div class="severity-options">
+                <button
+                  class="sev-option leve"
+                  [class.selected]="item.severity === 1"
+                  (click)="setSeverity(item, 1)"
+                  >
+                  <ion-icon name="remove-circle-outline"></ion-icon>
+                  <div class="sev-option-text">
+                    <strong>Leve</strong>
+                    <span>{{ getSeverityGuide(item.key).leve }}</span>
+                  </div>
+                </button>
+                <button
+                  class="sev-option moderado"
+                  [class.selected]="item.severity === 2"
+                  (click)="setSeverity(item, 2)"
+                  >
+                  <ion-icon name="alert-circle-outline"></ion-icon>
+                  <div class="sev-option-text">
+                    <strong>Moderado</strong>
+                    <span>{{ getSeverityGuide(item.key).moderado }}</span>
+                  </div>
+                </button>
+                <button
+                  class="sev-option grave"
+                  [class.selected]="item.severity === 3"
+                  (click)="setSeverity(item, 3)"
+                  >
+                  <ion-icon name="warning-outline"></ion-icon>
+                  <div class="sev-option-text">
+                    <strong>Grave</strong>
+                    <span>{{ getSeverityGuide(item.key).grave }}</span>
+                  </div>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+      <!-- Indicador de progreso -->
+      @if (getReadyCount() < selectedSymptoms.length) {
+        <div
+          class="progress-indicator"
+          >
+          <ion-icon name="information-circle-outline"></ion-icon>
+          <span>
+            Define la gravedad de
+            {{ selectedSymptoms.length - getReadyCount() }}
+            síntoma{{
+            selectedSymptoms.length - getReadyCount() === 1 ? "" : "s"
+            }}
+            más
+          </span>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Botón de predicción -->
+  @if (selectedSymptoms.length > 0) {
+    <div class="predict-footer">
+      <button
+        class="predict-btn"
+        [class.blue]="especie === 'perro'"
+        [class.teal]="especie === 'gato'"
+        [disabled]="isLoading || !canPredict()"
+        (click)="predict()"
+        >
+        @if (isLoading) {
+          <ion-spinner name="crescent"></ion-spinner>
+        }
+        @if (!isLoading) {
+          <ion-icon name="analytics-outline"></ion-icon>
+        }
+        <span>{{ isLoading ? "Analizando..." : "Analizar síntomas" }}</span>
+      </button>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (errorMsg) {
+    <div class="error-card">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <p>{{ errorMsg }}</p>
+    </div>
+  }
+
+</ion-content>
+
+<!-- Botón flotante de tema (mobile) — en desktop el toggle vive en el sidebar -->
+@if (!breakpointService.isDesktop()) {
+  <button
+    class="theme-toggle-fab"
+    (click)="toggleTheme()"
+    [attr.aria-label]="themeService.isDark ? 'Activar modo claro' : 'Activar modo oscuro'"
+    >
+    <span class="toggle-track" [class.dark]="themeService.isDark">
+      <ion-icon class="toggle-icon sun" name="sunny"
+      [class.visible]="themeService.isDark"></ion-icon>
+      <ion-icon class="toggle-icon moon" name="moon"
+      [class.visible]="!themeService.isDark"></ion-icon>
+    </span>
+  </button>
+}

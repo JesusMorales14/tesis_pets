@@ -1,0 +1,58 @@
+<ion-toolbar class="custom-toolbar">
+  <div class="title-group" slot="start">
+    <!-- Marca — oculta en desktop, donde ya vive en el sidebar del app-shell -->
+    <ion-title class="title brand-title">CityVet</ion-title>
+    <!-- Título de la página actual — visible solo en desktop, junto al sidebar -->
+    @if (pageTitle) {
+      <ion-title class="title page-title">{{ pageTitle }}</ion-title>
+    }
+  </div>
+
+  <ion-buttons slot="end">
+    @if (auth.isLoggedIn && breakpointService.isDesktop()) {
+      <!-- Desktop: avatar abre un menú de cuenta (Angular Material) -->
+      <button
+        class="user-btn"
+        [matMenuTriggerFor]="accountMenu"
+        matTooltip="Mi cuenta"
+        matTooltipPosition="below"
+        aria-label="Mi cuenta"
+      >
+        <div class="user-avatar-wrap">
+          <span class="user-initial">{{ auth.currentUser?.nombre?.charAt(0)?.toUpperCase() }}</span>
+        </div>
+      </button>
+
+      <mat-menu #accountMenu="matMenu" class="account-menu" xPosition="before">
+        <div class="account-menu-header" (click)="$event.stopPropagation()">
+          <div class="user-avatar-wrap lg">
+            <span class="user-initial">{{ auth.currentUser?.nombre?.charAt(0)?.toUpperCase() }}</span>
+          </div>
+          <div class="account-info">
+            <span class="account-name">{{ auth.currentUser?.nombre }}</span>
+            <span class="account-email">{{ auth.currentUser?.email }}</span>
+          </div>
+        </div>
+        <button mat-menu-item (click)="goToProfile()">
+          <ion-icon name="person-circle-outline"></ion-icon>
+          <span>Mi perfil</span>
+        </button>
+        <button mat-menu-item (click)="logout()">
+          <ion-icon name="log-out-outline"></ion-icon>
+          <span>Cerrar sesión</span>
+        </button>
+      </mat-menu>
+    } @else {
+      <!-- Mobile / no autenticado: avatar navega directo -->
+      <button class="user-btn" (click)="goToProfile()" [attr.aria-label]="auth.isLoggedIn ? 'Mi perfil' : 'Iniciar sesión'">
+        @if (auth.isLoggedIn) {
+          <div class="user-avatar-wrap">
+            <span class="user-initial">{{ auth.currentUser?.nombre?.charAt(0)?.toUpperCase() }}</span>
+          </div>
+        } @else {
+          <ion-icon name="person-circle-sharp" class="avatar-icon"></ion-icon>
+        }
+      </button>
+    }
+  </ion-buttons>
+</ion-toolbar>

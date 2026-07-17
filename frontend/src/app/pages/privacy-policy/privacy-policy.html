@@ -1,0 +1,119 @@
+<ion-header>
+  <ion-toolbar class="custom-toolbar">
+    <ion-buttons slot="start">
+      <ion-button fill="clear" (click)="goBack()">
+        <ion-icon name="arrow-back-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title class="title">Política de Privacidad</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="policy-content">
+  <div class="policy-wrap">
+    <p class="updated-at">Última actualización: {{ lastUpdated }}</p>
+
+    <div class="disclaimer-box">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <p>
+        Este documento describe, en lenguaje llano, qué datos recopila CityVet
+        a través de esta aplicación y para qué se usan. No reemplaza
+        asesoría legal profesional.
+      </p>
+    </div>
+
+    <section>
+      <h2>1. Responsable del tratamiento</h2>
+      <p>
+        CityVet, clínica veterinaria ubicada en Calle Los Ángeles N.° 270
+        (media cuadra antes de la Reniec), Chincha Alta, Perú, es responsable
+        de los datos personales que se recopilan a través de esta aplicación.
+      </p>
+    </section>
+
+    <section>
+      <h2>2. Qué datos recopilamos</h2>
+      <ul>
+        <li><strong>Datos de cuenta:</strong> nombre y correo electrónico. La contraseña se almacena cifrada (hash), nunca en texto plano.</li>
+        <li><strong>Datos de tus mascotas:</strong> nombre, especie, raza, edad y peso, si decides registrarlas.</li>
+        <li><strong>Datos de salud de tu mascota:</strong> los síntomas que reportas, su severidad, y los diagnósticos preliminares que genera el sistema, junto con el historial de vacunación que registres.</li>
+        <li><strong>Datos de citas:</strong> fecha, hora y el método de pago que eliges (Yape o tarjeta) — no almacenamos los datos de tu tarjeta.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>3. Para qué usamos tus datos</h2>
+      <ul>
+        <li>Generar diagnósticos preliminares orientativos a partir de los síntomas que reportas.</li>
+        <li>Gestionar la reserva y el seguimiento de citas veterinarias.</li>
+        <li>Mantener un historial de salud y vacunación de tus mascotas, visible solo para ti.</li>
+        <li>Mostrarte recordatorios de vacunas próximas o vencidas dentro de la aplicación.</li>
+      </ul>
+      <p class="note">
+        No usamos tus datos con fines publicitarios ni los vendemos ni
+        compartimos con terceros ajenos a CityVet.
+      </p>
+    </section>
+
+    <section>
+      <h2>4. Diagnósticos y responsabilidad</h2>
+      <p>
+        Los diagnósticos que genera esta aplicación son orientativos, basados
+        en un modelo estadístico entrenado con datos sintéticos fundamentados
+        en literatura veterinaria. No reemplazan una evaluación veterinaria
+        presencial. CityVet no asume responsabilidad por decisiones tomadas
+        únicamente en base al resultado de la aplicación sin confirmación
+        profesional.
+      </p>
+    </section>
+
+    <section>
+      <h2>5. Cuánto tiempo conservamos tus datos</h2>
+      <p>
+        Conservamos tus datos mientras tu cuenta permanezca activa. Puedes
+        solicitar la eliminación de tu cuenta y tus datos en cualquier
+        momento contactando a la clínica.
+      </p>
+    </section>
+
+    <section>
+      <h2>6. Tus derechos (Ley N.° 29733, Ley de Protección de Datos Personales del Perú)</h2>
+      <p>Como titular de tus datos, tienes derecho a:</p>
+      <ul>
+        <li><strong>Acceso:</strong> conocer qué datos tuyos y de tus mascotas tenemos registrados.</li>
+        <li><strong>Rectificación:</strong> corregir datos inexactos o desactualizados.</li>
+        <li><strong>Cancelación:</strong> solicitar la eliminación de tus datos y tu cuenta.</li>
+        <li><strong>Oposición:</strong> oponerte a un uso específico de tus datos.</li>
+      </ul>
+      <p>
+        Puedes ejercer estos derechos escribiendo o llamando a CityVet a los
+        datos de contacto indicados abajo.
+      </p>
+    </section>
+
+    <section>
+      <h2>7. Seguridad</h2>
+      <p>
+        Las contraseñas se almacenan cifradas, el acceso a tu cuenta usa un
+        token de sesión, y los intentos de inicio de sesión y registro están
+        limitados para dificultar ataques automatizados.
+      </p>
+    </section>
+
+    <section>
+      <h2>8. Cambios a esta política</h2>
+      <p>
+        Si actualizamos esta política, cambiaremos la fecha en la parte
+        superior de esta página.
+      </p>
+    </section>
+
+    <section>
+      <h2>9. Contacto</h2>
+      <p>
+        CityVet · Calle Los Ángeles N.° 270 (media cuadra antes de la
+        Reniec), Chincha Alta, Perú · <a href="tel:+51956472846">956 472 846</a>
+      </p>
+    </section>
+  </div>
+</ion-content>

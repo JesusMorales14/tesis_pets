@@ -9,7 +9,10 @@ export type Category =
   | 'ortopedico'
   | 'renal'
   | 'cardiaco'
-  | 'toxicologico';
+  | 'toxicologico'
+  | 'endocrino'
+  | 'ocular'
+  | 'dental';
 
 export interface Symptom {
   name: string;
@@ -54,6 +57,9 @@ const C: Record<Category, { label: string; color: string }> = {
   renal:         { label: 'Renal',         color: '#e0c75b' },
   cardiaco:      { label: 'Cardíaco',      color: '#e05b8f' },
   toxicologico:  { label: 'Toxicológico',  color: '#7b7b7b' },
+  endocrino:     { label: 'Endocrino',     color: '#a05be0' },
+  ocular:        { label: 'Ocular',        color: '#5bb8e0' },
+  dental:        { label: 'Dental',        color: '#e0965b' },
 };
 
 function cat(c: Category): { categoryLabel: string; categoryColor: string } {
@@ -1148,6 +1154,377 @@ export const DISEASES: Disease[] = [
     ],
     whenToVet:
       'Pérdida de pelo extensa, heridas infectadas, anemia en gatitos (las pulgas consumen sangre) o falta de respuesta al antiparasitario.',
+  },
+
+  // ── PERRO (nuevas) ───────────────────────────────────────────────────
+  {
+    id: 'diabetes_mellitus_canina',
+    displayName: 'Diabetes Mellitus Canina',
+    species: 'perro',
+    category: 'endocrino',
+    ...cat('endocrino'),
+    icon: 'water-outline',
+    urgency: 'alta',
+    contagious: false,
+    shortDescription: 'Deficiencia de insulina que impide usar la glucosa como energía.',
+    description:
+      'La diabetes mellitus canina ocurre cuando el páncreas no produce suficiente insulina. Sin ella, la glucosa se acumula en la sangre en vez de nutrir las células, y el cuerpo pierde peso pese a comer más. Es manejable de por vida con insulina y dieta, pero sin tratamiento puede derivar en cetoacidosis diabética, una emergencia mortal.',
+    symptoms: [
+      { name: 'Sed excesiva (polidipsia)', severity: 'moderada' },
+      { name: 'Micción frecuente y abundante', severity: 'moderada' },
+      { name: 'Aumento de apetito', severity: 'leve' },
+      { name: 'Pérdida de peso progresiva', severity: 'moderada' },
+      { name: 'Letargo', severity: 'moderada' },
+      { name: 'Cataratas de aparición rápida', severity: 'grave' },
+    ],
+    prevention: [
+      'Mantener el peso ideal con dieta balanceada y ejercicio.',
+      'Controles glucémicos periódicos desde los 7 años.',
+      'Evitar el exceso de carbohidratos y premios calóricos.',
+    ],
+    treatment: [
+      'Insulinoterapia subcutánea diaria de por vida.',
+      'Dieta específica para diabéticos con horarios fijos.',
+      'Curvas de glucosa periódicas para ajustar la dosis.',
+    ],
+    homeCare: [
+      'Aplicar la insulina siempre a la misma hora, junto con la comida.',
+      'Nunca cambiar la dosis sin indicación veterinaria.',
+      'Observar signos de hipoglucemia: temblores, debilidad, desorientación.',
+      'Mantener rutina estable de ejercicio, sin variaciones bruscas.',
+    ],
+    whenToVet:
+      'Acude de inmediato si notas vómitos, aliento con olor dulzón, debilidad extrema o pérdida de consciencia — puede ser cetoacidosis diabética.',
+  },
+  {
+    id: 'hipotiroidismo_canino',
+    displayName: 'Hipotiroidismo Canino',
+    species: 'perro',
+    category: 'endocrino',
+    ...cat('endocrino'),
+    icon: 'body-outline',
+    urgency: 'baja',
+    contagious: false,
+    shortDescription: 'Producción insuficiente de hormona tiroidea; enlentece el metabolismo.',
+    description:
+      'El hipotiroidismo es la enfermedad hormonal más común en perros de mediana y avanzada edad. Al faltar hormona tiroidea, el metabolismo se enlentece: el perro gana peso sin comer más, se vuelve letárgico y su pelaje pierde brillo. Con tratamiento hormonal de por vida el pronóstico es excelente.',
+    symptoms: [
+      { name: 'Aumento de peso sin cambio en la dieta', severity: 'moderada' },
+      { name: 'Letargo y poca tolerancia al ejercicio', severity: 'moderada' },
+      { name: 'Pérdida de pelo simétrica, sin picazón', severity: 'leve' },
+      { name: 'Intolerancia al frío', severity: 'leve' },
+      { name: 'Piel engrosada o de aspecto pastoso', severity: 'moderada' },
+    ],
+    prevention: [
+      'No existe prevención específica; detección temprana con análisis de T4.',
+      'Dieta equilibrada para evitar la obesidad asociada.',
+    ],
+    treatment: [
+      'Levotiroxina oral de por vida.',
+      'Control analítico cada 6 meses para ajustar la dosis.',
+      'Dieta hipocalórica si hay sobrepeso.',
+    ],
+    homeCare: [
+      'Administrar la hormona siempre a la misma hora, en ayunas.',
+      'No suspender el tratamiento sin indicación veterinaria.',
+      'Mantener rutina de ejercicio moderado.',
+    ],
+    whenToVet:
+      'Programa un chequeo si notas aumento de peso inexplicado, caída de pelo simétrica o letargo persistente en un perro de mediana edad.',
+  },
+  {
+    id: 'cushing_canino',
+    displayName: 'Enfermedad de Cushing Canina',
+    species: 'perro',
+    category: 'endocrino',
+    ...cat('endocrino'),
+    icon: 'pulse-outline',
+    urgency: 'media',
+    contagious: false,
+    shortDescription: 'Exceso crónico de cortisol, casi siempre por un tumor hipofisario benigno.',
+    description:
+      'El síndrome de Cushing (hiperadrenocorticismo) se produce por exceso crónico de cortisol. Provoca sed y micción excesivas, apetito voraz, abdomen distendido ("panza de Cushing") y jadeo constante, con piel fina y pérdida de pelo. Es manejable con medicación oral y seguimiento hormonal periódico.',
+    symptoms: [
+      { name: 'Sed y micción excesivas', severity: 'moderada' },
+      { name: 'Apetito voraz', severity: 'leve' },
+      { name: 'Abdomen distendido ("panza péndula")', severity: 'moderada' },
+      { name: 'Jadeo excesivo incluso en reposo', severity: 'moderada' },
+      { name: 'Pérdida de pelo y piel fina', severity: 'moderada' },
+    ],
+    prevention: [
+      'No tiene prevención conocida; diagnóstico temprano con pruebas hormonales.',
+      'Evitar el uso prolongado de corticoides sin supervisión veterinaria.',
+    ],
+    treatment: [
+      'Trilostano o mitotano oral según indicación veterinaria.',
+      'Control hormonal periódico (test de ACTH) para ajustar la dosis.',
+      'Cirugía en casos de tumor adrenal localizado.',
+    ],
+    homeCare: [
+      'No suspender ni ajustar la medicación sin indicación veterinaria.',
+      'Vigilar el consumo de agua y volumen de orina diario.',
+      'Proteger la piel de golpes y heridas, ya que cicatriza con dificultad.',
+    ],
+    whenToVet:
+      'Consulta si tu perro bebe y orina notablemente más de lo normal, tiene el abdomen distendido o jadea sin haber hecho ejercicio.',
+  },
+  {
+    id: 'osteoartritis_canina',
+    displayName: 'Osteoartritis Canina',
+    species: 'perro',
+    category: 'ortopedico',
+    ...cat('ortopedico'),
+    icon: 'footsteps-outline',
+    urgency: 'baja',
+    contagious: false,
+    shortDescription: 'Desgaste crónico y progresivo del cartílago articular por edad o uso.',
+    description:
+      'A diferencia de la displasia de cadera (de origen congénito), la osteoartritis es un desgaste articular que se acumula con la edad, el peso o el uso. Genera rigidez que mejora al moverse, cojera intermitente y dolor, sin fiebre. Es crónica pero muy manejable con tratamiento multimodal.',
+    symptoms: [
+      { name: 'Rigidez al levantarse que mejora al caminar', severity: 'leve' },
+      { name: 'Cojera intermitente, peor con frío', severity: 'moderada' },
+      { name: 'Dificultad para subir escaleras o saltar', severity: 'moderada' },
+      { name: 'Lamido excesivo de una articulación', severity: 'leve' },
+    ],
+    prevention: [
+      'Controlar el peso para reducir la carga articular.',
+      'Ejercicio regular y moderado (la natación es ideal).',
+      'Suplementos de condroitina y glucosamina desde edad media.',
+    ],
+    treatment: [
+      'Antiinflamatorios no esteroideos (AINEs) veterinarios.',
+      'Fisioterapia y rehabilitación física.',
+      'Cirugía articular en casos avanzados.',
+    ],
+    homeCare: [
+      'Camas ortopédicas y rampas para evitar saltos.',
+      'Pisos antideslizantes en casa.',
+      'Paseos cortos y frecuentes en vez de uno largo.',
+    ],
+    whenToVet:
+      'Consulta si la cojera persiste más de una semana, empeora progresivamente o tu perro deja de querer moverse con normalidad.',
+  },
+  {
+    id: 'insuficiencia_cardiaca_canina',
+    displayName: 'Insuficiencia Cardíaca Congestiva Canina',
+    species: 'perro',
+    category: 'cardiaco',
+    ...cat('cardiaco'),
+    icon: 'heart-outline',
+    urgency: 'critica',
+    contagious: false,
+    shortDescription: 'El corazón no bombea eficazmente y se acumula líquido en pulmones o abdomen.',
+    description:
+      'Frecuente en perros mayores y en razas pequeñas con enfermedad valvular degenerativa. El corazón pierde capacidad de bombeo y el líquido se acumula en pulmones (edema) o abdomen (ascitis). La tos nocturna es a menudo el primer signo de alarma, mucho antes de que aparezca dificultad respiratoria evidente.',
+    symptoms: [
+      { name: 'Tos nocturna o tras el reposo', severity: 'leve' },
+      { name: 'Intolerancia al ejercicio', severity: 'moderada' },
+      { name: 'Respiración rápida o dificultosa', severity: 'moderada' },
+      { name: 'Abdomen distendido (ascitis)', severity: 'grave' },
+      { name: 'Encías azuladas (cianosis)', severity: 'grave' },
+    ],
+    prevention: [
+      'Chequeos cardíacos anuales en razas predispuestas (Cavalier King Charles, Poodle, Dachshund).',
+      'Control del peso para no sobrecargar el corazón.',
+      'Ejercicio moderado y constante.',
+    ],
+    treatment: [
+      'Diuréticos, IECA y pimobendán según indicación veterinaria.',
+      'Dieta baja en sodio.',
+      'Ecocardiografías periódicas de seguimiento.',
+    ],
+    homeCare: [
+      'Llevar un registro de la frecuencia respiratoria en reposo.',
+      'Evitar el estrés y el ejercicio intenso.',
+      'Administrar la medicación exactamente en los horarios indicados.',
+    ],
+    whenToVet:
+      'Acude de urgencia si notas respiración muy dificultosa, encías azuladas o desmayos — son signos de descompensación cardíaca grave.',
+  },
+  {
+    id: 'pancreatitis_canina',
+    displayName: 'Pancreatitis Canina',
+    species: 'perro',
+    category: 'digestivo',
+    ...cat('digestivo'),
+    icon: 'nutrition-outline',
+    urgency: 'critica',
+    contagious: false,
+    shortDescription: 'Inflamación dolorosa del páncreas, a menudo tras una comida grasa.',
+    description:
+      'En la pancreatitis, las enzimas digestivas se activan dentro del propio páncreas y lo dañan, causando dolor abdominal intenso. Suele desencadenarse por comidas grasas, restos de comida humana u obesidad. Puede ser leve o poner en riesgo la vida, por lo que siempre requiere atención veterinaria.',
+    symptoms: [
+      { name: 'Dolor abdominal ("posición de rezo")', severity: 'grave' },
+      { name: 'Vómitos repetidos', severity: 'grave' },
+      { name: 'Rechazo total del alimento', severity: 'moderada' },
+      { name: 'Fiebre', severity: 'moderada' },
+      { name: 'Diarrea', severity: 'leve' },
+    ],
+    prevention: [
+      'Evitar alimentos grasos, restos de comida humana y embutidos.',
+      'No administrar corticoides sin supervisión veterinaria.',
+      'Control del peso en animales obesos.',
+    ],
+    treatment: [
+      'Ayuno terapéutico breve seguido de dieta hipograsa.',
+      'Fluidoterapia intravenosa para hidratación y analgesia.',
+      'Antieméticos y analgésicos potentes.',
+    ],
+    homeCare: [
+      'El tratamiento agudo requiere hospitalización, no manejo en casa.',
+      'Tras el alta, mantener estrictamente la dieta baja en grasa indicada.',
+      'Evitar por completo los premios o restos de comida humana.',
+    ],
+    whenToVet:
+      'Acude de inmediato ante dolor abdominal evidente, vómitos repetidos o postura de "rezo" (pecho al suelo, cuartos traseros elevados).',
+  },
+
+  // ── GATO (nuevas) ────────────────────────────────────────────────────
+  {
+    id: 'diabetes_mellitus_felina',
+    displayName: 'Diabetes Mellitus Felina',
+    species: 'gato',
+    category: 'endocrino',
+    ...cat('endocrino'),
+    icon: 'water-outline',
+    urgency: 'alta',
+    contagious: false,
+    shortDescription: 'Deficiencia o resistencia a la insulina, muy asociada a la obesidad felina.',
+    description:
+      'La diabetes felina está fuertemente ligada al sobrepeso. El gato bebe y orina en exceso, come más de lo normal y pierde peso progresivamente. Con control estricto y dieta baja en carbohidratos, algunos gatos diagnosticados a tiempo pueden lograr remisión y dejar de necesitar insulina.',
+    symptoms: [
+      { name: 'Sed y micción excesivas', severity: 'moderada' },
+      { name: 'Aumento de apetito', severity: 'leve' },
+      { name: 'Pérdida de peso pese a comer bien', severity: 'moderada' },
+      { name: 'Debilidad en cuartos traseros', severity: 'grave' },
+      { name: 'Letargo', severity: 'moderada' },
+    ],
+    prevention: [
+      'Control estricto del peso: la obesidad es el principal factor de riesgo.',
+      'Dieta baja en carbohidratos y alta en proteína.',
+      'Controles de glucosa en gatos mayores de 8 años.',
+    ],
+    treatment: [
+      'Insulinoterapia subcutánea según pauta veterinaria.',
+      'Dieta felina específica para diabéticos.',
+      'Curvas de glucosa periódicas para ajustar la dosis.',
+    ],
+    homeCare: [
+      'Aplicar la insulina siempre a la misma hora, junto con la comida.',
+      'Vigilar signos de hipoglucemia: temblores, desorientación.',
+      'Pesar al gato semanalmente y llevar registro.',
+    ],
+    whenToVet:
+      'Consulta de inmediato ante debilidad marcada en las patas traseras, desorientación o si el gato deja de comer.',
+  },
+  {
+    id: 'hipertiroidismo_felino',
+    displayName: 'Hipertiroidismo Felino',
+    species: 'gato',
+    category: 'endocrino',
+    ...cat('endocrino'),
+    icon: 'flash-outline',
+    urgency: 'alta',
+    contagious: false,
+    shortDescription: 'Exceso de hormona tiroidea, muy común en gatos mayores de 8 años.',
+    description:
+      'Casi siempre causado por un adenoma tiroideo benigno, el hipertiroidismo acelera el metabolismo felino. El signo más característico es la pérdida de peso pese a un apetito voraz, junto con hiperactividad e irritabilidad. Sin tratamiento puede derivar en problemas cardíacos secundarios.',
+    symptoms: [
+      { name: 'Pérdida de peso pese a comer más', severity: 'moderada' },
+      { name: 'Hiperactividad o irritabilidad', severity: 'leve' },
+      { name: 'Vómitos o diarrea ocasionales', severity: 'leve' },
+      { name: 'Pelaje deslucido', severity: 'leve' },
+      { name: 'Frecuencia cardíaca elevada', severity: 'moderada' },
+    ],
+    prevention: [
+      'Sin prevención conocida; revisiones anuales en gatos mayores de 8 años.',
+      'Palpación del cuello en cada visita veterinaria.',
+    ],
+    treatment: [
+      'Metimazol oral o en gel tópico para el oído.',
+      'Tratamiento con yodo radioactivo (cura definitiva) o cirugía.',
+      'Control de presión arterial y revisión cardiológica periódica.',
+    ],
+    homeCare: [
+      'Administrar la medicación en los horarios exactos indicados.',
+      'Usar guantes al aplicar metimazol tópico.',
+      'Controlar el peso periódicamente en casa.',
+    ],
+    whenToVet:
+      'Consulta si un gato mayor pierde peso de forma notable pese a comer con normalidad o más de lo habitual.',
+  },
+  {
+    id: 'enfermedad_periodontal_felina',
+    displayName: 'Enfermedad Periodontal Felina',
+    species: 'gato',
+    category: 'dental',
+    ...cat('dental'),
+    icon: 'medical-outline',
+    urgency: 'media',
+    contagious: false,
+    shortDescription: 'Inflamación e infección de encías por acumulación de sarro.',
+    description:
+      'Extremadamente común en gatos adultos, la enfermedad periodontal comienza como acumulación de sarro y avanza hasta dañar las estructuras que sostienen los dientes. Puede volverse tan dolorosa que el gato deja de comer con normalidad. La infección oral crónica también puede afectar corazón, riñones e hígado.',
+    symptoms: [
+      { name: 'Mal aliento marcado y persistente', severity: 'leve' },
+      { name: 'Encías rojas o inflamadas', severity: 'moderada' },
+      { name: 'Dificultad para comer o dejar caer el alimento', severity: 'moderada' },
+      { name: 'Babeo excesivo', severity: 'leve' },
+      { name: 'Pérdida de peso por comer menos', severity: 'moderada' },
+    ],
+    prevention: [
+      'Cepillado dental regular con pasta veterinaria.',
+      'Alimentos y premios formulados para el control de sarro.',
+      'Limpiezas dentales profesionales periódicas bajo anestesia.',
+    ],
+    treatment: [
+      'Limpieza dental profesional, con extracción de piezas dañadas si es necesario.',
+      'Antibióticos si hay infección activa.',
+      'Analgésicos para el manejo del dolor oral.',
+    ],
+    homeCare: [
+      'Ofrecer dieta blanda durante la recuperación post-limpieza.',
+      'Retomar el cepillado dental en cuanto el veterinario lo indique.',
+      'Revisar el aliento y las encías periódicamente en casa.',
+    ],
+    whenToVet:
+      'Consulta si notas mal aliento fuerte, babeo, sangrado de encías o que el gato evita masticar con un lado de la boca.',
+  },
+  {
+    id: 'conjuntivitis_felina',
+    displayName: 'Conjuntivitis Felina',
+    species: 'gato',
+    category: 'ocular',
+    ...cat('ocular'),
+    icon: 'eye-outline',
+    urgency: 'baja',
+    contagious: true,
+    shortDescription: 'Inflamación ocular frecuente, a menudo por herpesvirus felino.',
+    description:
+      'La conjuntivitis felina es muy común y suele deberse a herpesvirus felino, bacterias o alergias. A diferencia de la rinotraqueitis viral (que además causa fiebre, estornudos y tos), la conjuntivitis simple se limita al ojo, sin compromiso respiratorio ni fiebre.',
+    symptoms: [
+      { name: 'Ojos rojos', severity: 'leve' },
+      { name: 'Secreción ocular', severity: 'moderada' },
+      { name: 'Ojos llorosos', severity: 'leve' },
+      { name: 'Parpadeo frecuente o molestia ocular', severity: 'leve' },
+    ],
+    prevention: [
+      'Vacunación adecuada (el herpesvirus felino es la causa más común).',
+      'Mantener el área periocular limpia y seca.',
+      'Reducir el estrés en gatos con brotes recurrentes.',
+    ],
+    treatment: [
+      'Limpieza de secreciones con suero fisiológico estéril.',
+      'Colirio antibiótico o antiviral según la causa.',
+      'Collar isabelino si el gato se frota los ojos en exceso.',
+    ],
+    homeCare: [
+      'Limpiar los ojos con gasa húmeda tibia, de adentro hacia afuera.',
+      'No usar productos de higiene humana en los ojos.',
+      'Aislar de otros gatos si se sospecha causa viral contagiosa.',
+    ],
+    whenToVet:
+      'Consulta si aparece opacidad en la córnea, dolor intenso, o si se suman fiebre, estornudos o tos (posible rinotraqueitis).',
   },
 ];
 

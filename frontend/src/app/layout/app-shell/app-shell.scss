@@ -1,0 +1,82 @@
+.app-menu {
+  --width: 260px;
+  --background: var(--app-surface);
+  border-inline-end: 1px solid var(--app-border);
+}
+
+.menu-toolbar {
+  --background: var(--app-surface);
+  --color: var(--ion-text-color);
+  --border-color: var(--app-border);
+  --min-height: 64px;
+  padding-inline: 4px;
+
+  ion-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--ion-color-primary);
+  }
+}
+
+.menu-content {
+  --background: var(--app-surface);
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-list {
+  --background: transparent;
+  padding-top: 8px;
+
+  ion-item {
+    --background: transparent;
+    --color: var(--ion-color-medium);
+    --border-radius: 12px;
+    margin: 4px 12px;
+    border-radius: 12px;
+
+    ion-icon {
+      font-size: 20px;
+    }
+
+    &.selected {
+      --background: var(--app-surface-alt);
+      --color: var(--ion-color-primary);
+      font-weight: 600;
+    }
+  }
+}
+
+.menu-footer {
+  margin-top: auto;
+  padding: 8px 12px 16px;
+  border-top: 1px solid var(--app-border);
+
+  ion-item {
+    --background: transparent;
+    --color: var(--ion-color-medium);
+    --border-radius: 12px;
+    margin-top: 4px;
+    border-radius: 12px;
+  }
+}
+
+.menu-theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 16px;
+  margin-top: 8px;
+  border: none;
+  border-radius: 12px;
+  background: var(--app-surface-alt);
+  color: var(--ion-text-color);
+  font-size: 14px;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 18px;
+    color: var(--theme-toggle-icon);
+  }
+}

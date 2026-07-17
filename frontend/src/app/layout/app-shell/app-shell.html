@@ -1,0 +1,49 @@
+<ion-split-pane contentId="main-content" when="lg">
+  <ion-menu contentId="main-content" type="overlay" class="app-menu">
+    <ion-header>
+      <ion-toolbar class="menu-toolbar">
+        <ion-title>CityVet</ion-title>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="menu-content">
+      <ion-list lines="none" class="menu-list">
+        @for (item of navItems; track item.tab) {
+          <ion-item
+            button
+            [class.selected]="isActive(item)"
+            (click)="navigate(item.route)"
+          >
+            <ion-icon [name]="item.icon" slot="start"></ion-icon>
+            <ion-label>{{ item.label }}</ion-label>
+          </ion-item>
+        }
+
+        @if (auth.isAdmin) {
+          <ion-item
+            button
+            [class.selected]="isAdminActive()"
+            (click)="navigate('/admin')"
+          >
+            <ion-icon name="shield-checkmark-outline" slot="start"></ion-icon>
+            <ion-label>Administración</ion-label>
+          </ion-item>
+        }
+      </ion-list>
+
+      <div class="menu-footer">
+        <button class="menu-theme-toggle" (click)="themeService.toggle()">
+          <ion-icon [name]="themeService.isDark ? 'sunny' : 'moon'"></ion-icon>
+          <span>{{ themeService.isDark ? 'Modo claro' : 'Modo oscuro' }}</span>
+        </button>
+
+        <ion-item button lines="none" (click)="goToProfile()">
+          <ion-icon name="person-circle-outline" slot="start"></ion-icon>
+          <ion-label>{{ auth.currentUser?.nombre || 'Mi perfil' }}</ion-label>
+        </ion-item>
+      </div>
+    </ion-content>
+  </ion-menu>
+
+  <ion-router-outlet id="main-content"></ion-router-outlet>
+</ion-split-pane>
