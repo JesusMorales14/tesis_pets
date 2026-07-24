@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
 
 type IonIconName = 'paw-outline' | 'medical-outline' | 'stats-chart-outline';
 
@@ -13,8 +12,6 @@ interface Step {
   description: string;
   icon: IonIconName;
   iconBg: IconBg;
-  route: string;
-  cta: string;
 }
 
 @Component({
@@ -22,7 +19,7 @@ interface Step {
   templateUrl: './steps.html',
   styleUrls: ['./steps.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, RouterModule],
+  imports: [IonicModule, CommonModule],
 })
 export class StepsComponent {
   readonly steps: Step[] = [
@@ -33,8 +30,6 @@ export class StepsComponent {
         'Elige entre nuestra base de datos de razas y especies. La IA adapta su modelo según la fisiología única de tu amigo.',
       icon: 'paw-outline',
       iconBg: 'bg-blue',
-      route: '/select-pet',
-      cta: 'Explorar mascotas',
     },
     {
       number: 2,
@@ -43,8 +38,6 @@ export class StepsComponent {
         'Nuestra interfaz intuitiva te guía a través de un set dinámico de síntomas, desde letargia hasta cambios dermatológicos.',
       icon: 'medical-outline',
       iconBg: 'bg-amber',
-      route: '/select-pet',
-      cta: 'Explorar mascotas',
     },
     {
       number: 3,
@@ -53,8 +46,6 @@ export class StepsComponent {
         'Recibe un informe detallado con probabilidades diagnósticas y recomendaciones de cuidado inmediato validadas.',
       icon: 'stats-chart-outline',
       iconBg: 'bg-teal',
-      route: '/select-pet',
-      cta: 'Explorar mascotas',
     },
   ];
 

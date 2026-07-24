@@ -102,40 +102,6 @@ ion-card-content {
   }
 }
 
-.card-action {
-  margin-top: 20px;
-  padding-top: 4px;
-}
-
-.action-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--ion-color-primary, #3b6edc);
-  text-decoration: none;
-  transition: all 0.2s ease;
-  letter-spacing: -0.2px;
-
-  ion-icon {
-    font-size: 16px;
-    transition: transform 0.2s ease;
-  }
-
-  &:hover {
-    color: var(--ion-color-primary-shade, #2b5bc4);
-
-    ion-icon {
-      transform: translateX(4px);
-    }
-  }
-
-  &:active {
-    opacity: 0.8;
-  }
-}
-
 // Modo oscuro - manual de Ionic (clase .dark)
 :host-context(.dark) {
   .icon-wrap {
@@ -209,5 +175,20 @@ ion-card-content {
 
   .step-number {
     font-size: 56px;
+  }
+}
+
+// Desktop: las 3 tarjetas pasan de apiladas a una fila, igual que
+// hero.scss y about-ai.scss del mismo home (mismo breakpoint 992px).
+@media (min-width: 992px) {
+  .steps-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    align-items: stretch;
+  }
+
+  .step-card {
+    margin-bottom: 0;
   }
 }
