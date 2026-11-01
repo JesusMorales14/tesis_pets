@@ -481,7 +481,7 @@
             @if (a.gravedad) {
             <span class="grav-badge" [ngClass]="a.gravedad">{{ a.gravedad | titlecase }}</span>
             }
-            @if (a.probabilidad != null) {
+            @if (a.probabilidad !== null && a.probabilidad !== undefined) {
             <span class="dx-prob">{{ (a.probabilidad * 100).toFixed(0) }}%</span>
             }
           </div>

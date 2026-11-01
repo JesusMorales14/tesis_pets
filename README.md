@@ -176,13 +176,13 @@ Opción: agendar cita con diagnóstico pre-cargado
 
 ### Frontend
 
-| Tecnología  | Versión | Uso                                                                 |
-| ----------- | ------- | ------------------------------------------------------------------- |
+| Tecnología  | Versión | Uso                                                                                                                |
+| ----------- | ------- | ------------------------------------------------------------------------------------------------------------------ |
 | Angular     | 21.2    | Framework SPA — standalone, signals, `inject()`, control flow (`@if`/`@for`), nuevo build system basado en esbuild |
-| Ionic       | 8.8     | UI components mobile-first                                          |
-| TypeScript  | 5.9.3   | Lenguaje del cliente                                                |
-| RxJS        | 7.8.0   | Tipado reactivo en servicios (`Observable`, `BehaviorSubject`, `tap`) |
-| FontAwesome | 7.2.0   | Iconografía complementaria                                          |
+| Ionic       | 8.8     | UI components mobile-first                                                                                         |
+| TypeScript  | 5.9.3   | Lenguaje del cliente                                                                                               |
+| RxJS        | 7.8.0   | Tipado reactivo en servicios (`Observable`, `BehaviorSubject`, `tap`)                                              |
+| FontAwesome | 7.2.0   | Iconografía complementaria                                                                                         |
 
 ### Arquitectura del frontend
 
@@ -405,8 +405,8 @@ La API REST sigue convenciones estándar. Con el servidor activo, la documentaci
 
 ### Modelos entrenados
 
-| Archivo                    | Descripción                                          |
-| --------------------------- | ---------------------------------------------------- |
+| Archivo                    | Descripción                                           |
+| -------------------------- | ----------------------------------------------------- |
 | `ml/model_perro.pkl`       | Pipeline (StandardScaler + LogisticRegression) perros |
 | `ml/model_gato.pkl`        | Pipeline (StandardScaler + LogisticRegression) gatos  |
 | `ml/le_especie.pkl`        | LabelEncoder de especies                              |
@@ -426,8 +426,8 @@ dataset pequeño.
 
 **Accuracy validada por cross-validation** (no accuracy de entrenamiento):
 
-| Especie | Accuracy CV | Nota |
-| ------- | ----------- | ---- |
+| Especie | Accuracy CV | Nota                                                                 |
+| ------- | ----------- | -------------------------------------------------------------------- |
 | Perro   | ~98%        | Sin combinaciones de síntomas ambiguas tras la limpieza del dataset. |
 | Gato    | ~97%        | Sin combinaciones de síntomas ambiguas tras la limpieza del dataset. |
 
@@ -615,8 +615,7 @@ npm run lint
 ## Autores
 
 **Jesús Alberto Silva Morales**  
-Desarrollador fullstack y autor del proyecto de tesis  
-[jesusalbertosilvamorales@gmail.com](mailto:jesusalbertosilvamorales@gmail.com)
+**Maryori Thais Nolberto Bautista**
 
 ---
 

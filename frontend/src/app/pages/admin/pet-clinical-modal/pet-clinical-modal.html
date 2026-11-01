@@ -35,7 +35,7 @@
         </div>
         <div class="fact">
           <span class="fact-label">Peso</span>
-          <span class="fact-value">{{ record.peso_kg != null ? record.peso_kg + ' kg' : 'Sin dato' }}</span>
+          <span class="fact-value">{{ record.peso_kg !== null && record.peso_kg !== undefined ? record.peso_kg + ' kg' : 'Sin dato' }}</span>
         </div>
       </div>
 
