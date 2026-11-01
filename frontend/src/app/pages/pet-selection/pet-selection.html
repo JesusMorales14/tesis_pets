@@ -36,7 +36,7 @@
           <div class="my-pets-grid">
             @for (pet of myPets; track pet.id) {
               <button class="my-pet-card" (click)="selectPet(pet)">
-                <img [src]="petIcon(pet)" [alt]="pet.especie" />
+                <img [src]="petImages[pet.id] || petIcon(pet)" [alt]="pet.especie" style="object-fit: cover;" (error)="onPetImageError(pet)" />
                 <div class="my-pet-info">
                   <strong>{{ pet.nombre }}</strong>
                   <span>{{ pet.especie | titlecase }}{{ pet.raza ? ' · ' + pet.raza : '' }}</span>

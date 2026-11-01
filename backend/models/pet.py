@@ -5,6 +5,8 @@ from database import Base
 
 class Pet(Base):
     __tablename__ = "pets"
+    # Sin AUTOINCREMENT, SQLite reutiliza el id de la última mascota borrada.
+    __table_args__ = {"sqlite_autoincrement": True}
     id = Column(Integer, primary_key=True, index=True)
     owner_id = Column(Integer, nullable=False, index=True)
     nombre = Column(String, nullable=False)

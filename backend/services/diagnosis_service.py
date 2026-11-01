@@ -32,12 +32,14 @@ class DiagnosisService:
             if not current_user:
                 raise HTTPException(
                     status_code=401,
-                    detail="Debes iniciar sesión para guardar este diagnóstico en el historial de tu mascota",
+                    detail="Debes iniciar sesión para asociar este diagnóstico a tu mascota",
                 )
             pet = get_owned_pet(pet_id, self.db, current_user)
-            sintomas_presentes = {
-                k: v for k, v in payload.items() if k != "especie" and v
-            }
+            if pet.especie != result["especie"]:
+                raise HTTPException(
+                    status_code=400, detail="La especie no coincide con la de la mascota seleccionada",
+                )
+            # Guardar diagnóstico inmediatamente en el historial de la mascota
             record = DiagnosisRecord(
                 pet_id=pet.id,
                 diagnostico=result["diagnostico"],
@@ -45,10 +47,18 @@ class DiagnosisService:
                 diagnostico_alternativo=result.get("diagnostico_alternativo"),
                 probabilidad_alternativa=result.get("probabilidad_alternativa"),
                 gravedad=result["gravedad"],
-                sintomas_json=json.dumps(sintomas_presentes, ensure_ascii=False),
+                sintomas_json=json.dumps(
+                    {k: v for k, v in payload.items() if isinstance(v, int)}
+                ),
             )
-            self.diagnoses.create(record)
-            result = {**result, "guardado_en_historial": True, "mascota": pet.nombre}
+            record = self.diagnoses.create(record)
+            result = {
+                **result,
+                "guardado_en_historial": True,
+                "mascota": pet.nombre,
+                "pet_id": pet.id,
+                "mensaje_historial": "Diagnóstico guardado en el historial de tu mascota",
+            }
 
         return result
 

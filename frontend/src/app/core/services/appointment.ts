@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { PetClinicalRecord } from '../models/pet';
 
 export interface TimeSlot {
   hora: string;
@@ -21,6 +22,9 @@ export interface AppointmentPayload {
   especie: string;
   gravedad: string;
   metodo_pago: string;
+  probabilidad?: number;  // 0.0 - 1.0
+  pet_id?: number;  // ID de mascota registrada
+  sintomas_json?: string;
 }
 
 export interface Appointment {
@@ -35,6 +39,10 @@ export interface Appointment {
   estado: string;
   metodo_pago: string;
   pago_estado: 'pendiente' | 'aprobado' | 'rechazado';
+  probabilidad?: number | null;  // 0.0 - 1.0
+  pet_id?: number | null;
+  /** Nombre de la mascota al reservar (se conserva aunque luego la eliminen). */
+  pet_nombre?: string | null;
   comprobante_url: string | null;
 }
 
@@ -50,6 +58,27 @@ export class AppointmentService {
 
   createAppointment(payload: AppointmentPayload): Observable<Appointment> {
     return this.http.post<Appointment>(`${this.API}/appointments`, payload);
+  }
+
+  createWithComprobante(payload: AppointmentPayload, file: File): Observable<Appointment> {
+    const formData = new FormData();
+    formData.append('fecha', payload.fecha);
+    formData.append('hora', payload.hora);
+    formData.append('diagnostico', payload.diagnostico);
+    formData.append('especie', payload.especie);
+    formData.append('gravedad', payload.gravedad);
+    formData.append('metodo_pago', payload.metodo_pago);
+    if (payload.sintomas_json) {
+      formData.append('sintomas_json', payload.sintomas_json);
+    }
+    if (payload.probabilidad != null) {
+      formData.append('probabilidad', String(payload.probabilidad));
+    }
+    if (payload.pet_id != null) {
+      formData.append('pet_id', String(payload.pet_id));
+    }
+    formData.append('file', file);
+    return this.http.post<Appointment>(`${this.API}/appointments/with-comprobante`, formData);
   }
 
   getMyAppointments(): Observable<Appointment[]> {
@@ -88,6 +117,10 @@ export class AppointmentService {
 
   getPendingPayments(): Observable<Appointment[]> {
     return this.http.get<Appointment[]>(`${this.API}/admin/appointments/pending-payments`);
+  }
+
+  getPetClinicalRecord(petId: number): Observable<PetClinicalRecord> {
+    return this.http.get<PetClinicalRecord>(`${this.API}/admin/pets/${petId}/clinical-record`);
   }
 
   decidePayment(id: number, aprobado: boolean): Observable<Appointment> {

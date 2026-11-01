@@ -69,8 +69,7 @@
               <ul class="data-list">
                 @for (v of pet.vacunas; track v.id) {
                   <li>
-                    <strong>{{ v.nombre }}</strong> — aplicada {{ formatSimpleDate(v.fecha_aplicacion) }}
-                    @if (v.fecha_proxima) { · refuerzo {{ formatSimpleDate(v.fecha_proxima) }} }
+                    <strong>{{ v.nombre }}</strong> — {{ vaccineLabel(v) }}
                   </li>
                 }
               </ul>
@@ -83,7 +82,7 @@
               <ul class="data-list">
                 @for (d of pet.historial_diagnosticos; track d.created_at) {
                   <li>
-                    <strong>{{ (d.diagnostico | titlecase) }}</strong>
+                    <strong>{{ formatDiagnostico(d.diagnostico) | titlecase }}</strong>
                     ({{ (d.probabilidad * 100) | number:'1.0-0' }}%, {{ d.gravedad }}) — {{ formatDate(d.created_at) }}
                     <div class="symptom-tags">
                       @for (s of symptomEntries(d.sintomas); track s.key) {
@@ -106,7 +105,7 @@
           <ul class="data-list">
             @for (c of data.citas; track c.id) {
               <li>
-                {{ formatSimpleDate(c.fecha) }} {{ c.hora }} — <strong>{{ c.diagnostico | titlecase }}</strong>
+                {{ formatSimpleDate(c.fecha) }} {{ c.hora }} — <strong>{{ formatDiagnostico(c.diagnostico) | titlecase }}</strong>
                 ({{ c.especie | titlecase }}) · {{ c.estado | titlecase }} ·
                 {{ metodoPagoLabel(c.metodo_pago) }} ({{ c.pago_estado }})
               </li>

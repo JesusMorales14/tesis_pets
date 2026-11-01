@@ -229,4 +229,4 @@ def test_rejecting_payment_does_not_confirm_the_appointment(client):
     assert r.status_code == 200
     body = r.json()
     assert body["pago_estado"] == "rechazado"
-    assert body["estado"] == "pendiente"
+    assert body["estado"] == "cancelada"

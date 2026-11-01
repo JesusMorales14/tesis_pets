@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { adminGuard } from '@core/guards/auth';
+import { adminGuard, authGuard } from '@core/guards/auth';
 import { AppShellComponent } from '@layout/app-shell/app-shell';
 
 export const routes: Routes = [
@@ -50,6 +50,7 @@ export const routes: Routes = [
         path: 'payment',
         loadComponent: () =>
           import('./pages/payment/payment').then((m) => m.PaymentComponent),
+        canActivate: [authGuard],
       },
       {
         path: 'admin',
@@ -82,5 +83,6 @@ export const routes: Routes = [
     path: 'mis-datos',
     loadComponent: () =>
       import('./pages/my-data-export/my-data-export').then((m) => m.MyDataExportComponent),
+    canActivate: [authGuard],
   },
 ];

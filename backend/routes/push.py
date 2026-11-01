@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from models import User
-from schemas.push import PushSubscriptionBody
+from schemas.push import PushEndpointBody, PushSubscriptionBody
 from services.auth_service import get_current_user
 from services.push_service import PushService, get_push_service
 
@@ -24,8 +24,26 @@ def subscribe_push(
 
 @router.post("/unsubscribe")
 def unsubscribe_push(
-    body: dict,
+    body: PushEndpointBody,
     current_user: User = Depends(get_current_user),
     service: PushService = Depends(get_push_service),
 ):
     return service.unsubscribe(body, current_user)
+
+
+@router.post("/status")
+def push_status(
+    body: PushEndpointBody,
+    current_user: User = Depends(get_current_user),
+    service: PushService = Depends(get_push_service),
+):
+    return service.status(body, current_user)
+
+
+@router.post("/test")
+def send_test_push(
+    body: PushEndpointBody,
+    current_user: User = Depends(get_current_user),
+    service: PushService = Depends(get_push_service),
+):
+    return service.send_test(body, current_user)

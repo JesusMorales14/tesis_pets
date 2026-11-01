@@ -57,7 +57,9 @@ export class RegisterComponent {
       next: () => {
         this.isLoading = false;
         const state = history.state;
-        const returnTo = state?.returnTo || '/tabs/tab1';
+        // Sin una pantalla a la que volver, cada rol entra a su vista
+        // principal: el veterinario a su panel, el dueño al inicio.
+        const returnTo = state?.returnTo || (this.auth.isAdmin ? '/admin' : '/tabs/tab1');
         const returnState = state?.returnState;
         this.router.navigate([returnTo], returnState ? { state: returnState } : {});
       },

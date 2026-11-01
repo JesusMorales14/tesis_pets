@@ -1,0 +1,324 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   COMPROBANTE MODAL — tarjeta del diálogo
+   El ion-modal que la contiene es transparente y se ajusta a esta tarjeta
+   (ver ion-modal.comprobante-modal en global.scss); el fondo, los bordes y
+   la sombra los pone esta tarjeta.
+   Móvil: imagen arriba, detalles abajo | Desktop (≥768px): lado a lado.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.comprobante-modal-container {
+  display: flex;
+  flex-direction: column;
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  background: var(--app-surface);
+  color: var(--ion-text-color);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow:
+    0 25px 50px -12px rgb(0 0 0 / 0.35),
+    0 0 0 1px var(--app-border);
+  animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @media (min-width: 768px) {
+    width: min(860px, calc(100vw - 64px));
+    max-height: min(620px, calc(100dvh - 64px));
+  }
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── Header ──────────────────────────────────────────────────────────── */
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px 14px 20px;
+  border-bottom: 1px solid var(--app-border);
+  flex-shrink: 0;
+
+  .modal-title {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ion-text-color);
+  }
+
+  .modal-progress {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ion-color-primary);
+  }
+
+  .close-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--app-surface-alt);
+    color: var(--ion-color-medium);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s ease, color 0.15s ease;
+
+    &:hover {
+      color: var(--ion-text-color);
+      background: var(--app-border);
+    }
+
+    ion-icon {
+      font-size: 20px;
+    }
+  }
+}
+
+/* ── Contenido ───────────────────────────────────────────────────────── */
+
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto; // en móvil se desplaza todo junto
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    overflow: hidden; // en desktop solo se desplazan los detalles
+  }
+}
+
+/* ── Imagen del comprobante ──────────────────────────────────────────── */
+
+.comprobante-viewer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  height: 230px;
+  padding: 12px;
+  background: #101016;
+  overflow: hidden;
+  transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &.expanded {
+    height: min(65dvh, 560px);
+  }
+
+  @media (min-width: 768px) {
+    width: 44%;
+    height: auto;
+    min-height: 420px;
+
+    &.expanded {
+      height: auto;
+    }
+  }
+
+  img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+    cursor: zoom-in;
+    user-select: none;
+    -webkit-user-drag: none;
+
+    @media (min-width: 768px) {
+      cursor: default;
+    }
+  }
+
+  &.expanded img {
+    cursor: zoom-out;
+  }
+
+  .view-hint {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    pointer-events: none;
+
+    ion-icon {
+      font-size: 15px;
+    }
+
+    // En desktop la imagen ya se ve grande: no hace falta ampliar.
+    @media (min-width: 768px) {
+      display: none;
+    }
+  }
+
+  .no-image {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 24px;
+    color: rgba(255, 255, 255, 0.55);
+    text-align: center;
+
+    ion-icon {
+      font-size: 48px;
+      opacity: 0.6;
+    }
+
+    p {
+      margin: 0;
+      font-size: 14px;
+    }
+  }
+}
+
+/* ── Detalles de la cita ─────────────────────────────────────────────── */
+
+.payment-modal-info {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px 20px 20px;
+
+  @media (min-width: 768px) {
+    flex: 1;
+    min-width: 0;
+    overflow-y: auto;
+    padding: 24px 28px;
+  }
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+
+  ion-icon {
+    flex-shrink: 0;
+    width: 22px;
+    font-size: 20px;
+    margin-top: 1px;
+    color: var(--ion-color-primary);
+  }
+
+  .info-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    flex: 1;
+    min-width: 0;
+    font-size: 14px;
+    line-height: 1.4;
+    color: var(--ion-text-color);
+
+    strong {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--ion-text-color);
+    }
+
+    span {
+      font-size: 13px;
+      color: var(--ion-color-medium);
+      word-break: break-word;
+    }
+  }
+}
+
+/* ── Estado del pago ─────────────────────────────────────────────────── */
+
+.info-row .info-text .payment-status-badge {
+  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+
+  &.pendiente {
+    background: rgba(214, 137, 16, 0.14);
+    color: #d68910;
+  }
+
+  &.aprobado {
+    background: rgba(39, 174, 96, 0.14);
+    color: #1e8449;
+  }
+
+  &.rechazado {
+    background: rgba(192, 57, 43, 0.14);
+    color: #c0392b;
+  }
+}
+
+/* ── Acciones del veterinario ────────────────────────────────────────── */
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid var(--app-border);
+
+  ion-button {
+    flex: 1;
+    margin: 0;
+    height: 40px;
+    --border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0.01em;
+  }
+}
+
+/* ── Accesibilidad ───────────────────────────────────────────────────── */
+
+button:focus-visible {
+  outline: 2px solid var(--ion-color-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .comprobante-modal-container,
+  .comprobante-viewer {
+    animation: none;
+    transition: none;
+  }
+}

@@ -24,6 +24,7 @@ export interface PredictionResult {
   /** Presentes solo si la petición incluyó pet_id: el diagnóstico quedó guardado en el historial de esa mascota. */
   guardado_en_historial?: boolean;
   mascota?: string;
+  pet_id?: number;
 }
 
 @Injectable({ providedIn: 'root' })

@@ -15,6 +15,7 @@ sobreviven un reinicio, pero es la única opción que no deja un par de
 claves real embebido en el código fuente público de este repositorio.
 """
 import base64
+import json
 import os
 
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
@@ -36,7 +37,8 @@ _env_private = os.getenv("VAPID_PRIVATE_KEY_PEM")
 _env_public = os.getenv("VAPID_PUBLIC_KEY")
 
 if _env_private and _env_public:
-    VAPID_PRIVATE_KEY_PEM = _env_private
+    # En un .env de una sola línea los saltos del PEM se escriben como \n literal.
+    VAPID_PRIVATE_KEY_PEM = _env_private.replace("\\n", "\n")
     VAPID_PUBLIC_KEY = _env_public
 else:
     VAPID_PRIVATE_KEY_PEM, VAPID_PUBLIC_KEY = _generate_dev_keypair()
@@ -44,6 +46,10 @@ else:
           "generando un par nuevo para esta sesión (las suscripciones push no sobrevivirán un reinicio).")
 
 VAPID_CLAIMS_EMAIL = os.getenv("VAPID_CLAIMS_EMAIL", "mailto:contacto@cityvet.pe")
+
+# pywebpush interpreta un string como clave en formato DER (no PEM) y falla
+# al leerla: se le entrega el objeto Vapid ya construido, una sola vez.
+_VAPID = Vapid.from_pem(VAPID_PRIVATE_KEY_PEM.encode())
 
 
 def send_push(subscription_info: dict, payload: dict) -> bool:
@@ -53,17 +59,24 @@ def send_push(subscription_info: dict, payload: dict) -> bool:
     try:
         webpush(
             subscription_info=subscription_info,
-            data=__import__("json").dumps(payload),
-            vapid_private_key=VAPID_PRIVATE_KEY_PEM,
+            data=json.dumps(payload),
+            vapid_private_key=_VAPID,
             vapid_claims={"sub": VAPID_CLAIMS_EMAIL},
         )
         return True
     except WebPushException as e:
         status = getattr(e.response, "status_code", None)
-        if status in (404, 410):
+        # 404/410: el navegador eliminó la suscripción. 403: fue creada con
+        # otra clave VAPID (p. ej. claves regeneradas al reiniciar sin .env).
+        if status in (403, 404, 410):
             return False
         print("Error enviando push:", e)
         return True  # error transitorio: no borrar la suscripción
+    except Exception as e:
+        # Una notificación fallida nunca debe romper la operación que la
+        # originó (subir un comprobante, aprobar un pago…).
+        print("Error inesperado enviando push:", e)
+        return True
 
 
 def send_push_to_user(db: Session, user_id: int, payload: dict) -> None:

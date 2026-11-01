@@ -1,11 +1,12 @@
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 
 from models import PushSubscription, User
-from push_utils import VAPID_PUBLIC_KEY, send_push_to_admins, send_push_to_user
+import notifications
+from push_utils import VAPID_PUBLIC_KEY, send_push, send_push_to_admins, send_push_to_user
 from repositories.push_subscription_repository import (
     PushSubscriptionRepository, get_push_subscription_repository,
 )
-from schemas.push import PushSubscriptionBody
+from schemas.push import PushEndpointBody, PushSubscriptionBody
 
 __all__ = ["PushService", "get_push_service", "VAPID_PUBLIC_KEY", "send_push_to_admins", "send_push_to_user"]
 
@@ -30,10 +31,27 @@ class PushService:
         self.subscriptions.commit()
         return {"ok": True}
 
-    def unsubscribe(self, body: dict, current_user: User) -> dict:
-        endpoint = body.get("endpoint")
-        self.subscriptions.delete_by_endpoint_and_user(endpoint, current_user.id)
+    def unsubscribe(self, body: PushEndpointBody, current_user: User) -> dict:
+        self.subscriptions.delete_by_endpoint_and_user(body.endpoint, current_user.id)
         self.subscriptions.commit()
+        return {"ok": True}
+
+    def status(self, body: PushEndpointBody, current_user: User) -> dict:
+        """Si este dispositivo recibe las notificaciones de ESTA cuenta. El
+        permiso del navegador no basta: sigue "concedido" tras desactivar, y
+        el mismo navegador pudo quedar suscrito con otra cuenta."""
+        sub = self.subscriptions.get_by_endpoint(body.endpoint)
+        return {"subscribed": bool(sub and sub.user_id == current_user.id)}
+
+    def send_test(self, body: PushEndpointBody, current_user: User) -> dict:
+        """Notificación de ejemplo a este dispositivo, para ver cómo se ven."""
+        sub = self.subscriptions.get_by_endpoint(body.endpoint)
+        if not sub or sub.user_id != current_user.id:
+            raise HTTPException(status_code=404, detail="Este dispositivo no tiene las notificaciones activadas")
+        send_push(
+            {"endpoint": sub.endpoint, "keys": {"p256dh": sub.p256dh, "auth": sub.auth}},
+            notifications.prueba(),
+        )
         return {"ok": True}
 
 

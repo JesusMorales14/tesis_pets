@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+                  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+                  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+                  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+                  id="Definitions_CityVet" targetNamespace="http://bpmn.io/schema/bpmn">
+  <bpmn:collaboration id="Collab">
+    <bpmn:participant id="Pool" name="Proceso de atención veterinaria - CityVet" processRef="Proceso" />
+  </bpmn:collaboration>
+
+  <bpmn:process id="Proceso" isExecutable="false">
+    <bpmn:laneSet id="LaneSet">
+      <bpmn:lane id="LanePropietario" name="Propietario">
+        <bpmn:flowNodeRef>Inicio</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Sintomas</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Horario</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Comprobante</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_AvisoRechazo</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>FinRechazo</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Asistir</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="LaneSistema" name="Aplicación móvil">
+        <bpmn:flowNodeRef>T_Predecir</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Historial</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G_Horario</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_RegistrarCita</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Cancelar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Confirmar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Recordatorio</bpmn:flowNodeRef>
+      </bpmn:lane>
+      <bpmn:lane id="LaneVeterinario" name="Veterinario">
+        <bpmn:flowNodeRef>T_Revisar</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>G_Pago</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>T_Atender</bpmn:flowNodeRef>
+        <bpmn:flowNodeRef>Fin</bpmn:flowNodeRef>
+      </bpmn:lane>
+    </bpmn:laneSet>
+
+    <bpmn:startEvent id="Inicio" name="Necesidad de atención" />
+    <bpmn:task id="T_Sintomas" name="Seleccionar mascota e ingresar síntomas" />
+    <bpmn:task id="T_Predecir" name="Validar datos y predecir diagnóstico" />
+    <bpmn:task id="T_Historial" name="Guardar diagnóstico en historial" />
+    <bpmn:task id="T_Horario" name="Elegir fecha y horario" />
+    <bpmn:exclusiveGateway id="G_Horario" name="¿Horario disponible?" />
+    <bpmn:task id="T_Comprobante" name="Elegir método de pago y adjuntar comprobante" />
+    <bpmn:task id="T_RegistrarCita" name="Registrar cita y notificar al veterinario" />
+    <bpmn:task id="T_Revisar" name="Revisar comprobante de pago" />
+    <bpmn:exclusiveGateway id="G_Pago" name="¿Pago válido?" />
+    <bpmn:task id="T_Cancelar" name="Cancelar cita y liberar horario" />
+    <bpmn:task id="T_AvisoRechazo" name="Recibir aviso de pago rechazado" />
+    <bpmn:endEvent id="FinRechazo" name="Fin por pago rechazado" />
+    <bpmn:task id="T_Confirmar" name="Confirmar cita y notificar al propietario" />
+    <bpmn:task id="T_Recordatorio" name="Enviar recordatorio 24 h antes" />
+    <bpmn:task id="T_Asistir" name="Asistir a la cita" />
+    <bpmn:task id="T_Atender" name="Consultar ficha clínica y atender mascota" />
+    <bpmn:endEvent id="Fin" name="Fin del proceso" />
+
+    <bpmn:sequenceFlow id="F1" sourceRef="Inicio" targetRef="T_Sintomas" />
+    <bpmn:sequenceFlow id="F2" sourceRef="T_Sintomas" targetRef="T_Predecir" />
+    <bpmn:sequenceFlow id="F3" sourceRef="T_Predecir" targetRef="T_Historial" />
+    <bpmn:sequenceFlow id="F4" sourceRef="T_Historial" targetRef="T_Horario" />
+    <bpmn:sequenceFlow id="F5" sourceRef="T_Horario" targetRef="G_Horario" />
+    <bpmn:sequenceFlow id="F6" name="Sí" sourceRef="G_Horario" targetRef="T_Comprobante" />
+    <bpmn:sequenceFlow id="F7" name="No" sourceRef="G_Horario" targetRef="T_Horario" />
+    <bpmn:sequenceFlow id="F8" sourceRef="T_Comprobante" targetRef="T_RegistrarCita" />
+    <bpmn:sequenceFlow id="F9" sourceRef="T_RegistrarCita" targetRef="T_Revisar" />
+    <bpmn:sequenceFlow id="F10" sourceRef="T_Revisar" targetRef="G_Pago" />
+    <bpmn:sequenceFlow id="F11" name="No" sourceRef="G_Pago" targetRef="T_Cancelar" />
+    <bpmn:sequenceFlow id="F12" sourceRef="T_Cancelar" targetRef="T_AvisoRechazo" />
+    <bpmn:sequenceFlow id="F13" sourceRef="T_AvisoRechazo" targetRef="FinRechazo" />
+    <bpmn:sequenceFlow id="F14" name="Sí" sourceRef="G_Pago" targetRef="T_Confirmar" />
+    <bpmn:sequenceFlow id="F15" sourceRef="T_Confirmar" targetRef="T_Recordatorio" />
+    <bpmn:sequenceFlow id="F16" sourceRef="T_Recordatorio" targetRef="T_Asistir" />
+    <bpmn:sequenceFlow id="F17" sourceRef="T_Asistir" targetRef="T_Atender" />
+    <bpmn:sequenceFlow id="F18" sourceRef="T_Atender" targetRef="Fin" />
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram">
+    <bpmndi:BPMNPlane id="Plane" bpmnElement="Collab">
+      <bpmndi:BPMNShape id="Pool_di" bpmnElement="Pool" isHorizontal="true">
+        <dc:Bounds x="100" y="60" width="2130" height="480" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="LanePropietario_di" bpmnElement="LanePropietario" isHorizontal="true">
+        <dc:Bounds x="130" y="60" width="2100" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="LaneSistema_di" bpmnElement="LaneSistema" isHorizontal="true">
+        <dc:Bounds x="130" y="220" width="2100" height="160" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="LaneVeterinario_di" bpmnElement="LaneVeterinario" isHorizontal="true">
+        <dc:Bounds x="130" y="380" width="2100" height="160" />
+      </bpmndi:BPMNShape>
+
+      <!-- Propietario (centro y=140) -->
+      <bpmndi:BPMNShape id="Inicio_di" bpmnElement="Inicio">
+        <dc:Bounds x="180" y="122" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="160" y="165" width="76" height="27" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Sintomas_di" bpmnElement="T_Sintomas">
+        <dc:Bounds x="250" y="105" width="120" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Horario_di" bpmnElement="T_Horario">
+        <dc:Bounds x="740" y="105" width="120" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Comprobante_di" bpmnElement="T_Comprobante">
+        <dc:Bounds x="1000" y="105" width="120" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_AvisoRechazo_di" bpmnElement="T_AvisoRechazo">
+        <dc:Bounds x="1450" y="105" width="120" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="FinRechazo_di" bpmnElement="FinRechazo">
+        <dc:Bounds x="1612" y="122" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1588" y="165" width="84" height="27" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Asistir_di" bpmnElement="T_Asistir">
+        <dc:Bounds x="1810" y="105" width="120" height="70" />
+      </bpmndi:BPMNShape>
+
+      <!-- Sistema web (centro y=300) -->
+      <bpmndi:BPMNShape id="T_Predecir_di" bpmnElement="T_Predecir">
+        <dc:Bounds x="420" y="265" width="120" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Historial_di" bpmnElement="T_Historial">
+        <dc:Bounds x="580" y="265" width="120" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G_Horario_di" bpmnElement="G_Horario" isMarkerVisible="true">
+        <dc:Bounds x="905" y="275" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="962" y="310" width="70" height="27" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_RegistrarCita_di" bpmnElement="T_RegistrarCita">
+        <dc:Bounds x="1160" y="265" width="120" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Cancelar_di" bpmnElement="T_Cancelar">
+        <dc:Bounds x="1450" y="265" width="120" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Confirmar_di" bpmnElement="T_Confirmar">
+        <dc:Bounds x="1640" y="265" width="120" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Recordatorio_di" bpmnElement="T_Recordatorio">
+        <dc:Bounds x="1810" y="265" width="120" height="70" />
+      </bpmndi:BPMNShape>
+
+      <!-- Veterinario (centro y=460) -->
+      <bpmndi:BPMNShape id="T_Revisar_di" bpmnElement="T_Revisar">
+        <dc:Bounds x="1320" y="425" width="120" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="G_Pago_di" bpmnElement="G_Pago" isMarkerVisible="true">
+        <dc:Bounds x="1485" y="435" width="50" height="50" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1474" y="492" width="72" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="T_Atender_di" bpmnElement="T_Atender">
+        <dc:Bounds x="1980" y="425" width="120" height="70" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Fin_di" bpmnElement="Fin">
+        <dc:Bounds x="2150" y="442" width="36" height="36" />
+        <bpmndi:BPMNLabel><dc:Bounds x="2130" y="485" width="76" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+
+      <!-- Flujos -->
+      <bpmndi:BPMNEdge id="F1_di" bpmnElement="F1">
+        <di:waypoint x="216" y="140" /><di:waypoint x="250" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F2_di" bpmnElement="F2">
+        <di:waypoint x="310" y="175" /><di:waypoint x="310" y="300" /><di:waypoint x="420" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F3_di" bpmnElement="F3">
+        <di:waypoint x="540" y="300" /><di:waypoint x="580" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F4_di" bpmnElement="F4">
+        <di:waypoint x="640" y="265" /><di:waypoint x="640" y="140" /><di:waypoint x="740" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F5_di" bpmnElement="F5">
+        <di:waypoint x="820" y="175" /><di:waypoint x="820" y="300" /><di:waypoint x="905" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F6_di" bpmnElement="F6">
+        <di:waypoint x="930" y="275" /><di:waypoint x="930" y="140" /><di:waypoint x="1000" y="140" />
+        <bpmndi:BPMNLabel><dc:Bounds x="938" y="120" width="14" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F7_di" bpmnElement="F7">
+        <di:waypoint x="930" y="325" /><di:waypoint x="930" y="360" /><di:waypoint x="770" y="360" /><di:waypoint x="770" y="175" />
+        <bpmndi:BPMNLabel><dc:Bounds x="938" y="335" width="16" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F8_di" bpmnElement="F8">
+        <di:waypoint x="1060" y="175" /><di:waypoint x="1060" y="300" /><di:waypoint x="1160" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F9_di" bpmnElement="F9">
+        <di:waypoint x="1220" y="335" /><di:waypoint x="1220" y="460" /><di:waypoint x="1320" y="460" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F10_di" bpmnElement="F10">
+        <di:waypoint x="1440" y="460" /><di:waypoint x="1485" y="460" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F11_di" bpmnElement="F11">
+        <di:waypoint x="1510" y="435" /><di:waypoint x="1510" y="335" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1516" y="405" width="16" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F12_di" bpmnElement="F12">
+        <di:waypoint x="1510" y="265" /><di:waypoint x="1510" y="175" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F13_di" bpmnElement="F13">
+        <di:waypoint x="1570" y="140" /><di:waypoint x="1612" y="140" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F14_di" bpmnElement="F14">
+        <di:waypoint x="1535" y="460" /><di:waypoint x="1700" y="460" /><di:waypoint x="1700" y="335" />
+        <bpmndi:BPMNLabel><dc:Bounds x="1590" y="440" width="14" height="14" /></bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F15_di" bpmnElement="F15">
+        <di:waypoint x="1760" y="300" /><di:waypoint x="1810" y="300" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F16_di" bpmnElement="F16">
+        <di:waypoint x="1870" y="265" /><di:waypoint x="1870" y="175" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F17_di" bpmnElement="F17">
+        <di:waypoint x="1930" y="140" /><di:waypoint x="2040" y="140" /><di:waypoint x="2040" y="425" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="F18_di" bpmnElement="F18">
+        <di:waypoint x="2100" y="460" /><di:waypoint x="2150" y="460" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

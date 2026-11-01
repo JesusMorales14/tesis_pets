@@ -1,0 +1,137 @@
+<!-- Solo el contenido del modal (sin overlay), para usar dentro de <ion-modal> -->
+<div class="comprobante-modal-container" (click)="$event.stopPropagation()">
+  <!-- Header -->
+  <div class="modal-header">
+    <div class="modal-title">
+      <h2>{{ showActions() ? 'Revisar comprobante' : 'Comprobante de pago' }}</h2>
+      @if (progressLabel()) {
+        <span class="modal-progress">{{ progressLabel() }}</span>
+      }
+    </div>
+    <!-- Botón de cerrar personalizado (además del nativo de ion-modal) -->
+    <button
+      type="button"
+      class="close-btn"
+      aria-label="Cerrar comprobante"
+      (click)="closeModal()"
+    >
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </div>
+
+  <!-- Contenido -->
+  <div class="modal-content">
+    <!-- Visor de imagen a pantalla completa -->
+    <div class="comprobante-viewer" [class.expanded]="isFullscreen">
+      @if (appointment().comprobante_url && !imageError) {
+        <img
+          [src]="getImageUrl()"
+          alt="Comprobante de pago"
+          (click)="toggleFullscreen()"
+          (error)="onImageError()"
+        />
+        <div class="view-hint">
+          <ion-icon [name]="isFullscreen ? 'contract-outline' : 'expand-outline'"></ion-icon>
+          <span>{{ isFullscreen ? 'Toca para reducir' : 'Toca para ampliar' }}</span>
+        </div>
+      } @else {
+        <div class="no-image">
+          <ion-icon name="document-text-outline"></ion-icon>
+          <p>No hay comprobante disponible</p>
+        </div>
+      }
+    </div>
+
+    <!-- Información de la cita -->
+    <div class="payment-modal-info">
+      <div class="info-row">
+        <ion-icon name="person-outline"></ion-icon>
+        <div class="info-text">
+          <strong>{{ appointment().user_nombre }}</strong>
+          <span>{{ appointment().user_email }}</span>
+        </div>
+      </div>
+
+      <div class="info-row">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <div class="info-text">
+          <strong>{{ appointment().fecha }} · {{ appointment().hora }}</strong>
+        </div>
+      </div>
+
+      <div class="info-row">
+        <ion-icon name="heart-outline"></ion-icon>
+        <div class="info-text">
+          <strong>{{ appointment().pet_nombre || 'Consulta sin mascota registrada' }}</strong>
+          <span>Mascota</span>
+        </div>
+      </div>
+
+      <div class="info-row">
+        <ion-icon name="card-outline"></ion-icon>
+        <div class="info-text">
+          <strong>{{ getPaymentMethodLabel() }}</strong>
+        </div>
+      </div>
+
+      <div class="info-row">
+        <ion-icon name="paw-outline"></ion-icon>
+        <div class="info-text">
+          <strong>{{ formatDiagnostico(appointment().diagnostico) | titlecase }}</strong>
+          <span>{{ appointment().especie | titlecase }}</span>
+        </div>
+      </div>
+
+      <div class="info-row">
+        <ion-icon name="warning-outline"></ion-icon>
+        <div class="info-text">
+          <strong>Gravedad</strong>
+          <span>{{ getSeverityLabel() }}</span>
+        </div>
+      </div>
+
+      @if (appointment().pago_estado) {
+      <div class="info-row">
+        <ion-icon [name]="getPaymentStatusIcon()"></ion-icon>
+        <div class="info-text">
+          <strong>Estado de pago</strong>
+          <span class="payment-status-badge" [ngClass]="appointment().pago_estado">
+            {{ getPaymentStatusLabel() }}
+          </span>
+        </div>
+      </div>
+      }
+
+      <!-- Acciones (solo para admin) - dentro de payment-modal-info, al final centrado -->
+      @if (showActions()) {
+        <div class="modal-actions">
+          <ion-button
+            expand="block"
+            fill="outline"
+            color="danger"
+            (click)="handleReject()"
+            [disabled]="isProcessing()"
+          >
+            @if (isProcessing()) {
+              <ion-spinner slot="start" name="crescent"></ion-spinner>
+            }
+            <span class="button-inner">{{ rejectText() }}</span>
+          </ion-button>
+
+          <ion-button
+            expand="block"
+            fill="solid"
+            color="success"
+            (click)="handleApprove()"
+            [disabled]="isProcessing()"
+          >
+            @if (isProcessing()) {
+              <ion-spinner slot="start" name="crescent"></ion-spinner>
+            }
+            <span class="button-inner">{{ approveText() }}</span>
+          </ion-button>
+        </div>
+      }
+    </div>
+  </div>
+</div>

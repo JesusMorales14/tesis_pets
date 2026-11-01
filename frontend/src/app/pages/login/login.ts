@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 
@@ -13,7 +13,7 @@ import { ThemeService } from '@core/services/theme';
   standalone: true,
   imports: [IonicModule, FormsModule],
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
   themeService = inject(ThemeService);
@@ -23,6 +23,12 @@ export class LoginComponent {
   showPassword = false;
   isLoading = false;
   errorMsg = '';
+
+  ngOnInit() {
+    if (history.state?.expiredSession) {
+      this.errorMsg = 'Tu sesión ha expirado. Inicia sesión nuevamente para continuar.';
+    }
+  }
 
   togglePassword() { this.showPassword = !this.showPassword; }
 
@@ -37,7 +43,9 @@ export class LoginComponent {
       next: () => {
         this.isLoading = false;
         const state = history.state;
-        const returnTo = state?.returnTo || '/tabs/tab1';
+        // Sin una pantalla a la que volver, cada rol entra a su vista
+        // principal: el veterinario a su panel, el dueño al inicio.
+        const returnTo = state?.returnTo || (this.auth.isAdmin ? '/admin' : '/tabs/tab1');
         const returnState = state?.returnState;
         this.router.navigate([returnTo], returnState ? { state: returnState } : {});
       },

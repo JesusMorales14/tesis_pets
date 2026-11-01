@@ -1,12 +1,16 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { PredictionResult } from '@core/services/prediction';
 import { AppointmentService, TimeSlot } from '@core/services/appointment';
 import { AuthService } from '@core/services/auth';
 import { ThemeService } from '@core/services/theme';
 import { BreakpointService } from '@core/services/breakpoint';
+import { DiagnosisFlowService, SelectedSymptom } from '@core/services/diagnosis-flow';
+import { toLocalIsoDate } from '@core/utils/date';
 
 const MONTHS = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
 const DAYS   = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
@@ -31,11 +35,29 @@ export class ScheduleComponent implements OnInit {
   private router = inject(Router);
   private appointmentService = inject(AppointmentService);
   private auth = inject(AuthService);
+  private sanitizer = inject(DomSanitizer);
+  private flow = inject(DiagnosisFlowService);
+  private destroyRef = inject(DestroyRef);
   themeService = inject(ThemeService);
   breakpointService = inject(BreakpointService);
 
+  readonly clinicName = 'Clínica Veterinaria CityVet';
+  readonly address = 'Jirón Los Ángeles 270 (media cuadra antes de la Reniec), Chincha Alta, Perú';
+  readonly directionsUrl =
+    'https://www.google.com/maps/place/Cl%C3%ADnica+Veterinaria+CityVet/@-13.4156907,-76.1312858,19z/data=!4m6!3m5!1s0x911017c7fecdd98b:0xc590a4ac9f39ab48!8m2!3d-13.4156907!4d-76.1312858!16s%2Fg%2F11k53t33hw';
+  readonly mapUrl: SafeResourceUrl = this.sanitizer.bypassSecurityTrustResourceUrl(
+    'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1945.748074900762!2d-76.13347442296752!3d-13.415690686940866!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x911017c7fecdd98b%3A0xc590a4ac9f39ab48!2sCl%C3%ADnica%20Veterinaria%20CityVet!5e0!3m2!1ses!2spe!4v1709490000000!5m2!1ses!2spe',
+  );
+
   result: PredictionResult | null = null;
   especie = 'perro';
+  petNombre: string | null = null;
+  selectedSymptoms: SelectedSymptom[] = [];
+
+  /** Formatea el diagnóstico reemplazando guiones bajos por espacios */
+  formatDiagnostico(diagnostico: string): string {
+    return (diagnostico ?? '').replace(/_/g, ' ');
+  }
 
   clinicAbierta = false;
   currentMonthYear = '';
@@ -51,9 +73,20 @@ export class ScheduleComponent implements OnInit {
   isLoggedIn = false;
 
   ngOnInit() {
-    const state = history.state;
-    this.result     = state?.result   ?? null;
-    this.especie    = state?.especie  ?? 'perro';
+    this.auth.user$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => { this.isLoggedIn = this.auth.isLoggedIn; });
+  }
+
+  // Se recarga en cada entrada (Ionic reutiliza la página desde su caché):
+  // al volver del login o del pago debe reflejar el flujo actual y la
+  // disponibilidad real de horarios en ese momento.
+  ionViewWillEnter() {
+    const state = this.flow.state;
+    this.result     = state?.result ?? null;
+    this.especie    = state?.especie ?? 'perro';
+    this.selectedSymptoms = state?.selectedSymptoms ?? [];
+    this.petNombre  = this.result?.mascota ?? state?.petNombre ?? null;
 
     if (!this.result) {
       this.router.navigate(['/tabs/tab2']);
@@ -61,21 +94,16 @@ export class ScheduleComponent implements OnInit {
     }
 
     this.isLoggedIn = this.auth.isLoggedIn;
-    this.auth.user$.subscribe(() => { this.isLoggedIn = this.auth.isLoggedIn; });
 
-    const now = new Date();
-    const hour = now.getHours();
+    const hour = new Date().getHours();
     this.clinicAbierta = hour >= 9 && hour < 22;
 
     this.dates = this.generateDates(14);
-    const preDate = state?.selectedDate;
-    this.selectedDate = preDate
-      ? (this.dates.find(d => d.isoDate === preDate) ?? this.dates[0])
-      : this.dates[0];
+    this.selectedDate = this.dates.find(d => d.isoDate === state?.fecha) ?? this.dates[0];
+    this.selectedSlot = null;
     this.currentMonthYear = this.formatMonthYear(this.selectedDate.date);
 
-    const preHora = state?.selectedHora;
-    this.loadSlots(preHora);
+    this.loadSlots(state?.fecha === this.selectedDate.isoDate ? state?.hora : undefined);
   }
 
   generateDates(count: number): DateOption[] {
@@ -86,7 +114,7 @@ export class ScheduleComponent implements OnInit {
       d.setDate(today.getDate() + i);
       return {
         date: d,
-        isoDate: d.toISOString().split('T')[0],
+        isoDate: toLocalIsoDate(d),
         dayNum: d.getDate().toString(),
         dayAbbr: DAYS[d.getDay()],
         monthAbbr: MONTHS[d.getMonth()],
@@ -140,29 +168,16 @@ export class ScheduleComponent implements OnInit {
   confirmar() {
     if (!this.canConfirm()) return;
 
+    // El horario elegido queda en el flujo: si hay que pasar por el login,
+    // al volver aparece ya seleccionado.
+    this.flow.setSlot(this.selectedDate!.isoDate, this.selectedSlot!.hora);
+
     if (!this.isLoggedIn) {
-      this.router.navigate(['/login'], {
-        state: {
-          returnTo: '/schedule',
-          returnState: {
-            result: this.result,
-            especie: this.especie,
-            selectedDate: this.selectedDate!.isoDate,
-            selectedHora: this.selectedSlot!.hora,
-          },
-        },
-      });
+      this.router.navigate(['/login'], { state: { returnTo: '/schedule' } });
       return;
     }
 
-    this.router.navigate(['/payment'], {
-      state: {
-        result: this.result,
-        especie: this.especie,
-        fecha: this.selectedDate!.isoDate,
-        hora: this.selectedSlot!.hora,
-      },
-    });
+    this.router.navigate(['/payment']);
   }
 
   getGravedadColor(): string {
@@ -171,8 +186,6 @@ export class ScheduleComponent implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['/diagnostic-result'], {
-      state: { result: this.result, especie: this.especie },
-    });
+    this.router.navigate(['/diagnostic-result']);
   }
 }

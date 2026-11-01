@@ -101,13 +101,15 @@ def test_create_vaccination_without_refuerzo_has_no_next_date(client):
     token = _register(client)
     pet_id = _create_pet(client, token)
 
+    # Ahora refuerzo_meses es obligatorio (1-60), usamos un valor grande para simular "sin refuerzo próximo"
     r = client.post(
         f"/pets/{pet_id}/vaccinations",
-        json={"nombre": "Vacuna puntual", "fecha_aplicacion": "2026-01-15"},
+        json={"nombre": "Vacuna puntual", "fecha_aplicacion": "2026-01-15", "refuerzo_meses": 60},
         headers={"Authorization": f"Bearer {token}"},
     )
     assert r.status_code == 200
-    assert r.json()["fecha_proxima"] is None
+    # Con 60 meses, fecha_proxima será en 5 años
+    assert r.json()["fecha_proxima"] is not None
 
 
 def test_create_vaccination_rejects_bad_date_format(client):
@@ -152,7 +154,7 @@ def test_cannot_manage_vaccinations_of_another_users_pet(client):
 
     r = client.post(
         f"/pets/{pet_id}/vaccinations",
-        json={"nombre": "Rabia", "fecha_aplicacion": "2026-01-15"},
+        json={"nombre": "Rabia", "fecha_aplicacion": "2026-01-15", "refuerzo_meses": 12},
         headers={"Authorization": f"Bearer {token_b}"},
     )
     assert r.status_code == 403

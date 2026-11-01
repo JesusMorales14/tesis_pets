@@ -16,6 +16,8 @@ import {
 } from '@core/models/symptom';
 import { getSeverityGuide as severityGuideFor, SeverityGuide } from '@core/models/severity-guide';
 import { SymptomPickerComponent } from './symptom-picker/symptom-picker';
+import { DiagnosisFlowService } from '@core/services/diagnosis-flow';
+import { AuthService } from '@core/services/auth';
 
 @Component({
   selector: 'app-symptoms-selection',
@@ -29,10 +31,12 @@ export class SymptomsSelectionComponent implements OnInit {
   private router = inject(Router);
   private predictionService = inject(PredictionService);
   private modalCtrl = inject(ModalController);
+  private flow = inject(DiagnosisFlowService);
+  private auth = inject(AuthService);
   themeService = inject(ThemeService);
   breakpointService = inject(BreakpointService);
 
-  especie: string = 'perro';
+  especie: 'perro' | 'gato' = 'perro';
   especieLabel: string = 'Perro';
   petId: number | null = null;
   petNombre: string | null = null;
@@ -60,9 +64,7 @@ export class SymptomsSelectionComponent implements OnInit {
     this.especie = especieParam === 'felino' ? 'gato' : 'perro';
     this.especieLabel = this.especie === 'gato' ? 'Gato' : 'Perro';
 
-    const state = history.state;
-    this.petId = state?.petId ?? null;
-    this.petNombre = state?.petNombre ?? null;
+    this.syncPetFromFlow();
 
     // Filtrar síntomas según especie
     this.symptomGroups = SYMPTOM_GROUPS.map((group) => ({
@@ -78,6 +80,23 @@ export class SymptomsSelectionComponent implements OnInit {
         this.symptomMap[s.key] = s;
       });
     });
+  }
+
+  // Ionic reutiliza esta página desde su caché al volver a ella, así que la
+  // mascota se vuelve a leer en cada entrada y no solo en ngOnInit.
+  ionViewWillEnter() {
+    this.syncPetFromFlow();
+  }
+
+  // La mascota elegida en la pestaña Diagnóstico. Si se entró directo por
+  // URL o la especie no coincide, es una consulta rápida sin mascota.
+  private syncPetFromFlow() {
+    const flow = this.flow.state;
+    if (!flow || flow.especie !== this.especie) {
+      this.flow.start(this.especie, this.auth.currentUser?.id ?? null);
+    }
+    this.petId = this.flow.petIdFor(this.auth.currentUser?.id);
+    this.petNombre = this.petId ? this.flow.state?.petNombre ?? null : null;
   }
 
   async openPicker() {
@@ -177,18 +196,15 @@ export class SymptomsSelectionComponent implements OnInit {
     this.predictionService.predict(payload).subscribe({
       next: (res) => {
         this.isLoading = false;
-        this.router.navigate(['/diagnostic-result'], {
-          state: {
-            result: res,
-            selectedSymptoms: this.selectedSymptoms.map((s) => ({
-              key: s.key,
-              severity: s.severity,
-              label: this.getSymptomLabel(s.key),
-            })),
-            especie: this.especie,
-            petNombre: this.petNombre,
-          },
-        });
+        this.flow.setResult(
+          res,
+          this.selectedSymptoms.map((s) => ({
+            key: s.key,
+            severity: s.severity,
+            label: this.getSymptomLabel(s.key),
+          })),
+        );
+        this.router.navigate(['/diagnostic-result']);
       },
       error: (err) => {
         this.errorMsg =

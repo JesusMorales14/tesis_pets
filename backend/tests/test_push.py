@@ -112,3 +112,91 @@ def test_resubscribing_same_endpoint_updates_instead_of_duplicating(client):
         assert db.query(PushSubscription).count() == 1
     finally:
         db.close()
+
+
+ENDPOINT = "https://push.example.com/abc"
+
+
+def _post(client, url, token, body):
+    return client.post(url, json=body, headers={"Authorization": f"Bearer {token}"})
+
+
+def test_status_belongs_to_the_account_not_to_the_browser(client):
+    test_client, _ = client
+    ana = _register(test_client, email="ana@test.com")
+    beto = _register(test_client, email="beto@test.com")
+    sub = {"endpoint": ENDPOINT, "p256dh": "k", "auth": "a"}
+
+    _post(test_client, "/push/subscribe", ana, sub)
+    assert _post(test_client, "/push/status", ana, {"endpoint": ENDPOINT}).json() == {"subscribed": True}
+    # Mismo navegador, otra cuenta: no recibe las notificaciones de Ana.
+    assert _post(test_client, "/push/status", beto, {"endpoint": ENDPOINT}).json() == {"subscribed": False}
+
+    # Si Beto las activa en ese navegador, pasan a ser solo de Beto.
+    _post(test_client, "/push/subscribe", beto, sub)
+    assert _post(test_client, "/push/status", ana, {"endpoint": ENDPOINT}).json() == {"subscribed": False}
+    assert _post(test_client, "/push/status", beto, {"endpoint": ENDPOINT}).json() == {"subscribed": True}
+
+    # Desactivar deja el dispositivo sin suscripción.
+    _post(test_client, "/push/unsubscribe", beto, {"endpoint": ENDPOINT})
+    assert _post(test_client, "/push/status", beto, {"endpoint": ENDPOINT}).json() == {"subscribed": False}
+
+
+def test_test_notification_requires_an_active_subscription(client, monkeypatch):
+    test_client, _ = client
+    token = _register(test_client)
+    sent = []
+    monkeypatch.setattr("services.push_service.send_push", lambda sub, payload: sent.append(payload) or True)
+
+    assert _post(test_client, "/push/test", token, {"endpoint": ENDPOINT}).status_code == 404
+    _post(test_client, "/push/subscribe", token, {"endpoint": ENDPOINT, "p256dh": "k", "auth": "a"})
+    assert _post(test_client, "/push/test", token, {"endpoint": ENDPOINT}).status_code == 200
+    assert sent and sent[0]["title"] == "Notificaciones activadas"
+
+
+def test_notification_content_is_readable():
+    from types import SimpleNamespace
+    import notifications
+
+    appt = SimpleNamespace(id=7, fecha="2026-10-27", hora="10:00", pet_nombre="Firulais", especie="perro")
+    n = notifications.pago_aprobado(appt)
+    assert n["title"] == "Pago aprobado · Cita confirmada"
+    assert "martes 27 de octubre" in n["body"] and "Firulais" in n["body"]
+    assert n["tag"] == "cita-7" and n["type"] == "cita" and n["url"] == "/profile"
+    assert notifications.pago_rechazado(appt)["urgent"] is True
+
+
+# ── Envío real (pywebpush) ─────────────────────────────────────────────────
+
+def test_send_push_uses_a_valid_vapid_key(monkeypatch):
+    import push_utils
+    from py_vapid import Vapid01
+    seen = {}
+    monkeypatch.setattr(push_utils, "webpush", lambda **kw: seen.update(kw))
+    assert push_utils.send_push({"endpoint": "https://x", "keys": {}}, {"title": "t"}) is True
+    # Antes se pasaba el PEM como texto y pywebpush lo leía como DER: fallaba siempre.
+    assert isinstance(seen["vapid_private_key"], Vapid01)
+
+
+def test_push_failures_never_break_the_caller(monkeypatch):
+    import push_utils
+    from pywebpush import WebPushException
+
+    def boom(**kw):
+        raise RuntimeError("red caída")
+    monkeypatch.setattr(push_utils, "webpush", boom)
+    assert push_utils.send_push({"endpoint": "https://x", "keys": {}}, {}) is True
+
+    def rejected(**kw):
+        raise WebPushException("clave distinta", response=type("R", (), {"status_code": 403})())
+    monkeypatch.setattr(push_utils, "webpush", rejected)
+    # 403 (otra clave VAPID): la suscripción ya no sirve y se descarta.
+    assert push_utils.send_push({"endpoint": "https://x", "keys": {}}, {}) is False
+
+
+def test_env_private_key_in_one_line_is_accepted():
+    from py_vapid import Vapid
+    v = Vapid()
+    v.generate_keys()
+    one_line = v.private_pem().decode().strip().replace("\n", "\n")
+    assert Vapid.from_pem(one_line.replace("\n", "\n").encode()) is not None

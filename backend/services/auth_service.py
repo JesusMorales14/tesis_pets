@@ -10,6 +10,7 @@ from models import User, Pet, Vaccination, DiagnosisRecord, Appointment, PushSub
 from auth_utils import verify_password, hash_password, create_token, decode_token, ADMIN_CODE
 from repositories.user_repository import UserRepository, get_user_repository
 from schemas.auth import RegisterBody, LoginBody, ChangePasswordBody
+from time_utils import utc_isoformat
 
 
 def get_current_user(authorization: Optional[str] = Header(None), db: Session = Depends(get_db)) -> User:
@@ -98,7 +99,7 @@ class AuthService:
                     {
                         "diagnostico": d.diagnostico, "probabilidad": d.probabilidad,
                         "gravedad": d.gravedad, "sintomas": json.loads(d.sintomas_json),
-                        "created_at": d.created_at.isoformat(),
+                        "created_at": utc_isoformat(d.created_at),
                     }
                     for d in diagnoses
                 ],
@@ -109,11 +110,11 @@ class AuthService:
         return {
             "cuenta": {
                 "nombre": current_user.nombre, "email": current_user.email,
-                "creada_el": current_user.created_at.isoformat() if current_user.created_at else None,
+                "creada_el": utc_isoformat(current_user.created_at),
             },
             "mascotas": pets_data,
             "citas": [appointment_out(a) for a in appointments],
-            "exportado_el": datetime.utcnow().isoformat(),
+            "exportado_el": utc_isoformat(datetime.utcnow()),
         }
 
     def delete_my_account(self, current_user: User) -> dict:

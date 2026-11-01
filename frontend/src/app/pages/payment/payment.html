@@ -1,7 +1,7 @@
 <!-- Header dinámico según paso -->
 <ion-header>
   <ion-toolbar class="custom-toolbar">
-    @if (step === 1) {
+    @if (step === 1 || step === 3) {
       <ion-buttons slot="start">
         <ion-button fill="clear" (click)="goBack()">
           <ion-icon name="arrow-back-outline"></ion-icon>
@@ -26,8 +26,13 @@
       <div class="success-icon">
         <ion-icon name="checkmark-circle"></ion-icon>
       </div>
-      <h1>¡Cita reservada!</h1>
-      <p>Tu horario ya está apartado. Enviamos tu comprobante a la clínica — te avisaremos apenas lo revisen.</p>
+      <h1>¡Pago enviado correctamente!</h1>
+      <p>
+        Tu horario quedó apartado y tu comprobante ya está en la clínica.
+        <strong>Ahora debes esperar a que el veterinario verifique tu pago.</strong>
+        Cuando lo apruebe, tu cita aparecerá como <strong>Confirmada</strong> en
+        Mi cuenta → Mis citas{{ petNombre ? ' y el diagnóstico de ' + petNombre + ' ya está en su historial' : '' }}.
+      </p>
 
       <div class="success-detail">
         <div class="detail-row">
@@ -40,11 +45,11 @@
         </div>
         <div class="detail-row">
           <ion-icon name="paw-outline"></ion-icon>
-          <span>{{ (result?.diagnostico ?? '') | titlecase }} · {{ especie | titlecase }}</span>
+          <span>{{ formatDiagnostico(result?.diagnostico ?? '') | titlecase }} · {{ especie | titlecase }}</span>
         </div>
         <div class="detail-row">
           <ion-icon name="cash-outline"></ion-icon>
-          <span>{{ metodo === 'yape' ? 'Yape' : 'Transferencia' }} · Comprobante enviado a revisión</span>
+          <span>{{ metodo === 'yape' ? 'Billetera Digital' : 'Transferencia' }} · Pago en verificación</span>
         </div>
       </div>
 
@@ -71,7 +76,7 @@
         <div class="summary-row">
           <ion-icon name="paw-outline"></ion-icon>
           <div>
-            <strong>{{ (result?.diagnostico ?? '') | titlecase }}</strong>
+            <strong>{{ formatDiagnostico(result?.diagnostico ?? '') | titlecase }}</strong>
             <span>{{ especie | titlecase }} · {{ result?.gravedad | titlecase }}</span>
           </div>
         </div>
@@ -91,12 +96,13 @@
       <p class="section-label">Selecciona método de pago</p>
 
       <div class="payment-card" [class.selected]="metodo === 'yape'" (click)="selectMetodo('yape')">
-        <div class="payment-logo yape-logo">
-          <ion-icon name="phone-portrait-outline"></ion-icon>
+        <div class="payment-logo wallet-logo">
+          <img src="assets/img/yape-logo.png" alt="Yape" class="billetera-icon" />
+          <img src="assets/img/plin-logo.png" alt="Plin" class="billetera-icon" />
         </div>
         <div class="payment-info">
-          <strong>Yape</strong>
-          <p>Escanea el QR o yapea al número de la clínica</p>
+          <strong>Billetera Digital</strong>
+          <p>Escanea el QR o envía al número de la clínica</p>
         </div>
         @if (metodo === 'yape') {
           <ion-icon name="checkmark-circle" class="check-icon"></ion-icon>
@@ -121,8 +127,8 @@
       <div class="info-hint">
         <ion-icon name="information-circle-outline"></ion-icon>
         <span>
-          Tu horario se reserva apenas eliges el método de pago. Después verás los datos para
-          pagar y podrás subir tu comprobante.
+          Selecciona tu método de pago preferido. En el siguiente paso verás los datos para
+          pagar y deberás adjuntar tu comprobante para confirmar la reserva de tu cita.
         </span>
       </div>
     </div>
@@ -135,16 +141,24 @@
       </div>
     }
 
+    @if (slotTaken) {
+      <div class="section confirm-section">
+        <button class="confirm-btn" (click)="goToSchedule()">
+          <ion-icon name="calendar-outline"></ion-icon>
+          <span>Elegir otro horario</span>
+        </button>
+      </div>
+    }
+
     <div class="section confirm-section">
       <button
         class="confirm-btn"
-        [class.disabled-btn]="!metodo || isProcessing"
+        [class.disabled-btn]="!metodo"
         (click)="continuar()"
-        [disabled]="!metodo || isProcessing"
+        [disabled]="!metodo"
         >
-        @if (isProcessing) { <ion-spinner name="crescent"></ion-spinner> }
-        @else { <ion-icon name="arrow-forward-outline"></ion-icon> }
-        <span>{{ isProcessing ? 'Reservando…' : 'Reservar y continuar' }}</span>
+        <ion-icon name="arrow-forward-outline"></ion-icon>
+        <span>Continuar al pago</span>
       </button>
     </div>
   }
@@ -155,22 +169,25 @@
   @if (step === 3) {
 
     <div class="section">
-      <div class="info-hint success-hint">
-        <ion-icon name="checkmark-circle"></ion-icon>
-        <span>Tu horario del {{ fechaLabel }}, {{ hora }} ya está reservado.</span>
+      <div class="info-hint">
+        <ion-icon name="time-outline"></ion-icon>
+        <span>
+          Horario a reservar: {{ fechaLabel }} a las {{ hora }}. Realiza el pago y adjunta tu comprobante a continuación para completar la reserva.
+        </span>
       </div>
     </div>
 
     @if (metodo === 'yape') {
       <div class="section">
-        <p class="section-label">Paga con Yape</p>
+        <p class="section-label">Paga con Billetera Digital</p>
         <div class="yape-card">
           <div class="yape-header">
-            <div class="yape-logo-wrap">
-              <ion-icon name="phone-portrait-outline"></ion-icon>
+            <div class="yape-logo-wrap wallet-logo-wrap">
+              <img src="assets/img/yape-logo.png" alt="Yape" class="billetera-icon" />
+              <img src="assets/img/plin-logo.png" alt="Plin" class="billetera-icon" />
             </div>
             <div>
-              <span class="yape-brand">YAPE</span>
+              <span class="yape-brand">BILLETERA DIGITAL</span>
               <span class="yape-sub">CityVet</span>
             </div>
           </div>
@@ -178,7 +195,7 @@
             <img class="yape-qr" [src]="apiUrl + paymentConfig!.yape_qr_url" alt="Código QR de Yape" />
           }
           <div class="yape-to">
-            <span class="yape-to-label">Número Yape</span>
+            <span class="yape-to-label">Número Billetera Digital</span>
             <button class="copy-row" (click)="copyToClipboard(paymentConfig?.yape_phone ?? null, 'yape')">
               <span class="yape-to-phone">{{ paymentConfig?.yape_phone || 'No configurado todavía' }}</span>
               @if (paymentConfig?.yape_phone) {
@@ -230,16 +247,53 @@
 
     <div class="section">
       <p class="section-label">Sube tu comprobante</p>
-      <label class="upload-box" [class.has-file]="selectedFile">
-        <input type="file" accept="image/png,image/jpeg,image/webp" (change)="onFileSelected($event)" hidden />
-        @if (!filePreviewUrl) {
+      <input
+        #fileInput
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        (change)="onFileSelected($event)"
+        hidden
+      />
+      @if (!selectedFile) {
+        <button type="button" class="upload-box" (click)="fileInput.click()">
           <ion-icon name="cloud-upload-outline"></ion-icon>
-          <span>Toca para elegir una foto o captura del comprobante</span>
-        } @else {
-          <img [src]="filePreviewUrl" alt="Vista previa del comprobante" />
-          <span class="change-hint">Toca para cambiar la imagen</span>
-        }
-      </label>
+          <strong>Elegir comprobante</strong>
+          <span>Foto o captura del pago · PNG, JPG o WEBP · máx. 5 MB</span>
+        </button>
+      } @else {
+        <div class="file-card" role="status">
+          <div class="file-card-icon">
+            <ion-icon name="checkmark-circle"></ion-icon>
+          </div>
+          <div class="file-card-info">
+            <strong>Comprobante adjuntado</strong>
+            <span class="file-name" [title]="selectedFile.name">{{ selectedFile.name }}</span>
+            <span class="file-meta">{{ fileDetails }}</span>
+          </div>
+          <div class="file-card-actions">
+            <button type="button" class="file-action" (click)="fileInput.click()" [disabled]="isUploading">
+              Cambiar
+            </button>
+            <button
+              type="button"
+              class="file-action icon"
+              (click)="removeFile()"
+              [disabled]="isUploading"
+              aria-label="Quitar comprobante"
+              title="Quitar comprobante"
+            >
+              <ion-icon name="close-outline"></ion-icon>
+            </button>
+          </div>
+        </div>
+        <p class="file-review-note">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          <span>
+            Al confirmar la cita, tu comprobante se enviará al veterinario para su revisión.
+            Te avisaremos cuando el pago quede verificado.
+          </span>
+        </p>
+      }
     </div>
 
     @if (errorMsg) {
@@ -258,8 +312,8 @@
         (click)="subirComprobante()"
         >
         @if (isUploading) { <ion-spinner name="crescent"></ion-spinner> }
-        @else { <ion-icon name="checkmark-outline"></ion-icon> }
-        <span>{{ isUploading ? 'Enviando…' : 'Enviar comprobante' }}</span>
+        @else { <ion-icon name="checkmark-circle-outline"></ion-icon> }
+        <span>{{ isUploading ? 'Confirmando reserva…' : 'Confirmar cita y enviar comprobante' }}</span>
       </button>
     </div>
   }

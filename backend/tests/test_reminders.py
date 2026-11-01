@@ -6,7 +6,7 @@ en memoria — nunca toca veterinary.db.
 """
 import os
 import sys
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -22,7 +22,12 @@ from models import Base, Appointment  # noqa: E402
 from services.reminder_service import send_reminders_for_db  # noqa: E402
 
 TOMORROW = (date.today() + timedelta(days=1)).isoformat()
-TODAY = date.today().isoformat()
+# Las citas de prueba son mañana a las 09:00; "ahora" se fija respecto de
+# esa hora para que el resultado no dependa de cuándo se corre el test.
+APPT_AT = datetime.fromisoformat(f"{TOMORROW}T09:00")
+NOW_23H_BEFORE = APPT_AT - timedelta(hours=23)
+# Cualquier día que no sea mañana (no hoy: un horario de hoy ya pasado se rechaza).
+IN_THREE_DAYS = (date.today() + timedelta(days=3)).isoformat()
 
 
 @pytest.fixture()
@@ -67,7 +72,7 @@ def _book(client, token, fecha, hora="09:00"):
     return r.json()["id"]
 
 
-def test_reminds_confirmed_appointments_happening_tomorrow(client):
+def test_reminds_confirmed_appointments_within_24_hours(client):
     test_client, TestingSessionLocal = client
     user_id, token = _register(test_client)
     appt_id = _book(test_client, token, TOMORROW)
@@ -78,7 +83,7 @@ def test_reminds_confirmed_appointments_happening_tomorrow(client):
         appt.estado = "confirmada"
         db.commit()
 
-        sent = send_reminders_for_db(db)
+        sent = send_reminders_for_db(db, now=NOW_23H_BEFORE)
         assert sent == 1
 
         db.refresh(appt)
@@ -98,8 +103,8 @@ def test_does_not_remind_twice(client):
         appt.estado = "confirmada"
         db.commit()
 
-        assert send_reminders_for_db(db) == 1
-        assert send_reminders_for_db(db) == 0
+        assert send_reminders_for_db(db, now=NOW_23H_BEFORE) == 1
+        assert send_reminders_for_db(db, now=NOW_23H_BEFORE) == 0
     finally:
         db.close()
 
@@ -111,7 +116,7 @@ def test_does_not_remind_pending_appointments(client):
 
     db = TestingSessionLocal()
     try:
-        assert send_reminders_for_db(db) == 0
+        assert send_reminders_for_db(db, now=NOW_23H_BEFORE) == 0
     finally:
         db.close()
 
@@ -119,7 +124,7 @@ def test_does_not_remind_pending_appointments(client):
 def test_does_not_remind_appointments_on_other_days(client):
     test_client, TestingSessionLocal = client
     _, token = _register(test_client)
-    appt_id = _book(test_client, token, TODAY)
+    appt_id = _book(test_client, token, IN_THREE_DAYS)
 
     db = TestingSessionLocal()
     try:
@@ -127,6 +132,44 @@ def test_does_not_remind_appointments_on_other_days(client):
         appt.estado = "confirmada"
         db.commit()
 
-        assert send_reminders_for_db(db) == 0
+        assert send_reminders_for_db(db, now=NOW_23H_BEFORE) == 0
+    finally:
+        db.close()
+
+
+def _confirm(SessionLocal, appt_id):
+    db = SessionLocal()
+    try:
+        db.query(Appointment).filter(Appointment.id == appt_id).first().estado = "confirmada"
+        db.commit()
+    finally:
+        db.close()
+
+
+def test_reminder_is_sent_24_hours_before_not_earlier(client):
+    test_client, TestingSessionLocal = client
+    _, token = _register(test_client)
+    appt_id = _book(test_client, token, TOMORROW)
+    _confirm(TestingSessionLocal, appt_id)
+
+    db = TestingSessionLocal()
+    try:
+        # 25 h antes: todavía fuera de la ventana de 24 h.
+        assert send_reminders_for_db(db, now=APPT_AT - timedelta(hours=25)) == 0
+        # 24 h antes exactas: dentro de la ventana.
+        assert send_reminders_for_db(db, now=APPT_AT - timedelta(hours=24)) == 1
+    finally:
+        db.close()
+
+
+def test_does_not_remind_appointments_that_already_started(client):
+    test_client, TestingSessionLocal = client
+    _, token = _register(test_client)
+    appt_id = _book(test_client, token, TOMORROW)
+    _confirm(TestingSessionLocal, appt_id)
+
+    db = TestingSessionLocal()
+    try:
+        assert send_reminders_for_db(db, now=APPT_AT + timedelta(minutes=30)) == 0
     finally:
         db.close()

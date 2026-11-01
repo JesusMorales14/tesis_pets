@@ -11,6 +11,7 @@ class DiagnosisRecord(Base):
     forzar cuenta/registro a quien solo quiere una consulta puntual.
     """
     __tablename__ = "diagnosis_records"
+    __table_args__ = {"sqlite_autoincrement": True}
     id = Column(Integer, primary_key=True, index=True)
     pet_id = Column(Integer, nullable=False, index=True)
     diagnostico = Column(String, nullable=False)

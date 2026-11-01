@@ -1,0 +1,15 @@
+/* Modal Comprobante: Backdrop oscuro con blur */
+ion-modal.comprobante-modal {
+  /* CSS custom properties para el backdrop de Ionic */
+  --backdrop-opacity: 0.5;
+  --backdrop-filter: blur(8px);
+  --backdrop-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Estilos para el contenido del modal */
+ion-modal.comprobante-modal::part(content) {
+  border-radius: 24px;
+  box-shadow:
+    0 25px 50px -12px rgb(0 0 0 / 0.25),
+    0 0 0 1px rgb(0 0 0 / 0.06);
+}

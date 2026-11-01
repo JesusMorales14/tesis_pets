@@ -16,6 +16,28 @@ export interface AuthResponse {
   user: User;
 }
 
+export function isJwtExpired(token: string | null): boolean {
+  if (!token) return false;
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) {
+      return false;
+    }
+    const base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+    const payload = JSON.parse(jsonPayload);
+    if (typeof payload.exp !== 'number') return false;
+    return payload.exp * 1000 < Date.now();
+  } catch {
+    return false;
+  }
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
@@ -24,9 +46,25 @@ export class AuthService {
   private userSubject = new BehaviorSubject<User | null>(this.loadUser());
   user$ = this.userSubject.asObservable();
 
-  get currentUser(): User | null { return this.userSubject.value; }
-  get isLoggedIn(): boolean { return !!this.userSubject.value; }
-  get isAdmin(): boolean { return this.userSubject.value?.role === 'admin'; }
+  get currentUser(): User | null {
+    return this.userSubject.value;
+  }
+
+  get isLoggedIn(): boolean {
+    const token = this.token;
+    if (token && isJwtExpired(token)) {
+      if (this.userSubject.value) {
+        this.logout();
+      }
+      return false;
+    }
+    return !!this.userSubject.value;
+  }
+
+  get isAdmin(): boolean {
+    return this.isLoggedIn && this.userSubject.value?.role === 'admin';
+  }
+
   get token(): string | null { return localStorage.getItem('vet_token'); }
 
   login(email: string, password: string): Observable<AuthResponse> {
@@ -71,6 +109,12 @@ export class AuthService {
   }
 
   private loadUser(): User | null {
+    const token = localStorage.getItem('vet_token');
+    if (token && isJwtExpired(token)) {
+      localStorage.removeItem('vet_token');
+      localStorage.removeItem('vet_user');
+      return null;
+    }
     const saved = localStorage.getItem('vet_user');
     return saved ? JSON.parse(saved) : null;
   }

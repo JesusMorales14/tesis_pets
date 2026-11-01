@@ -1,16 +1,32 @@
+import json
+
 from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from database import get_db
-from models import Pet, User, DiagnosisRecord
+from models import Pet, User, DiagnosisRecord, Appointment, Vaccination
 from repositories.pet_repository import PetRepository, get_pet_repository
 from schemas.pet import PetBody
+from time_utils import utc_isoformat
 
 
 def pet_out(pet: Pet) -> dict:
     return {
         "id": pet.id, "nombre": pet.nombre, "especie": pet.especie,
         "raza": pet.raza, "edad_meses": pet.edad_meses, "peso_kg": pet.peso_kg,
+    }
+
+
+def diagnosis_out(r: DiagnosisRecord) -> dict:
+    return {
+        "id": r.id,
+        "diagnostico": r.diagnostico,
+        "probabilidad": r.probabilidad,
+        "diagnostico_alternativo": r.diagnostico_alternativo,
+        "probabilidad_alternativa": r.probabilidad_alternativa,
+        "gravedad": r.gravedad,
+        "sintomas": json.loads(r.sintomas_json),
+        "created_at": utc_isoformat(r.created_at),
     }
 
 
@@ -55,33 +71,51 @@ class PetService:
 
     def delete_pet(self, pet_id: int, current_user: User) -> dict:
         pet = get_owned_pet(pet_id, self.db, current_user)
-        self.db.query(DiagnosisRecord).filter(DiagnosisRecord.pet_id == pet.id).delete()
+        # Se borra el historial clínico explícitamente, sin depender del
+        # ON DELETE CASCADE (bases SQLite antiguas no tenían las FK activas).
+        self.db.query(Vaccination).filter(Vaccination.pet_id == pet.id).delete(synchronize_session=False)
+        self.db.query(DiagnosisRecord).filter(DiagnosisRecord.pet_id == pet.id).delete(synchronize_session=False)
+        # NO cancelar citas: el usuario ya pagó por ellas. Solo se desvinculan
+        # para que no queden apuntando al id de una mascota que ya no existe.
+        self.db.query(Appointment).filter(Appointment.pet_id == pet.id).update(
+            {Appointment.pet_id: None}, synchronize_session=False,
+        )
         self.pets.delete(pet)
         self.pets.commit()
         return {"ok": True}
 
     def pet_diagnoses(self, pet_id: int, current_user: User) -> list[dict]:
         pet = get_owned_pet(pet_id, self.db, current_user)
-        records = (
+        return [diagnosis_out(r) for r in self._diagnoses_of(pet.id)]
+
+    def clinical_record(self, pet_id: int) -> dict:
+        """Ficha clínica para el veterinario (solo admin): datos de la
+        mascota, cartilla de vacunación e historial de diagnósticos, para
+        preparar la consulta antes de atenderla."""
+        from services.vaccination_service import vaccination_out
+
+        pet = self.pets.get_by_id(pet_id)
+        if not pet:
+            raise HTTPException(status_code=404, detail="Mascota no encontrada")
+        vaccinations = (
+            self.db.query(Vaccination)
+            .filter(Vaccination.pet_id == pet.id)
+            .order_by(Vaccination.fecha_proxima)
+            .all()
+        )
+        return {
+            **pet_out(pet),
+            "vacunas": [vaccination_out(v) for v in vaccinations],
+            "diagnosticos": [diagnosis_out(r) for r in self._diagnoses_of(pet.id)],
+        }
+
+    def _diagnoses_of(self, pet_id: int) -> list[DiagnosisRecord]:
+        return (
             self.db.query(DiagnosisRecord)
-            .filter(DiagnosisRecord.pet_id == pet.id)
+            .filter(DiagnosisRecord.pet_id == pet_id)
             .order_by(DiagnosisRecord.created_at.desc())
             .all()
         )
-        import json
-        return [
-            {
-                "id": r.id,
-                "diagnostico": r.diagnostico,
-                "probabilidad": r.probabilidad,
-                "diagnostico_alternativo": r.diagnostico_alternativo,
-                "probabilidad_alternativa": r.probabilidad_alternativa,
-                "gravedad": r.gravedad,
-                "sintomas": json.loads(r.sintomas_json),
-                "created_at": r.created_at.isoformat(),
-            }
-            for r in records
-        ]
 
 
 def get_pet_service(

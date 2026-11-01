@@ -1,17 +1,24 @@
+import json
+import os
 from datetime import date, datetime
 from typing import Optional
 
 from fastapi import Depends, HTTPException, UploadFile
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from config import COMPROBANTES_DIR
+from config import COMPROBANTES_DIR, UPLOADS_DIR
 from database import get_db
-from models import Appointment, UnavailableSlot, User
+from models import Appointment, Pet, UnavailableSlot, User
+import notifications
 from push_utils import send_push_to_admins, send_push_to_user
 from repositories.appointment_repository import AppointmentRepository, get_appointment_repository
 from schemas.appointment import AppointmentBody, BlockSlotBody, UpdateEstadoBody
 from schemas.payment import PagoDecisionBody
+from services.pet_service import get_owned_pet
 from services.upload_service import save_uploaded_image
+
+SLOT_TAKEN_DETAIL = "El horario ya fue reservado por otro usuario"
 
 
 def generate_all_slots() -> list[str]:
@@ -29,12 +36,17 @@ def appointment_out(a: Appointment) -> dict:
         "diagnostico": a.diagnostico, "especie": a.especie,
         "gravedad": a.gravedad, "estado": a.estado, "metodo_pago": a.metodo_pago,
         "pago_estado": a.pago_estado,
+        "probabilidad": a.probabilidad,
+        "pet_id": a.pet_id,
+        "pet_nombre": a.pet_nombre,
         "comprobante_url": f"/uploads/{a.comprobante_path}" if a.comprobante_path else None,
+        "user_nombre": a.user_nombre,
+        "user_email": a.user_email,
     }
 
 
 def admin_appointment_out(a: Appointment) -> dict:
-    return {**appointment_out(a), "user_nombre": a.user_nombre, "user_email": a.user_email}
+    return appointment_out(a)
 
 
 class AppointmentService:
@@ -62,28 +74,96 @@ class AppointmentService:
 
     # ── Citas del usuario ────────────────────────────────────────────────────
 
-    def create_appointment(self, body: AppointmentBody, current_user: User) -> dict:
+    def _validate_new_appointment(self, body: AppointmentBody, current_user: User) -> Optional[Pet]:
+        """Validaciones del servidor: el frontend solo ofrece horarios válidos,
+        pero la API no debe confiar en eso. Devuelve la mascota de la cita."""
+        try:
+            fecha = date.fromisoformat(body.fecha)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="La fecha debe tener formato YYYY-MM-DD")
+        if body.hora not in generate_all_slots():
+            raise HTTPException(status_code=400, detail="El horario no es válido")
+        now = datetime.now()
+        if fecha < now.date() or (fecha == now.date() and body.hora <= now.strftime("%H:%M")):
+            raise HTTPException(status_code=400, detail="No se puede reservar un horario que ya pasó")
+
         if self.appointments.is_slot_occupied(body.fecha, body.hora):
-            raise HTTPException(status_code=409, detail="El horario ya fue reservado por otro usuario")
+            raise HTTPException(status_code=409, detail=SLOT_TAKEN_DETAIL)
         if self.appointments.is_slot_blocked(body.fecha, body.hora):
             raise HTTPException(status_code=409, detail="El horario está bloqueado por el veterinario")
 
-        appt = Appointment(
+        pet = None
+        if body.pet_id is not None:
+            pet = get_owned_pet(body.pet_id, self.db, current_user)
+            if pet.especie != body.especie.lower():
+                raise HTTPException(status_code=400, detail="La especie no coincide con la de la mascota")
+
+        if body.sintomas_json is not None:
+            try:
+                if not isinstance(json.loads(body.sintomas_json), dict):
+                    raise ValueError
+            except ValueError:
+                raise HTTPException(status_code=400, detail="sintomas_json debe ser un objeto JSON")
+        return pet
+
+    def _build_appointment(
+        self, body: AppointmentBody, current_user: User, pet: Optional[Pet],
+        comprobante_path: Optional[str] = None,
+    ) -> Appointment:
+        return Appointment(
             user_id=current_user.id,
             user_nombre=current_user.nombre,
             user_email=current_user.email,
             fecha=body.fecha,
             hora=body.hora,
             diagnostico=body.diagnostico,
-            especie=body.especie,
+            especie=body.especie.lower(),
             gravedad=body.gravedad,
             estado="pendiente",
             metodo_pago=body.metodo_pago,
             pago_estado="pendiente",
+            comprobante_path=comprobante_path,
+            sintomas_json=body.sintomas_json,
+            probabilidad=body.probabilidad,
+            pet_id=pet.id if pet else None,
+            pet_nombre=pet.nombre if pet else None,
         )
-        appt = self.appointments.create(appt)
-        # La cita queda reservada de inmediato — el comprobante se sube después
-        # en un segundo paso, sin bloquear ni arriesgar perder el horario.
+
+    def _create_or_conflict(self, appt: Appointment) -> Appointment:
+        """El índice único parcial de (fecha, hora) atrapa la carrera entre
+        dos usuarios que pasaron la validación previa al mismo tiempo."""
+        try:
+            return self.appointments.create(appt)
+        except IntegrityError:
+            self.db.rollback()
+            raise HTTPException(status_code=409, detail=SLOT_TAKEN_DETAIL)
+
+    def _commit_or_conflict(self) -> None:
+        try:
+            self.appointments.commit()
+        except IntegrityError:
+            self.db.rollback()
+            raise HTTPException(status_code=409, detail="Ese horario ya está ocupado por otra cita activa")
+
+    def create_appointment(self, body: AppointmentBody, current_user: User) -> dict:
+        pet = self._validate_new_appointment(body, current_user)
+        appt = self._create_or_conflict(self._build_appointment(body, current_user, pet))
+        return appointment_out(appt)
+
+    async def create_appointment_with_comprobante(
+        self, body: AppointmentBody, file: UploadFile, current_user: User
+    ) -> dict:
+        pet = self._validate_new_appointment(body, current_user)
+        comprobante_path = await save_uploaded_image(file, COMPROBANTES_DIR)
+        try:
+            appt = self._create_or_conflict(
+                self._build_appointment(body, current_user, pet, comprobante_path)
+            )
+        except HTTPException:
+            os.remove(os.path.join(UPLOADS_DIR, comprobante_path))
+            raise
+
+        send_push_to_admins(self.db, notifications.comprobante_nuevo(appt, current_user.nombre))
         return appointment_out(appt)
 
     def my_appointments(self, current_user: User) -> list[dict]:
@@ -95,16 +175,15 @@ class AppointmentService:
             raise HTTPException(status_code=404, detail="Cita no encontrada")
         if appt.user_id != current_user.id:
             raise HTTPException(status_code=403, detail="Esta cita no te pertenece")
+        if appt.estado == "cancelada":
+            # El horario ya se liberó: hay que agendar de nuevo.
+            raise HTTPException(status_code=400, detail="Esta cita fue cancelada. Agenda una nueva cita.")
 
         appt.comprobante_path = await save_uploaded_image(file, COMPROBANTES_DIR)
         appt.pago_estado = "pendiente"
         self.appointments.commit()
 
-        send_push_to_admins(self.db, {
-            "title": "Nuevo comprobante de pago",
-            "body": f"{current_user.nombre} envió un comprobante para su cita del {appt.fecha} {appt.hora}.",
-            "url": "/admin",
-        })
+        send_push_to_admins(self.db, notifications.comprobante_nuevo(appt, current_user.nombre))
         return appointment_out(appt)
 
     # ── Administración ───────────────────────────────────────────────────────
@@ -128,6 +207,8 @@ class AppointmentService:
     def block_slot(self, body: BlockSlotBody) -> dict:
         if self.appointments.get_blocked_slot(body.fecha, body.hora):
             raise HTTPException(status_code=400, detail="El horario ya está bloqueado")
+        if self.appointments.is_slot_occupied(body.fecha, body.hora):
+            raise HTTPException(status_code=409, detail="El horario tiene una cita reservada")
         self.appointments.add_blocked_slot(UnavailableSlot(fecha=body.fecha, hora=body.hora))
         return {"ok": True}
 
@@ -151,20 +232,16 @@ class AppointmentService:
         if not appt.comprobante_path:
             raise HTTPException(status_code=400, detail="Esta cita todavía no tiene un comprobante subido")
 
+        # El diagnóstico ya quedó en el historial de la mascota al momento
+        # de la predicción (/predict con pet_id): aquí solo se decide el pago.
         appt.pago_estado = "aprobado" if body.aprobado else "rechazado"
-        if body.aprobado:
-            appt.estado = "confirmada"
-        self.appointments.commit()
+        appt.estado = "confirmada" if body.aprobado else "cancelada"
+        self._commit_or_conflict()
 
-        send_push_to_user(self.db, appt.user_id, {
-            "title": "Pago aprobado" if body.aprobado else "Pago rechazado",
-            "body": (
-                f"Tu pago para la cita del {appt.fecha} {appt.hora} fue aprobado. ¡Nos vemos pronto!"
-                if body.aprobado else
-                f"No pudimos validar tu comprobante para la cita del {appt.fecha} {appt.hora}. Revisa e intenta de nuevo."
-            ),
-            "url": "/profile",
-        })
+        send_push_to_user(
+            self.db, appt.user_id,
+            notifications.pago_aprobado(appt) if body.aprobado else notifications.pago_rechazado(appt),
+        )
         return admin_appointment_out(appt)
 
     def update_appointment_estado(self, appt_id: int, body: UpdateEstadoBody) -> dict:
@@ -173,8 +250,16 @@ class AppointmentService:
             raise HTTPException(status_code=404, detail="Cita no encontrada")
         if body.estado not in ("pendiente", "confirmada", "cancelada"):
             raise HTTPException(status_code=400, detail="Estado inválido")
+        changed = appt.estado != body.estado
         appt.estado = body.estado
-        self.appointments.commit()
+        self._commit_or_conflict()
+
+        if changed and body.estado in ("confirmada", "cancelada"):
+            send_push_to_user(
+                self.db, appt.user_id,
+                notifications.cita_confirmada(appt) if body.estado == "confirmada"
+                else notifications.cita_cancelada(appt),
+            )
         return {"ok": True, "estado": appt.estado}
 
 

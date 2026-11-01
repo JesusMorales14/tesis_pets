@@ -17,8 +17,11 @@ class AppointmentRepository:
     def list_by_user(self, user_id: int) -> list[Appointment]:
         return (
             self.db.query(Appointment)
+            # Incluye las canceladas: si el veterinario rechaza el pago, el
+            # usuario debe poder ver qué pasó con su cita en vez de que
+            # simplemente desaparezca. Las más recientes primero.
             .filter(Appointment.user_id == user_id)
-            .order_by(Appointment.fecha, Appointment.hora)
+            .order_by(Appointment.fecha.desc(), Appointment.hora.desc())
             .all()
         )
 
@@ -46,7 +49,8 @@ class AppointmentRepository:
     def booked_horas(self, fecha: str) -> set[str]:
         return {
             a.hora for a in self.db.query(Appointment).filter(
-                Appointment.fecha == fecha, Appointment.estado != "cancelada",
+                Appointment.fecha == fecha,
+                Appointment.estado != "cancelada",
             ).all()
         }
 
@@ -54,7 +58,8 @@ class AppointmentRepository:
         return {
             a.hora: {"user_nombre": a.user_nombre, "diagnostico": a.diagnostico}
             for a in self.db.query(Appointment).filter(
-                Appointment.fecha == fecha, Appointment.estado != "cancelada",
+                Appointment.fecha == fecha,
+                Appointment.estado != "cancelada",
             ).all()
         }
 

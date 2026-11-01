@@ -65,7 +65,7 @@ def test_export_includes_account_pets_and_appointments(client):
     ).json()["id"]
     test_client.post(
         f"/pets/{pet_id}/vaccinations",
-        json={"nombre": "Rabia", "fecha_aplicacion": "2026-01-15"},
+        json={"nombre": "Rabia", "fecha_aplicacion": "2026-01-15", "refuerzo_meses": 12},
         headers=headers,
     )
     test_client.post(
@@ -103,7 +103,7 @@ def test_delete_account_removes_everything(client):
     ).json()["id"]
     test_client.post(
         f"/pets/{pet_id}/vaccinations",
-        json={"nombre": "Rabia", "fecha_aplicacion": "2026-01-15"},
+        json={"nombre": "Rabia", "fecha_aplicacion": "2026-01-15", "refuerzo_meses": 12},
         headers=headers,
     )
     test_client.post(

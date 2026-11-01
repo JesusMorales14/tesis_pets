@@ -85,7 +85,7 @@ describe('PetService', () => {
   });
 
   it('creates a vaccination record for a pet', () => {
-    const body = { nombre: 'Rabia', fecha_aplicacion: '2026-01-15', refuerzo_meses: 12 };
+    const body = { nombre: 'Rabia', estado: 'aplicada' as const, fecha_aplicacion: '2026-01-15', refuerzo_meses: 12 };
     const created = { id: 1, ...body, fecha_proxima: '2027-01-15', notas: null };
     service.createVaccination(1, body).subscribe((v) => expect(v).toEqual(created));
 

@@ -71,6 +71,35 @@ html {
   }
 }
 
+// ─── Modal Comprobante: diálogo centrado sobre fondo oscuro con blur ─────
+// Por defecto ion-modal tiene tamaño propio (600x500 en desktop, pantalla
+// completa en mobile) y fondo gris: eso asomaba detrás de la tarjeta. Aquí
+// el modal se ajusta al tamaño de la tarjeta y es transparente; la tarjeta
+// (app-comprobante-modal, app-pet-clinical-modal) pone su propio fondo,
+// bordes y sombra.
+ion-modal.comprobante-modal,
+ion-modal.clinical-modal {
+  --width: fit-content;
+  --height: fit-content;
+  --max-width: calc(100vw - 32px);
+  --max-height: calc(100vh - 32px);
+  --background: transparent;
+  --box-shadow: none;
+  --border-radius: 24px;
+  --backdrop-opacity: 0.5;
+
+  &::part(content) {
+    background: transparent;
+    box-shadow: none;
+    overflow: visible;
+  }
+
+  &::part(backdrop) {
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+}
+
 ion-modal.symptom-picker-modal {
   --height: 85%;
   --width: 100%;

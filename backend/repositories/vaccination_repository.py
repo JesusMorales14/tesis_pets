@@ -1,6 +1,7 @@
 from typing import Optional
 
 from fastapi import Depends
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -15,7 +16,9 @@ class VaccinationRepository:
         return (
             self.db.query(Vaccination)
             .filter(Vaccination.pet_id == pet_id)
-            .order_by(Vaccination.fecha_aplicacion.desc())
+            # Las programadas no tienen fecha_aplicacion: se ordena por la
+            # fecha que corresponda a cada una.
+            .order_by(func.coalesce(Vaccination.fecha_aplicacion, Vaccination.fecha_programada).desc())
             .all()
         )
 

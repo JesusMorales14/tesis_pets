@@ -31,17 +31,30 @@ export interface VaccineScheduleEntry {
   refuerzo_meses: number;
 }
 
+export type VaccinationEstado = 'aplicada' | 'programada';
+
 export interface Vaccination {
   id: number;
   nombre: string;
-  fecha_aplicacion: string;
+  estado: VaccinationEstado;
+  fecha_aplicacion?: string | null;
+  fecha_programada?: string | null;
   fecha_proxima?: string | null;
+  refuerzo_meses: number;
   notas?: string | null;
 }
 
 export interface VaccinationBody {
   nombre: string;
-  fecha_aplicacion: string;
-  refuerzo_meses?: number | null;
+  estado: VaccinationEstado;
+  fecha_aplicacion?: string | null;
+  fecha_programada?: string | null;
+  refuerzo_meses: number;  // Obligatorio (1-60) para calcular fecha_proxima
   notas?: string | null;
+}
+
+/** Ficha clínica que ve el veterinario antes de la consulta (solo admin). */
+export interface PetClinicalRecord extends Pet {
+  vacunas: Vaccination[];
+  diagnosticos: DiagnosisHistoryEntry[];
 }

@@ -43,6 +43,101 @@
   gap: 16px;
 }
 
+.step-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 8px;
+
+  .step {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ion-color-medium);
+    background: var(--app-surface-alt);
+
+    &.active {
+      background: var(--ion-color-primary);
+      color: white;
+    }
+
+    &.completed {
+      background: var(--ion-color-success);
+      color: white;
+    }
+  }
+}
+
+.step-title {
+  margin: 0 0 16px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ion-text-color);
+}
+
+.tipo-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tipo-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 14px;
+  border: 2px solid var(--app-border);
+  background: var(--app-surface);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    border-color: var(--ion-color-primary);
+    background: var(--app-surface-alt);
+  }
+
+  &.selected {
+    border-color: var(--ion-color-primary);
+    background: rgba(var(--ion-color-primary-rgb), 0.08);
+  }
+
+  .tipo-icon {
+    font-size: 26px;
+    color: var(--ion-color-primary);
+    flex-shrink: 0;
+  }
+
+  .tipo-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    strong {
+      font-size: 15px;
+      color: var(--ion-text-color);
+    }
+
+    span {
+      font-size: 12.5px;
+      color: var(--ion-color-medium);
+    }
+  }
+
+  .chevron {
+    font-size: 20px;
+    color: var(--ion-color-medium);
+    flex-shrink: 0;
+  }
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
@@ -53,6 +148,11 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--ion-color-medium);
+
+  .required {
+    color: #c0392b;
+    margin-left: 2px;
+  }
 }
 
 .form-select {
@@ -83,6 +183,34 @@
   &:focus {
     outline: none;
     border-color: var(--ion-color-primary);
+  }
+}
+
+.step-title {
+  margin: 0 0 16px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ion-text-color);
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--app-border);
+  background: var(--app-surface-alt);
+  color: var(--ion-text-color);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--app-border);
   }
 }
 
@@ -126,4 +254,9 @@
   cursor: pointer;
 
   &:active { transform: scale(0.98); }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }

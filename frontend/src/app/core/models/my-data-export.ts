@@ -1,7 +1,9 @@
 export interface MyDataVaccination {
   id: number;
   nombre: string;
-  fecha_aplicacion: string;
+  estado: 'aplicada' | 'programada';
+  fecha_aplicacion: string | null;
+  fecha_programada: string | null;
   fecha_proxima: string | null;
   notas: string | null;
 }

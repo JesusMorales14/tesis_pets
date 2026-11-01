@@ -25,8 +25,16 @@ def add_months(iso_date: str, months: int) -> str:
 
 def vaccination_out(v: Vaccination) -> dict:
     return {
-        "id": v.id, "nombre": v.nombre, "fecha_aplicacion": v.fecha_aplicacion,
-        "fecha_proxima": v.fecha_proxima, "notas": v.notas,
+        "id": v.id,
+        "nombre": v.nombre,
+        "estado": v.estado,
+        "fecha_aplicacion": v.fecha_aplicacion,
+        "fecha_programada": v.fecha_programada,
+        "fecha_proxima": v.fecha_proxima,
+        "refuerzo_meses": v.refuerzo_meses,
+        "notas": v.notas,
+        "notificacion_enviada": v.notificacion_enviada,
+        "notificacion_urgente_enviada": v.notificacion_urgente_enviada,
     }
 
 
@@ -44,13 +52,27 @@ class VaccinationService:
 
     def create_vaccination(self, pet_id: int, body: VaccinationBody, current_user: User) -> dict:
         get_owned_pet(pet_id, self.db, current_user)
-        fecha_proxima = add_months(body.fecha_aplicacion, body.refuerzo_meses) if body.refuerzo_meses else None
+
+        if body.estado == 'aplicada':
+            fecha_aplicacion = body.fecha_aplicacion
+            fecha_programada = None
+            fecha_proxima = add_months(body.fecha_aplicacion, body.refuerzo_meses)
+        else:  # 'programada'
+            fecha_aplicacion = None
+            fecha_programada = body.fecha_programada
+            fecha_proxima = add_months(body.fecha_programada, body.refuerzo_meses)
+
         v = Vaccination(
             pet_id=pet_id,
             nombre=body.nombre,
-            fecha_aplicacion=body.fecha_aplicacion,
+            estado=body.estado,
+            fecha_aplicacion=fecha_aplicacion,
+            fecha_programada=fecha_programada,
             fecha_proxima=fecha_proxima,
+            refuerzo_meses=body.refuerzo_meses,
             notas=body.notas.strip() if body.notas else None,
+            notificacion_enviada=0,
+            notificacion_urgente_enviada=0,
         )
         v = self.vaccinations.create(v)
         return vaccination_out(v)

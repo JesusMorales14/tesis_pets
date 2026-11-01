@@ -1,6 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { Location } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -8,10 +7,19 @@ import { AppointmentService, AdminSlot, Appointment } from '@core/services/appoi
 import { PaymentConfigService, PaymentConfig } from '@core/services/payment-config';
 import { ThemeService } from '@core/services/theme';
 import { PaginationComponent } from '@shared/components/pagination/pagination';
+import { ComprobanteModalComponent } from '@shared/components/comprobante-modal/comprobante-modal';
+import { PetClinicalModalComponent } from './pet-clinical-modal/pet-clinical-modal';
 import { environment } from '../../../environments/environment';
+import { toLocalIsoDate } from '@core/utils/date';
 
 const MONTHS = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
 const DAYS   = ['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'];
+
+// Prioridad clínica para ordenar la agenda: lo más grave primero.
+const GRAVEDAD_RANK: Record<string, number> = { grave: 0, moderada: 1, leve: 2 };
+
+export type EspecieFilter = 'todas' | 'perro' | 'gato';
+export type ApptOrder = 'gravedad' | 'hora';
 
 export interface DateOption {
   date: Date;
@@ -27,11 +35,10 @@ export interface DateOption {
   templateUrl: './admin.html',
   styleUrls: ['./admin.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, PaginationComponent],
+  imports: [IonicModule, CommonModule, FormsModule, PaginationComponent, ComprobanteModalComponent, PetClinicalModalComponent],
 })
 export class AdminComponent implements OnInit {
   private router = inject(Router);
-  private location = inject(Location);
   private appointmentService = inject(AppointmentService);
   private paymentConfigService = inject(PaymentConfigService);
   themeService = inject(ThemeService);
@@ -42,6 +49,19 @@ export class AdminComponent implements OnInit {
   pendingPayments: Appointment[] = [];
   isLoadingPending = false;
   decidingId: number | null = null;
+
+  // Modal de revisión de comprobante
+  selectedPendingPayment: Appointment | null = null;
+  isPaymentModalOpen = false;
+
+  // Carrusel de pagos pendientes: posición actual (para el "1 de N").
+  carouselIndex = 0;
+
+  // Revisión en cola: al aprobar o rechazar, el modal pasa solo al
+  // siguiente comprobante, para no tener que deslizar ni reabrir uno por uno.
+  reviewQueueActive = false;
+  reviewQueueTotal = 0;
+  reviewQueueDone = 0;
 
   // Configuración de pagos (Yape / transferencia)
   showPaymentConfig = false;
@@ -67,9 +87,61 @@ export class AdminComponent implements OnInit {
   readonly apptsPageSize = 4;
   apptsPage = 1;
 
+  // Organización de la agenda del día (HU17): por especie y por gravedad,
+  // para preparar primero los casos más graves.
+  especieFilter: EspecieFilter = 'todas';
+  apptOrder: ApptOrder = 'gravedad';
+
+  // Ficha clínica de la mascota de una cita
+  clinicalPetId: number | null = null;
+  isClinicalModalOpen = false;
+
+  get visibleAppointments(): Appointment[] {
+    const list = this.appointments.filter(
+      (a) => this.especieFilter === 'todas' || a.especie === this.especieFilter,
+    );
+    return [...list].sort((x, y) => {
+      // Las canceladas siempre al final: ya no requieren atención.
+      const cancel = Number(x.estado === 'cancelada') - Number(y.estado === 'cancelada');
+      if (cancel) return cancel;
+      if (this.apptOrder === 'gravedad') {
+        const grav = (GRAVEDAD_RANK[x.gravedad] ?? 3) - (GRAVEDAD_RANK[y.gravedad] ?? 3);
+        if (grav) return grav;
+      }
+      return x.hora.localeCompare(y.hora);
+    });
+  }
+
   get pagedAppointments(): Appointment[] {
     const start = (this.apptsPage - 1) * this.apptsPageSize;
-    return this.appointments.slice(start, start + this.apptsPageSize);
+    return this.visibleAppointments.slice(start, start + this.apptsPageSize);
+  }
+
+  countByEspecie(especie: EspecieFilter): number {
+    return especie === 'todas'
+      ? this.appointments.length
+      : this.appointments.filter((a) => a.especie === especie).length;
+  }
+
+  setEspecieFilter(especie: EspecieFilter) {
+    this.especieFilter = especie;
+    this.apptsPage = 1;
+  }
+
+  setApptOrder(order: ApptOrder) {
+    this.apptOrder = order;
+    this.apptsPage = 1;
+  }
+
+  openClinicalRecord(appt: Appointment) {
+    if (!appt.pet_id) return;
+    this.clinicalPetId = appt.pet_id;
+    this.isClinicalModalOpen = true;
+  }
+
+  onClinicalModalDismiss() {
+    this.isClinicalModalOpen = false;
+    this.clinicalPetId = null;
   }
 
   ngOnInit() {
@@ -81,6 +153,17 @@ export class AdminComponent implements OnInit {
     this.loadPaymentConfig();
   }
 
+  // Ionic reutiliza la página desde su caché: al volver al panel se
+  // recargan los comprobantes y la agenda para no mostrar datos viejos.
+  private hasEntered = false;
+  ionViewWillEnter() {
+    if (this.hasEntered) {
+      this.loadData();
+      this.loadPendingPayments();
+    }
+    this.hasEntered = true;
+  }
+
   generateDates(count: number): DateOption[] {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -89,7 +172,7 @@ export class AdminComponent implements OnInit {
       d.setDate(today.getDate() + i);
       return {
         date: d,
-        isoDate: d.toISOString().split('T')[0],
+        isoDate: toLocalIsoDate(d),
         dayNum: d.getDate().toString(),
         dayAbbr: DAYS[d.getDay()],
         monthAbbr: MONTHS[d.getMonth()],
@@ -100,6 +183,18 @@ export class AdminComponent implements OnInit {
 
   formatMonthYear(d: Date): string {
     return `${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+  }
+
+  /** 'YYYY-MM-DD' → "Dom 25 Oct 2026" (fecha local, sin desfase de zona horaria). */
+  formatFechaCorta(fecha: string): string {
+    const d = new Date(fecha + 'T00:00:00');
+    const cap = (s: string) => s.charAt(0) + s.slice(1).toLowerCase();
+    return `${cap(DAYS[d.getDay()])} ${d.getDate()} ${cap(MONTHS[d.getMonth()])} ${d.getFullYear()}`;
+  }
+
+  /** Formatea el diagnóstico reemplazando guiones bajos por espacios */
+  formatDiagnostico(diagnostico: string): string {
+    return (diagnostico ?? '').replace(/_/g, ' ');
   }
 
   selectDate(date: DateOption) {
@@ -149,8 +244,9 @@ export class AdminComponent implements OnInit {
         appt.estado = estado;
         const msg = estado === 'confirmada' ? 'Cita aceptada correctamente' : 'Cita rechazada';
         this.showToast(msg, estado === 'cancelada');
+        this.loadSlots();
       },
-      error: () => this.showToast('Error al actualizar la cita', true),
+      error: (err) => this.showToast(err?.error?.detail || 'Error al actualizar la cita', true),
     });
   }
 
@@ -158,23 +254,94 @@ export class AdminComponent implements OnInit {
   loadPendingPayments() {
     this.isLoadingPending = true;
     this.appointmentService.getPendingPayments().subscribe({
-      next: (p) => { this.pendingPayments = p; this.isLoadingPending = false; },
+      // El backend ya los ordena por fecha y hora de la cita: primero los
+      // de las citas más próximas, que son los más urgentes de revisar.
+      next: (p) => {
+        this.pendingPayments = p;
+        this.carouselIndex = Math.min(this.carouselIndex, Math.max(0, p.length - 1));
+        this.isLoadingPending = false;
+      },
       error: () => { this.isLoadingPending = false; },
     });
   }
 
-  decidePayment(appt: Appointment, aprobado: boolean) {
+  // ── Carrusel ────────────────────────────────────────────────────────
+  onCarouselScroll(track: HTMLElement) {
+    const card = track.querySelector<HTMLElement>('.payment-review-card');
+    if (!card) return;
+    const step = card.offsetWidth + parseFloat(getComputedStyle(track).columnGap || '0');
+    this.carouselIndex = Math.min(this.pendingPayments.length - 1, Math.round(track.scrollLeft / step));
+  }
+
+  scrollCarousel(track: HTMLElement, direction: 1 | -1) {
+    const card = track.querySelector<HTMLElement>('.payment-review-card');
+    if (!card) return;
+    track.scrollBy({ left: direction * (card.offsetWidth + 12), behavior: 'smooth' });
+  }
+
+  // ── Revisión en cola ────────────────────────────────────────────────
+  startReviewQueue() {
+    if (this.pendingPayments.length === 0) return;
+    this.reviewQueueActive = true;
+    this.reviewQueueTotal = this.pendingPayments.length;
+    this.reviewQueueDone = 0;
+    this.openPaymentModal(this.pendingPayments[0]);
+  }
+
+  get reviewQueueLabel(): string | null {
+    return this.reviewQueueActive
+      ? `Comprobante ${this.reviewQueueDone + 1} de ${this.reviewQueueTotal}`
+      : null;
+  }
+
+  openPaymentModal(appt: Appointment) {
+    this.selectedPendingPayment = appt;
+    this.isPaymentModalOpen = true;
+  }
+
+  /** Se llama automáticamente al cerrar el ion-modal (backdrop click, ESC, swipe down) */
+  onPaymentModalDismiss() {
+    this.selectedPendingPayment = null;
+    this.isPaymentModalOpen = false;
+    this.reviewQueueActive = false;
+  }
+
+  /** Ver comprobante de pago (para citas confirmadas) */
+  viewComprobante(appointment: Appointment) {
+    this.selectedPendingPayment = appointment;
+    this.isPaymentModalOpen = true;
+  }
+
+  decidePaymentFromModal(aprobado: boolean) {
+    if (!this.selectedPendingPayment) return;
+    const appt = this.selectedPendingPayment;
     this.decidingId = appt.id;
     this.appointmentService.decidePayment(appt.id, aprobado).subscribe({
       next: () => {
         this.decidingId = null;
         this.pendingPayments = this.pendingPayments.filter((p) => p.id !== appt.id);
-        this.showToast(aprobado ? 'Pago aprobado, cita confirmada' : 'Pago rechazado', !aprobado);
-        this.loadAppointments();
+        this.carouselIndex = Math.min(this.carouselIndex, Math.max(0, this.pendingPayments.length - 1));
+        this.showToast(aprobado ? 'Pago aprobado, cita confirmada' : 'Pago rechazado, horario liberado', !aprobado);
+
+        if (this.reviewQueueActive && this.pendingPayments.length > 0) {
+          // Siguiente de la cola en el mismo modal, sin cerrarlo.
+          this.reviewQueueDone++;
+          this.selectedPendingPayment = this.pendingPayments[0];
+        } else {
+          if (this.reviewQueueActive) this.showToast('Revisaste todos los comprobantes pendientes');
+          this.reviewQueueActive = false;
+          this.selectedPendingPayment = null;
+          this.isPaymentModalOpen = false;
+        }
+        // Rechazar libera el horario: la agenda del día también cambia.
+        this.loadData();
       },
-      error: () => {
+      error: (err) => {
         this.decidingId = null;
-        this.showToast('Error al procesar el pago', true);
+        this.isPaymentModalOpen = false; // También cerrar en error
+        this.reviewQueueActive = false;
+        this.showToast(err?.error?.detail || 'Error al procesar el pago', true);
+        this.loadPendingPayments();
       },
     });
   }
@@ -239,5 +406,28 @@ export class AdminComponent implements OnInit {
     return map[estado] ?? '#888';
   }
 
-  goBack() { this.location.back(); }
+  // Helper para saber si una cita tiene pago pendiente de revisión
+  /** Estado único de la cita para el veterinario (combina cita y pago). */
+  apptStatus(a: Appointment): { label: string; cls: string; icon: string } {
+    if (a.estado === 'cancelada') {
+      return a.pago_estado === 'rechazado'
+        ? { label: 'Pago rechazado', cls: 'st-cancelled', icon: 'close-circle-outline' }
+        : { label: 'Cancelada', cls: 'st-cancelled', icon: 'close-circle-outline' };
+    }
+    if (a.estado === 'confirmada') {
+      return { label: 'Confirmada', cls: 'st-confirmed', icon: 'checkmark-circle-outline' };
+    }
+    return this.hasPendingPayment(a)
+      ? { label: 'Pago en revisión', cls: 'st-review', icon: 'hourglass-outline' }
+      : { label: 'Por confirmar', cls: 'st-pending', icon: 'time-outline' };
+  }
+
+  hasPendingPayment(appt: Appointment): boolean {
+    return appt.pago_estado === 'pendiente' && !!appt.comprobante_url;
+  }
+
+  // El panel se abre desde Mi cuenta: volver siempre lleva ahí. No se usa
+  // location.back(), que tras el login devolvía a /login y sin historial
+  // (página recargada) no hacía nada.
+  goBack() { this.router.navigate(['/profile']); }
 }

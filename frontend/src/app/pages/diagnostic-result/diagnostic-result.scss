@@ -40,9 +40,17 @@ ion-back-button {
   padding: 32px 24px 28px;
   gap: 14px;
 
-  &.leve    { background: linear-gradient(160deg, #1a6e31 0%, #2a9d4e 100%); }
-  &.moderada { background: linear-gradient(160deg, #9b5e00 0%, #d4830a 100%); }
-  &.grave   { background: linear-gradient(160deg, #8b1a1a 0%, #c0392b 100%); }
+  &.leve {
+    background: linear-gradient(160deg, #1a6e31 0%, #2a9d4e 100%);
+  }
+
+  &.moderada {
+    background: linear-gradient(160deg, #9b5e00 0%, #d4830a 100%);
+  }
+
+  &.grave {
+    background: linear-gradient(160deg, #8b1a1a 0%, #c0392b 100%);
+  }
 }
 
 /* ring SVG */
@@ -111,7 +119,9 @@ ion-back-button {
   text-transform: uppercase;
   letter-spacing: 0.8px;
 
-  ion-icon { font-size: 16px; }
+  ion-icon {
+    font-size: 16px;
+  }
 }
 
 .hero-species {
@@ -122,7 +132,9 @@ ion-back-button {
   font-size: 13px;
   margin: 0;
 
-  ion-icon { font-size: 14px; }
+  ion-icon {
+    font-size: 14px;
+  }
 }
 
 /* ── SECTIONS ─────────────────────────────────────────────────────── */
@@ -130,6 +142,9 @@ ion-back-button {
   padding: 20px 16px 0;
   max-width: 760px;
   margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .section-eyebrow {
@@ -194,8 +209,13 @@ ion-back-button {
   cursor: pointer;
   margin-top: 4px;
 
-  ion-icon { font-size: 15px; }
-  &:active { transform: scale(0.97); }
+  ion-icon {
+    font-size: 15px;
+  }
+
+  &:active {
+    transform: scale(0.97);
+  }
 }
 
 .print-header {
@@ -213,15 +233,28 @@ ion-back-button {
   border-left: 4px solid var(--ion-color-primary);
 }
 
+.alert-banner-margin {
+  padding: 20px 16px 0px 16px;
+  max-width: 760px;
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 /* ── ALERT BANNERS ────────────────────────────────────────────────── */
 .alert-banner {
-  margin: 18px auto 0;
-  max-width: 760px;
   padding: 14px 16px;
   border-radius: 14px;
   display: flex;
   align-items: flex-start;
   gap: 12px;
+  width: 100%;
+
+  > div {
+    flex: 1;
+    min-width: 0;
+  }
 
   ion-icon {
     font-size: 24px;
@@ -245,9 +278,19 @@ ion-back-button {
   &.urgent {
     background: rgba(255, 59, 48, 0.1);
     border: 1.5px solid rgba(255, 59, 48, 0.3);
-    ion-icon { color: #e74c3c; }
-    strong   { color: #c0392b; }
-    p        { color: var(--ion-color-medium); }
+    margin: 0;
+
+    ion-icon {
+      color: #e74c3c;
+    }
+
+    strong {
+      color: #c0392b;
+    }
+
+    p {
+      color: var(--ion-color-medium);
+    }
   }
 
   .call-now-btn {
@@ -265,27 +308,52 @@ ion-back-button {
     box-shadow: 0 4px 14px rgba(231, 76, 60, 0.35);
     transition: transform 0.15s ease;
 
-    ion-icon { font-size: 16px; }
+    ion-icon {
+      font-size: 16px;
+      color: #fff !important;
+    }
 
-    &:active { transform: scale(0.96); }
+    &:active {
+      transform: scale(0.96);
+    }
   }
 
   &.safe {
     background: rgba(52, 199, 89, 0.1);
     border: 1.5px solid rgba(52, 199, 89, 0.3);
-    ion-icon { color: #2ecc71; }
-    strong   { color: #1e8449; }
-    p        { color: var(--ion-color-medium); }
+
+
+    ion-icon {
+      color: #2ecc71;
+    }
+
+    strong {
+      color: #1e8449;
+    }
+
+    p {
+      color: var(--ion-color-medium);
+    }
   }
 
   &.differential {
     background: rgba(255, 165, 0, 0.1);
     border: 1.5px solid rgba(255, 165, 0, 0.3);
-    ion-icon { color: #d68910; }
-    strong   { color: #9b6200; }
-    p        { color: var(--ion-color-medium); }
+
+    ion-icon {
+      color: #d68910;
+    }
+
+    strong {
+      color: #9b6200;
+    }
+
+    p {
+      color: var(--ion-color-medium);
+    }
   }
 }
+
 
 /* ── CARE LEVEL ───────────────────────────────────────────────────── */
 .care-level-card {
@@ -297,12 +365,33 @@ ion-back-button {
   font-size: 15px;
   font-weight: 700;
 
-  ion-icon { font-size: 20px; }
+  ion-icon {
+    font-size: 20px;
+  }
 
-  &.care-bajo    { background: rgba(52,199,89,0.12);  color: #1e8449;  border: 1.5px solid rgba(52,199,89,0.35); }
-  &.care-medio   { background: rgba(255,165,0,0.12);  color: #d68910;  border: 1.5px solid rgba(255,165,0,0.35); }
-  &.care-alto    { background: rgba(255,59,48,0.1);   color: #c0392b;  border: 1.5px solid rgba(255,59,48,0.3); }
-  &.care-critico { background: rgba(123,0,0,0.1);     color: #922b21;  border: 1.5px solid rgba(123,0,0,0.35); }
+  &.care-bajo {
+    background: rgba(52, 199, 89, 0.12);
+    color: #1e8449;
+    border: 1.5px solid rgba(52, 199, 89, 0.35);
+  }
+
+  &.care-medio {
+    background: rgba(255, 165, 0, 0.12);
+    color: #d68910;
+    border: 1.5px solid rgba(255, 165, 0, 0.35);
+  }
+
+  &.care-alto {
+    background: rgba(255, 59, 48, 0.1);
+    color: #c0392b;
+    border: 1.5px solid rgba(255, 59, 48, 0.3);
+  }
+
+  &.care-critico {
+    background: rgba(123, 0, 0, 0.1);
+    color: #922b21;
+    border: 1.5px solid rgba(123, 0, 0, 0.35);
+  }
 }
 
 /* ── SYMPTOM CHIPS ────────────────────────────────────────────────── */
@@ -322,7 +411,10 @@ ion-back-button {
   font-weight: 600;
   border: 1.5px solid transparent;
 
-  ion-icon { font-size: 14px; flex-shrink: 0; }
+  ion-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+  }
 
   em {
     font-style: normal;
@@ -330,9 +422,23 @@ ion-back-button {
     font-size: 11px;
   }
 
-  &.chip-leve    { background: rgba(52,199,89,0.12);  color: #1e8449;  border-color: rgba(52,199,89,0.3); }
-  &.chip-moderado{ background: rgba(255,165,0,0.12);  color: #d68910;  border-color: rgba(255,165,0,0.3); }
-  &.chip-grave   { background: rgba(255,59,48,0.1);   color: #c0392b;  border-color: rgba(255,59,48,0.3); }
+  &.chip-leve {
+    background: rgba(52, 199, 89, 0.12);
+    color: #1e8449;
+    border-color: rgba(52, 199, 89, 0.3);
+  }
+
+  &.chip-moderado {
+    background: rgba(255, 165, 0, 0.12);
+    color: #d68910;
+    border-color: rgba(255, 165, 0, 0.3);
+  }
+
+  &.chip-grave {
+    background: rgba(255, 59, 48, 0.1);
+    color: #c0392b;
+    border-color: rgba(255, 59, 48, 0.3);
+  }
 }
 
 /* ── INFO CARDS ───────────────────────────────────────────────────── */
@@ -378,20 +484,34 @@ ion-back-button {
     border-left: 4px solid var(--ion-color-primary);
 
     li ion-icon {
-      &.leve     { color: #1e8449; }
-      &.moderado { color: #d68910; }
-      &.grave    { color: #c0392b; }
+      &.leve {
+        color: #1e8449;
+      }
+
+      &.moderado {
+        color: #d68910;
+      }
+
+      &.grave {
+        color: #c0392b;
+      }
     }
   }
 
   &.warning-card {
     border-left: 4px solid #e67e22;
-    li ion-icon { color: #d68910; }
+
+    li ion-icon {
+      color: #d68910;
+    }
   }
 
   &.prevention-card {
     border-left: 4px solid #27ae60;
-    li ion-icon { color: #1e8449; }
+
+    li ion-icon {
+      color: #1e8449;
+    }
   }
 }
 
@@ -403,9 +523,20 @@ ion-back-button {
   flex-shrink: 0;
   margin-left: auto;
 
-  &.leve     { background: rgba(52,199,89,0.15);  color: #1e8449; }
-  &.moderado { background: rgba(255,165,0,0.15);  color: #d68910; }
-  &.grave    { background: rgba(255,59,48,0.15);  color: #c0392b; }
+  &.leve {
+    background: rgba(52, 199, 89, 0.15);
+    color: #1e8449;
+  }
+
+  &.moderado {
+    background: rgba(255, 165, 0, 0.15);
+    color: #d68910;
+  }
+
+  &.grave {
+    background: rgba(255, 59, 48, 0.15);
+    color: #c0392b;
+  }
 }
 
 .disclaimer-small {
@@ -493,17 +624,23 @@ ion-back-button {
   box-shadow: 0 4px 16px rgba(47, 109, 246, 0.35);
   transition: all 0.2s ease;
 
-  ion-icon { font-size: 20px; }
+  ion-icon {
+    font-size: 20px;
+  }
 
   &.urgent-btn {
     background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
     box-shadow: 0 4px 16px rgba(192, 57, 43, 0.4);
   }
 
-  &:active { transform: scale(0.98); }
+  &:active {
+    transform: scale(0.98);
+  }
 }
 
-.bottom-spacer { height: 32px; }
+.bottom-spacer {
+  height: 32px;
+}
 
 /* ── FLOATING THEME BUTTON ────────────────────────────────────────── */
 .theme-toggle-fab {
@@ -520,7 +657,9 @@ ion-back-button {
   background: transparent;
   filter: drop-shadow(0 4px 10px var(--theme-toggle-shadow));
 
-  &:active .toggle-track { transform: scale(0.9); }
+  &:active .toggle-track {
+    transform: scale(0.9);
+  }
 }
 
 .toggle-track {
@@ -549,9 +688,18 @@ ion-back-button {
   transform: scale(0.5) rotate(-30deg);
   transition: opacity 0.25s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  &.visible { opacity: 1; transform: scale(1) rotate(0deg); }
-  &.sun  { color: #f0c040; }
-  &.moon { color: var(--ion-color-primary); }
+  &.visible {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+
+  &.sun {
+    color: #f0c040;
+  }
+
+  &.moon {
+    color: var(--ion-color-primary);
+  }
 }
 
 /* ── EXPORTAR / IMPRIMIR ──────────────────────────────────────────────
@@ -561,7 +709,9 @@ ion-back-button {
    interna (::part(scroll)). Sin esto, el PDF exportado saldría cortado
    a una sola pantalla. */
 @media print {
-  .no-print { display: none !important; }
+  .no-print {
+    display: none !important;
+  }
 
   .print-header {
     display: block;
@@ -591,12 +741,29 @@ ion-back-button {
     background: #fff !important;
     border: 1px solid #ccc;
 
-    .pct, .hero-badge, .hero-species, .hero-species ion-icon, .hero-badge ion-icon {
+    .pct,
+    .hero-badge,
+    .hero-species,
+    .hero-species ion-icon,
+    .hero-badge ion-icon {
       color: #000 !important;
     }
-    .pct-label { color: #555 !important; }
-    .hero-badge { background: transparent !important; border: 1px solid #999; }
-    .ring-bg { stroke: rgba(0, 0, 0, 0.15) !important; }
-    .ring-fill { stroke: #000 !important; }
+
+    .pct-label {
+      color: #555 !important;
+    }
+
+    .hero-badge {
+      background: transparent !important;
+      border: 1px solid #999;
+    }
+
+    .ring-bg {
+      stroke: rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .ring-fill {
+      stroke: #000 !important;
+    }
   }
 }

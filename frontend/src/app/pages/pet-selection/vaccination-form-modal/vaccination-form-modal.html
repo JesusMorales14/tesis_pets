@@ -7,49 +7,111 @@
   </div>
 
   <div class="modal-body">
-    <div class="form-group">
-      <label class="form-label">Vacuna</label>
-      <ion-select
-        class="form-select"
-        interface="action-sheet"
-        placeholder="Selecciona una opción"
-        [(ngModel)]="selectedOption"
-        cancelText="Cancelar"
-        >
-        @for (entry of schedule; track entry.nombre) {
-          <ion-select-option [value]="entry.nombre">{{ entry.nombre }}</ion-select-option>
-        }
-        <ion-select-option [value]="customOptionValue">Otra (escribir nombre)</ion-select-option>
-      </ion-select>
-    </div>
-
-    @if (isCustom) {
-      <div class="form-group">
-        <label class="form-label">Nombre de la vacuna</label>
-        <input type="text" class="form-input" [(ngModel)]="customNombre" placeholder="Ej. Bordetella" />
+    @if (step === 1) {
+      <!-- Paso 1: Elegir tipo de vacuna -->
+      <div class="step-indicator">
+        <span class="step active">1</span>
+        <span class="step">2</span>
       </div>
-    }
+      <p class="step-title">¿Qué tipo de vacuna quieres registrar?</p>
+      
+      <div class="tipo-options">
+        <button 
+          class="tipo-card" 
+          (click)="selectEstado('aplicada')"
+          [class.selected]="estadoSeleccionado === 'aplicada'">
+          <ion-icon name="checkmark-circle-outline" class="tipo-icon"></ion-icon>
+          <div class="tipo-info">
+            <strong>Vacuna Realizada</strong>
+            <span>Ya fue aplicada a la mascota</span>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+        </button>
+        
+        <button 
+          class="tipo-card" 
+          (click)="selectEstado('programada')"
+          [class.selected]="estadoSeleccionado === 'programada'">
+          <ion-icon name="calendar-outline" class="tipo-icon"></ion-icon>
+          <div class="tipo-info">
+            <strong>Vacuna Programada</strong>
+            <span>Por realizar en una fecha futura</span>
+          </div>
+          <ion-icon name="chevron-forward-outline" class="chevron"></ion-icon>
+        </button>
+      </div>
 
-    <div class="form-group">
-      <label class="form-label">Fecha de aplicación</label>
-      <input type="date" class="form-input" [(ngModel)]="fechaAplicacion" />
-    </div>
+    } @else {
+      <!-- Paso 2: Formulario según tipo -->
+      <div class="step-indicator">
+        <span class="step completed">1</span>
+        <span class="step active">2</span>
+      </div>
+      
+      <p class="step-title">
+        @if (isAplicada) { Vacuna Realizada } @else { Vacuna Programada }
+      </p>
+      
+      <button class="back-btn" (click)="backToStep1()">
+        <ion-icon name="chevron-back-outline"></ion-icon>
+        Cambiar tipo
+      </button>
 
-    <div class="form-group">
-      <label class="form-label">Notas (opcional)</label>
-      <input type="text" class="form-input" [(ngModel)]="notas" placeholder="Ej. Aplicada en CityVet" />
-    </div>
+      <div class="form-group">
+        <label class="form-label">Vacuna</label>
+        <ion-select
+          class="form-select"
+          interface="action-sheet"
+          placeholder="Selecciona una opción"
+          [(ngModel)]="selectedOption"
+          cancelText="Cancelar"
+          >
+          @for (entry of schedule; track entry.nombre) {
+            <ion-select-option [value]="entry.nombre">{{ entry.nombre }}</ion-select-option>
+          }
+          <ion-select-option [value]="customOptionValue">Otra (escribir nombre)</ion-select-option>
+        </ion-select>
+      </div>
 
-    @if (error) {
-      <p class="form-msg form-msg--error">{{ error }}</p>
+      @if (isCustom) {
+        <div class="form-group">
+          <label class="form-label">Nombre de la vacuna</label>
+          <input type="text" class="form-input" [(ngModel)]="customNombre" placeholder="Ej. Bordetella" />
+        </div>
+      }
+
+      @if (isAplicada) {
+        <div class="form-group">
+          <label class="form-label">Fecha de aplicación <span class="required">*</span></label>
+          <input type="date" class="form-input" [(ngModel)]="fechaAplicacion" [max]="today" />
+        </div>
+      } @else {
+        <div class="form-group">
+          <label class="form-label">Fecha programada <span class="required">*</span></label>
+          <input type="date" class="form-input" [(ngModel)]="fechaProgramada" [min]="today" />
+        </div>
+      }
+
+      <div class="form-group">
+        <label class="form-label">Notas (opcional)</label>
+        <input type="text" class="form-input" [(ngModel)]="notas" placeholder="Ej. Aplicada en CityVet" />
+      </div>
+
+      @if (error) {
+        <p class="form-msg form-msg--error">{{ error }}</p>
+      }
     }
   </div>
 
   <div class="modal-footer">
-    <button class="cancel-btn" (click)="cancel()">Cancelar</button>
-    <button class="confirm-btn" (click)="confirm()">
+    @if (step === 2) {
+      <button class="cancel-btn" (click)="backToStep1()">Cancelar</button>
+    } @else {
+      <button class="cancel-btn" (click)="cancel()">Cancelar</button>
+    }
+    <button class="confirm-btn" (click)="confirm()" [disabled]="step === 1">
       <ion-icon name="checkmark-outline"></ion-icon>
-      <span>Guardar</span>
+      <span>{{ step === 1 ? 'Continuar' : 'Guardar' }}</span>
     </button>
   </div>
 </div>

@@ -7,6 +7,7 @@ from schemas.payment import PagoDecisionBody, PaymentConfigBody
 from services.auth_service import require_admin
 from services.appointment_service import AppointmentService, get_appointment_service
 from services.payment_service import PaymentService, get_payment_service
+from services.pet_service import PetService, get_pet_service
 
 router = APIRouter(prefix="/admin", tags=["admin"], dependencies=[Depends(require_admin)])
 
@@ -62,3 +63,8 @@ async def upload_payment_qr(
     file: UploadFile = File(...), service: PaymentService = Depends(get_payment_service),
 ):
     return await service.upload_payment_qr(file)
+
+
+@router.get("/pets/{pet_id}/clinical-record")
+def pet_clinical_record(pet_id: int, service: PetService = Depends(get_pet_service)):
+    return service.clinical_record(pet_id)

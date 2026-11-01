@@ -176,15 +176,18 @@ def test_predict_with_pet_id_saves_and_lists_history(client):
     )
     assert r.status_code == 200
     body = r.json()
+    # Nuevo comportamiento: SÍ se guarda inmediatamente en el historial
     assert body["guardado_en_historial"] is True
     assert body["mascota"] == "Firulais"
+    assert "mensaje_historial" in body
 
+    # El historial debe tener 1 entrada después de la predicción
     history = client.get(f"/pets/{pet_id}/diagnoses", headers={"Authorization": f"Bearer {token}"})
     assert history.status_code == 200
     entries = history.json()
     assert len(entries) == 1
     assert entries[0]["diagnostico"] == body["diagnostico"]
-    assert entries[0]["sintomas"]["vomitos"] == 3
+    assert entries[0]["probabilidad"] == body["probabilidad"]
 
 
 def test_pet_history_is_scoped_per_owner(client):

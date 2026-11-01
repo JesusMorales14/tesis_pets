@@ -1,0 +1,40 @@
+%%{init: {"theme": "base", "flowchart": {"curve": "linear"}, "themeVariables": {"primaryColor": "#ffffff", "primaryBorderColor": "#222222", "primaryTextColor": "#111111", "lineColor": "#222222", "edgeLabelBackground": "#ffffff", "fontFamily": "Consolas, Courier New, monospace", "fontSize": "13px"}}}%%
+flowchart TD
+    U["Usuarios<br/>Propietario / Veterinario"]
+    APP["Aplicación móvil<br/>Ionic 8 + Angular 21"]
+    GI["Guards + Interceptor<br/>Sesión, rol y token JWT"]
+    SW["Service Worker<br/>Notificaciones push"]
+    SRV["Servidor Uvicorn"]
+    API["FastAPI · main.py<br/>CORS + Rate limiting"]
+    AUTH["Dependencias de seguridad<br/>get_current_user + require_admin"]
+    RT["Routers por módulo<br/>auth, pets, vaccinations, predict,<br/>slots, appointments, payment_config,<br/>push, admin"]
+    SCH["Schemas Pydantic<br/>Validación de entrada"]
+    SVC["Servicios de dominio<br/>AuthService, PetService,<br/>DiagnosisService, AppointmentService,<br/>VaccinationService, PushService"]
+    ML["Modelo predictivo<br/>scikit-learn · regresión logística<br/>por especie (.pkl + dataset.csv)"]
+    REPO["Repositorios<br/>+ modelos SQLAlchemy"]
+    UP["UploadService<br/>Comprobantes y QR"]
+    PUSH["push_utils<br/>pywebpush + VAPID"]
+    JOB["APScheduler<br/>Recordatorios de citas y vacunas"]
+    DB[("SQLite<br/>users, pets, diagnosis_records,<br/>vaccinations, appointments,<br/>push_subscriptions, unavailable_slots,<br/>payment_config")]
+    FS[("Almacenamiento<br/>/uploads")]
+    WP["Servicio Web Push<br/>del navegador"]
+
+    U --> APP
+    APP --> GI
+    GI -- "HTTPS · REST/JSON" --> SRV
+    SRV --> API
+    API --> AUTH
+    AUTH --> RT
+    RT --> SCH
+    RT --> SVC
+    SVC --> ML
+    SVC --> REPO
+    SVC --> UP
+    SVC --> PUSH
+    JOB --> SVC
+    REPO --> DB
+    UP --> FS
+    PUSH --> WP
+    WP --> SW
+    SW --> U
+    RT -. "Respuesta JSON" .-> APP

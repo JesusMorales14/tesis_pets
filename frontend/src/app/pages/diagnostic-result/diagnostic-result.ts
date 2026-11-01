@@ -6,6 +6,8 @@ import { PredictionResult } from '@core/services/prediction';
 import { DiseaseInfo, getDiseaseInfo } from '@core/models/disease-info';
 import { ThemeService } from '@core/services/theme';
 import { BreakpointService } from '@core/services/breakpoint';
+import { DiagnosisFlowService } from '@core/services/diagnosis-flow';
+import { DISEASES } from '@pages/health-info/disease-data';
 
 const SEVERITY_COLORS = { 1: 'leve', 2: 'moderado', 3: 'grave' };
 
@@ -25,6 +27,7 @@ const CARE_LEVEL_CONFIG = {
 })
 export class DiagnosticResultComponent implements OnInit {
   private router = inject(Router);
+  private flow = inject(DiagnosisFlowService);
   themeService = inject(ThemeService);
   breakpointService = inject(BreakpointService);
 
@@ -45,19 +48,26 @@ export class DiagnosticResultComponent implements OnInit {
   }
 
   ngOnInit() {
-    const state = history.state;
+    const state = this.flow.state;
 
     this.result = state?.result ?? null;
     this.selectedSymptoms = state?.selectedSymptoms ?? [];
     this.especie = state?.especie ?? 'perro';
-    this.petNombre = state?.petNombre ?? null;
+    this.petNombre = this.result?.mascota ?? state?.petNombre ?? null;
 
     if (!this.result) {
       this.router.navigate(['/tabs/tab2']);
       return;
     }
 
-    this.diseaseInfo = getDiseaseInfo(this.result.diagnostico);
+    const guide = DISEASES.find((d) => d.id === this.result!.diagnostico);
+    this.diseaseInfo = getDiseaseInfo(this.result.diagnostico, guide);
+  }
+
+  // Ionic reutiliza esta página desde su caché (p. ej. al repetir la
+  // predicción desde "volver"), así que el resultado se relee en cada entrada.
+  ionViewWillEnter() {
+    this.ngOnInit();
   }
 
   getProbabilityPercent(): number {
@@ -127,9 +137,7 @@ export class DiagnosticResultComponent implements OnInit {
   }
 
   goToSchedule() {
-    this.router.navigate(['/schedule'], {
-      state: { result: this.result, especie: this.especie },
-    });
+    this.router.navigate(['/schedule']);
   }
 
   // Genera un PDF vía el diálogo "Guardar como PDF" de impresión del

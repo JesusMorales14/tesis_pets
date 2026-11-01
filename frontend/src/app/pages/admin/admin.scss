@@ -122,107 +122,366 @@
   ion-icon { font-size: 24px; }
 }
 
-.appt-card {
-  background: var(--app-surface);
-  border-radius: 16px;
-  padding: 14px 16px;
+// ── CITAS DEL DÍA ──────────────────────────────────────────────────────
+.agenda-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
   margin-bottom: 10px;
+  .section-label { margin: 0; }
+}
+
+.agenda-title { display: flex; align-items: center; white-space: nowrap; }
+
+.agenda-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; height: 20px; padding: 0 6px; margin-left: 6px;
+  border-radius: 10px; background: var(--ion-color-primary); color: #fff;
+  font-size: 11px; font-weight: 800;
+}
+
+.agenda-date {
+  font-size: 12.5px; font-weight: 700; color: var(--ion-color-primary);
+  white-space: nowrap;
+}
+
+// 1 columna en el celular, 2 en pantallas anchas.
+.agenda-grid {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px;
+  margin-bottom: 4px;
+  @media (min-width: 992px) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+// La franja izquierda indica la prioridad clínica (gravedad estimada).
+.agenda-card {
+  --prio: var(--app-border);
+  display: flex; flex-direction: column; gap: 12px; min-width: 0;
+  padding: 14px 16px; border-radius: 16px;
+  background: var(--app-surface);
+  border-left: 4px solid var(--prio);
   box-shadow: 0 2px 12px var(--app-shadow);
+
+  &.prio-grave { --prio: #c0392b; }
+  &.prio-moderada { --prio: #d68910; }
+  &.prio-leve { --prio: #27ae60; }
+
+  // Canceladas: siguen visibles para trazabilidad, sin competir con las activas.
+  &.is-cancelled { opacity: 0.62; --prio: var(--app-border); }
 }
 
-.appt-header {
-  display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+.agenda-card-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
 }
 
-.appt-time {
-  display: flex; align-items: center; gap: 5px;
-  font-size: 16px; font-weight: 800; color: var(--ion-text-color);
-  ion-icon { font-size: 16px; color: var(--ion-color-primary); }
+.agenda-time {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 18px; font-weight: 800; letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums; color: var(--ion-text-color);
+  ion-icon { font-size: 17px; color: var(--ion-color-primary); }
 }
 
-.appt-estado {
-  font-size: 11px; font-weight: 700; padding: 3px 12px;
-  border-radius: 20px; border: 1.5px solid; text-transform: capitalize;
-}
-
-.appt-body { display: flex; flex-direction: column; gap: 7px; margin-bottom: 12px; }
-
-.appt-row {
-  display: flex; align-items: flex-start; gap: 8px;
-  font-size: 13px; color: var(--ion-text-color);
-  ion-icon { font-size: 15px; color: var(--ion-color-primary); flex-shrink: 0; margin-top: 1px; }
-  strong { font-weight: 700; }
-}
-
-.appt-estado-badge {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-size: 12px; font-weight: 700; padding: 4px 12px;
-  border-radius: 20px;
+.status-pill {
+  display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+  height: 26px; padding: 0 10px; border-radius: 13px;
+  font-size: 11.5px; font-weight: 700; white-space: nowrap;
   ion-icon { font-size: 14px; }
 
-  &.estado-pendiente { background: rgba(214,137,16,0.12); color: #d68910; }
-  &.estado-confirmada { background: rgba(39,174,96,0.12); color: #27ae60; }
-  &.estado-cancelada { background: rgba(192,57,43,0.12); color: #c0392b; }
+  &.st-pending { background: rgba(47, 109, 246, 0.1); color: #2f6df6; }
+  &.st-review { background: rgba(214, 137, 16, 0.12); color: #b9770e; }
+  &.st-confirmed { background: rgba(39, 174, 96, 0.12); color: #1e8449; }
+  &.st-cancelled { background: rgba(192, 57, 43, 0.1); color: #c0392b; }
 }
 
-.appt-actions { display: flex; gap: 8px; margin-top: 4px; }
+// Paciente primero; el dueño debajo.
+.agenda-patient { display: flex; align-items: center; gap: 12px; min-width: 0; }
 
-.estado-btn {
-  flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px;
-  padding: 10px; border-radius: 10px; border: 1.5px solid transparent;
-  font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s;
-  ion-icon { font-size: 16px; }
-
-  &.confirmar {
-    background: rgba(39,174,96,0.08); color: #27ae60; border-color: rgba(39,174,96,0.3);
-    &:active { background: #27ae60; color: #fff; }
-  }
-  &.cancelar {
-    background: rgba(255,59,48,0.08); color: #c0392b; border-color: rgba(255,59,48,0.3);
-    &:active { background: #c0392b; color: #fff; }
-  }
-  &:active { transform: scale(0.97); }
+.patient-avatar {
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 40px; height: 40px; border-radius: 12px;
+  background: rgba(47, 109, 246, 0.12); color: #2f6df6;
+  &.gato { background: rgba(15, 110, 86, 0.12); color: #0f6e56; }
+  ion-icon { font-size: 20px; }
 }
 
-.resultado-banner {
-  display: flex; align-items: center; gap: 8px;
-  padding: 10px 14px; border-radius: 10px;
-  font-size: 13px; font-weight: 700; margin-top: 4px;
-  ion-icon { font-size: 18px; flex-shrink: 0; }
+.patient-text {
+  display: flex; flex-direction: column; gap: 1px; min-width: 0;
+  strong { font-size: 15px; font-weight: 700; color: var(--ion-text-color); }
+  span { font-size: 12.5px; color: var(--ion-color-medium); }
+  .owner-email { font-size: 11.5px; }
+}
 
-  &.resultado-ok {
-    background: rgba(39,174,96,0.1); color: #1e8449;
-    border: 1.5px solid rgba(39,174,96,0.3);
+.agenda-dx {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 10px 12px; border-radius: 12px;
+  background: var(--app-surface-alt);
+}
+
+.dx-label {
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
+  color: var(--ion-color-medium);
+}
+
+.dx-line {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px;
+  .grav-badge { margin-left: 0; }
+}
+
+.dx-name { font-size: 14px; font-weight: 700; color: var(--ion-text-color); }
+
+.dx-prob {
+  margin-left: auto; font-size: 12.5px; font-weight: 700;
+  color: var(--ion-color-primary); font-variant-numeric: tabular-nums;
+}
+
+.agenda-card-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px;
+  padding-top: 10px; border-top: 1px solid var(--app-border);
+}
+
+.pay-method {
+  display: inline-flex; align-items: center; gap: 6px; min-width: 0;
+  font-size: 12.5px; color: var(--ion-color-medium);
+  ion-icon { font-size: 15px; flex-shrink: 0; }
+}
+
+.agenda-actions { display: flex; gap: 6px; margin-left: auto; }
+
+.act-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 32px; padding: 0 12px; border-radius: 16px;
+  border: 1.5px solid var(--app-border); background: var(--app-surface);
+  color: var(--ion-color-primary); font-size: 12px; font-weight: 700;
+  font-family: inherit; cursor: pointer; white-space: nowrap;
+  ion-icon { font-size: 15px; }
+  &:hover { border-color: var(--ion-color-primary); background: rgba(47, 109, 246, 0.06); }
+
+  &.warn {
+    border-color: transparent; background: #d68910; color: #fff;
+    &:hover { filter: brightness(1.05); background: #d68910; }
   }
-  &.resultado-ko {
-    background: rgba(192,57,43,0.1); color: #c0392b;
-    border: 1.5px solid rgba(192,57,43,0.3);
+}
+
+// Decisión directa (citas sin comprobante): rechazar a la izquierda, la
+// acción principal a la derecha y destacada.
+.decision-row { display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; }
+
+.decision-btn {
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  height: 38px; border-radius: 10px;
+  font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer;
+  ion-icon { font-size: 17px; }
+  &:active { transform: scale(0.98); }
+
+  &.reject {
+    border: 1.5px solid rgba(192, 57, 43, 0.35); background: transparent; color: #c0392b;
+    &:hover { background: rgba(192, 57, 43, 0.06); }
   }
+  &.accept {
+    border: none; background: #27ae60; color: #fff;
+    &:hover { filter: brightness(1.05); }
+  }
+}
+
+// ── Organizar agenda: especie y orden por gravedad ─────────────────────
+.appt-toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 8px; margin-bottom: 12px;
+}
+
+.chip-group { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+
+.chip-label { font-size: 12px; font-weight: 600; color: var(--ion-color-medium); }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 30px; padding: 0 12px; border-radius: 15px;
+  border: 1.5px solid var(--app-border); background: var(--app-surface);
+  color: var(--ion-text-color); font-size: 12px; font-weight: 600;
+  font-family: inherit; cursor: pointer;
+  ion-icon { font-size: 14px; }
+
+  &.active {
+    border-color: var(--ion-color-primary);
+    background: rgba(47, 109, 246, 0.1);
+    color: var(--ion-color-primary);
+  }
+}
+
+// Gravedad estimada por el pre-diagnóstico
+.grav-badge {
+  margin-left: auto; flex-shrink: 0;
+  padding: 2px 9px; border-radius: 20px;
+  font-size: 10.5px; font-weight: 800; letter-spacing: 0.3px; text-transform: uppercase;
+
+  &.leve { background: #e8f8ef; color: #1e8449; }
+  &.moderada { background: #fff4e0; color: #b9770e; }
+  &.grave { background: #fdecea; color: #c0392b; }
 }
 
 // ── PAGOS PENDIENTES ──────────────────────────────────────────────────
 .pending-count {
-  display: inline-flex; align-items: center; justify-content: center;
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
   min-width: 20px; height: 20px; padding: 0 5px; margin-left: 6px;
   border-radius: 10px; background: #c0392b; color: #fff;
   font-size: 11px; font-weight: 800;
 }
 
+// ── Carrusel de pagos pendientes ───────────────────────────────────────
+.pending-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  .section-label { margin: 0; }
+}
+
+// Título y contador siempre juntos en una línea; en pantallas angostas el
+// título se acorta a "Pagos pendientes" para dejar sitio a "1 de N" y flechas.
+.pending-title {
+  display: flex; align-items: center; min-width: 0; white-space: nowrap;
+  .pending-count { margin-left: 6px; }
+  @media (max-width: 419px) { .label-long { display: none; } }
+}
+
+.carousel-nav { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+.carousel-position {
+  font-size: 12px; font-weight: 700; color: var(--ion-color-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+// Las flechas solo en pantallas con mouse; en el celular se desliza.
+.carousel-arrow {
+  display: none; align-items: center; justify-content: center;
+  width: 30px; height: 30px; padding: 0; border-radius: 50%;
+  border: 1.5px solid var(--app-border); background: var(--app-surface);
+  color: var(--ion-text-color); cursor: pointer;
+  ion-icon { font-size: 16px; }
+  &:disabled { opacity: 0.35; cursor: default; }
+  @media (hover: hover) { display: inline-flex; }
+}
+
+// Atajo para muchos comprobantes: revisarlos en cola dentro del modal.
+.queue-btn {
+  width: 100%; display: flex; align-items: center; gap: 10px;
+  margin: 10px 0 4px; padding: 10px 12px 10px 14px; border-radius: 12px;
+  border: 1.5px dashed #d68910; background: rgba(214, 137, 16, 0.08);
+  color: #b9770e; font-family: inherit; cursor: pointer; text-align: left;
+  ion-icon { font-size: 18px; flex-shrink: 0; }
+  .queue-chevron { margin-left: auto; font-size: 16px; }
+  &:hover { background: rgba(214, 137, 16, 0.14); }
+}
+
+// Título y explicación en dos líneas: nunca se parten a la mitad.
+.queue-text {
+  display: flex; flex-direction: column; gap: 1px; min-width: 0;
+  strong { font-size: 13px; font-weight: 700; }
+  small { font-size: 11px; font-weight: 500; color: var(--ion-color-medium); }
+}
+
+.pending-track {
+  display: flex; gap: 12px;
+  overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory; scroll-padding: 0 2px;
+  // Aire para que la sombra de las tarjetas no se corte.
+  padding: 10px 2px 14px; margin: 0 -2px;
+  scrollbar-width: thin;
+
+  .payment-review-card {
+    // Casi todo el ancho, dejando asomar ~28px de la siguiente para que se
+    // note que hay más (en porcentaje, en pantallas angostas quedaba estrecha).
+    flex: 0 0 calc(100% - 28px);
+    margin-bottom: 0;
+    scroll-snap-align: start;
+    @media (min-width: 768px) { flex-basis: 380px; }
+    &:only-child { flex-basis: 100%; }
+  }
+}
+
+// Tarjeta de pago pendiente: todo el texto se recorta dentro de la tarjeta
+// (correos largos incluidos) y la acción de revisar es un botón visible,
+// no solo un toque sobre la miniatura.
 .payment-review-card {
-  display: flex; gap: 14px; background: var(--app-surface);
+  display: flex; flex-direction: column; gap: 12px;
+  background: var(--app-surface);
   border-radius: 16px; padding: 14px; margin-bottom: 12px;
   box-shadow: 0 2px 12px var(--app-shadow);
   border-left: 4px solid #d68910;
+  min-width: 0;
 }
 
+.review-top { display: flex; gap: 12px; min-width: 0; }
+
 .comprobante-thumb {
-  flex-shrink: 0; width: 84px; height: 84px; border-radius: 10px;
-  overflow: hidden; display: block;
-  img { width: 100%; height: 100%; object-fit: cover; }
+  position: relative; flex-shrink: 0;
+  width: 72px; height: 96px; padding: 0;
+  border: 1px solid var(--app-border); border-radius: 10px;
+  overflow: hidden; background: #101016; cursor: pointer;
+  @media (max-width: 419px) { width: 60px; height: 84px; }
+
+  img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s; }
+  &:hover img { transform: scale(1.05); }
+
+  // Visible siempre: en el celular no existe el "hover".
+  .thumb-label {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    display: flex; align-items: center; justify-content: center; gap: 3px;
+    padding: 4px 0; background: rgba(0, 0, 0, 0.6);
+    color: #fff; font-size: 10.5px; font-weight: 700;
+    ion-icon { font-size: 11px; }
+  }
 }
 
 .payment-review-info {
-  flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0;
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; gap: 8px;
+}
+
+.truncate {
+  min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+// Nombre: hasta 2 líneas antes de recortar.
+.clamp-2 {
+  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; word-break: break-word;
+}
+
+.review-client {
+  display: flex; flex-direction: column; gap: 1px; min-width: 0;
+  strong { font-size: 14px; font-weight: 700; line-height: 1.3; color: var(--ion-text-color); }
+  span { font-size: 12px; color: var(--ion-color-medium); }
+}
+
+.review-meta { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+
+.meta-row {
+  display: flex; align-items: center; gap: 6px; min-width: 0;
+  font-size: 12.5px; color: var(--ion-text-color);
+  ion-icon { font-size: 14px; color: var(--ion-color-primary); flex-shrink: 0; }
+  .truncate { flex: 0 1 auto; }
+  .grav-badge { margin-left: 2px; flex-shrink: 0; }
+
+  // Diagnóstico: puede pasar a otra línea; la gravedad nunca se recorta.
+  &--wrap {
+    align-items: flex-start;
+    ion-icon { margin-top: 2px; }
+    .meta-text { min-width: 0; line-height: 1.5; }
+    // La etiqueta va dentro del texto: si no cabe, baja alineada con él.
+    .grav-badge { display: inline-block; margin-left: 4px; white-space: nowrap; vertical-align: 1px; }
+  }
+}
+
+.review-btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; height: 38px; border-radius: 10px;
+  border: none; background: #d68910; color: #fff;
+  font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer;
+  ion-icon { font-size: 16px; }
+  &:hover { filter: brightness(1.05); }
+  &:active { transform: scale(0.99); }
+
+  // En pantallas anchas un botón de 800px pesa demasiado: ancho natural.
+  @media (min-width: 768px) {
+    width: auto; align-self: flex-end; padding: 0 20px;
+  }
 }
 
 // ── CONFIGURACIÓN DE PAGOS ────────────────────────────────────────────

@@ -7,6 +7,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { ThemeService } from '@core/services/theme';
 import { AuthService } from '@core/services/auth';
 import { BreakpointService } from '@core/services/breakpoint';
+import { PushNotificationService } from '@core/services/push-notification';
 
 @Component({
   selector: 'app-header',
@@ -20,6 +21,7 @@ export class HeaderComponent {
   auth = inject(AuthService);
   breakpointService = inject(BreakpointService);
   private router = inject(Router);
+  private pushService = inject(PushNotificationService);
 
   /** Título contextual de la página, mostrado en el toolbar cuando hay sidebar (desktop). */
   @Input() pageTitle = '';
@@ -28,7 +30,9 @@ export class HeaderComponent {
     this.router.navigate(['/profile']);
   }
 
-  logout() {
+  async logout() {
+    // Antes de borrar el token: este dispositivo deja de recibir los avisos de esta cuenta.
+    await this.pushService.detachFromAccount();
     this.auth.logout();
     this.router.navigateByUrl('/tabs/tab1');
   }
