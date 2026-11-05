@@ -1,0 +1,44 @@
+<div role="radiogroup" aria-labelledby="method-title" class="method-group">
+  <h2 class="section-label" id="method-title">Selecciona método de pago</h2>
+
+  <button
+    type="button"
+    role="radio"
+    class="payment-card"
+    [class.selected]="selected() === 'yape'"
+    [attr.aria-checked]="selected() === 'yape'"
+    (click)="methodSelected.emit('yape')"
+  >
+    <span class="payment-logo wallet-logo" aria-hidden="true">
+      <img src="assets/img/yape-logo.png" alt="" class="billetera-icon" width="28" height="28" />
+      <img src="assets/img/plin-logo.png" alt="" class="billetera-icon" width="28" height="28" />
+    </span>
+    <span class="payment-info">
+      <strong>Billetera Digital</strong>
+      <span class="payment-desc">Escanea el QR o envía al número de la clínica<span class="visually-hidden"> (Yape o Plin)</span></span>
+    </span>
+    @if (selected() === 'yape') {
+    <ion-icon name="checkmark-circle" class="check-icon" aria-hidden="true"></ion-icon>
+    }
+  </button>
+
+  <button
+    type="button"
+    role="radio"
+    class="payment-card"
+    [class.selected]="selected() === 'transferencia'"
+    [attr.aria-checked]="selected() === 'transferencia'"
+    (click)="methodSelected.emit('transferencia')"
+  >
+    <span class="payment-logo card-logo" aria-hidden="true">
+      <ion-icon name="business-outline"></ion-icon>
+    </span>
+    <span class="payment-info">
+      <strong>Transferencia bancaria</strong>
+      <span class="payment-desc">Deposita a la cuenta interbancaria de la clínica</span>
+    </span>
+    @if (selected() === 'transferencia') {
+    <ion-icon name="checkmark-circle" class="check-icon" aria-hidden="true"></ion-icon>
+    }
+  </button>
+</div>

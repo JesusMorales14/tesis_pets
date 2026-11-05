@@ -1,157 +1,107 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
-import { PredictionResult } from '@core/models/prediction';
-import { DiseaseInfo } from '@core/models/disease-info';
+import { CLINIC } from '@core/constants/clinic';
 import { getDiseaseInfo } from '@core/data/disease-info.data';
-import { ThemeService } from '@core/services/theme';
-import { BreakpointService } from '@core/services/breakpoint';
-import { DiagnosisFlowService } from '@core/services/diagnosis-flow';
 import { DISEASES } from '@core/data/diseases.data';
+import { DiseaseInfo } from '@core/models/disease-info';
+import { PredictionResult } from '@core/models/prediction';
+import { DiagnosisFlowService, SelectedSymptom } from '@core/services/diagnosis-flow';
+import { PageToolbarComponent } from '@shared/components/page-toolbar/page-toolbar';
+import { ThemeToggleFabComponent } from '@shared/components/theme-toggle-fab/theme-toggle-fab';
+import { DiagnosisLabelPipe } from '@shared/pipes';
+import { AlertBannerComponent } from './components/alert-banner/alert-banner';
+import { AppointmentCtaComponent } from './components/appointment-cta/appointment-cta';
+import { InfoListCardComponent } from './components/info-list-card/info-list-card';
+import { ReportedSymptomsComponent } from './components/reported-symptoms/reported-symptoms';
+import { ResultHeroComponent } from './components/result-hero/result-hero';
 
-const SEVERITY_COLORS = { 1: 'leve', 2: 'moderado', 3: 'grave' };
+const CARE_LEVELS = {
+  bajo: { label: 'Bajo', icon: 'checkmark-circle-outline' },
+  medio: { label: 'Moderado', icon: 'alert-circle-outline' },
+  alto: { label: 'Alto', icon: 'warning-outline' },
+  critico: { label: 'Crítico', icon: 'skull-outline' },
+} as const;
 
-const CARE_LEVEL_CONFIG = {
-  bajo: { label: 'Bajo', icon: 'checkmark-circle-outline', color: '#2a7d3f' },
-  medio: { label: 'Moderado', icon: 'alert-circle-outline', color: '#9b6200' },
-  alto: { label: 'Alto', icon: 'warning-outline', color: '#c0392b' },
-  critico: { label: 'Crítico', icon: 'skull-outline', color: '#7b0000' },
-};
+const LOW_CONFIDENCE_PERCENT = 50;
+const toPercent = (p: number | null | undefined) => Math.round((p ?? 0) * 100);
 
+/** Resultado del diagnóstico de IA con recomendaciones de cuidado (contenedor). */
 @Component({
   selector: 'app-diagnostic-result',
   templateUrl: './diagnostic-result.html',
   styleUrls: ['./diagnostic-result.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule],
+  imports: [
+    IonicModule,
+    DiagnosisLabelPipe,
+    PageToolbarComponent,
+    ThemeToggleFabComponent,
+    ResultHeroComponent,
+    AlertBannerComponent,
+    InfoListCardComponent,
+    ReportedSymptomsComponent,
+    AppointmentCtaComponent,
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DiagnosticResultComponent implements OnInit {
-  private router = inject(Router);
-  private flow = inject(DiagnosisFlowService);
-  themeService = inject(ThemeService);
-  breakpointService = inject(BreakpointService);
+export class DiagnosticResultComponent {
+  private readonly router = inject(Router);
+  private readonly flow = inject(DiagnosisFlowService);
 
-  result: PredictionResult | null = null;
-  selectedSymptoms: Array<{ key: string; severity: number; label: string }> = [];
-  especie = 'perro';
-  petNombre: string | null = null;
-  diseaseInfo: DiseaseInfo | null = null;
-
-  readonly todayLabel = new Date().toLocaleDateString('es-PE', {
-    day: 'numeric', month: 'long', year: 'numeric',
+  protected readonly clinicPhone = CLINIC.phoneHref;
+  protected readonly todayLabel = new Date().toLocaleDateString('es-PE', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
   });
 
-  readonly careLevelConfig = CARE_LEVEL_CONFIG;
+  protected readonly result = signal<PredictionResult | null>(null);
+  protected readonly symptoms = signal<SelectedSymptom[]>([]);
+  protected readonly especie = signal<'perro' | 'gato'>('perro');
+  protected readonly petNombre = signal<string | null>(null);
 
-  toggleTheme() {
-    this.themeService.toggle();
-  }
+  protected readonly diseaseInfo = computed<DiseaseInfo | null>(() => {
+    const r = this.result();
+    if (!r) return null;
+    return getDiseaseInfo(r.diagnostico, DISEASES.find((d) => d.id === r.diagnostico));
+  });
+  protected readonly careLevel = computed(() => CARE_LEVELS[this.diseaseInfo()?.nivelCuidado ?? 'medio']);
+  protected readonly urgent = computed(() => !!this.diseaseInfo()?.requiereAtencionInmediata);
 
-  ngOnInit() {
+  protected readonly percent = computed(() => toPercent(this.result()?.probabilidad));
+  protected readonly altPercent = computed(() => toPercent(this.result()?.probabilidad_alternativa));
+  protected readonly thirdPercent = computed(() => toPercent(this.result()?.probabilidad_tercero));
+  protected readonly hasDifferential = computed(() => !!this.result()?.diagnostico_alternativo);
+  // Sin un segundo diagnóstico cercano pero con probabilidad baja, el
+  // usuario podría leer el resultado como más certero de lo que es.
+  protected readonly lowConfidence = computed(
+    () => !this.hasDifferential() && this.percent() < LOW_CONFIDENCE_PERCENT,
+  );
+
+  protected readonly backLink = computed(
+    () => `/symptoms-selection/${this.especie() === 'gato' ? 'felino' : 'canino'}`,
+  );
+
+  // Ionic reutiliza esta página desde su caché: el resultado se relee en
+  // cada entrada (p. ej. al repetir la predicción).
+  ionViewWillEnter(): void {
     const state = this.flow.state;
-
-    this.result = state?.result ?? null;
-    this.selectedSymptoms = state?.selectedSymptoms ?? [];
-    this.especie = state?.especie ?? 'perro';
-    this.petNombre = this.result?.mascota ?? state?.petNombre ?? null;
-
-    if (!this.result) {
-      this.router.navigate(['/tabs/tab2']);
+    const result = state?.result ?? null;
+    if (!result) {
+      void this.router.navigate(['/tabs/tab2']);
       return;
     }
-
-    const guide = DISEASES.find((d) => d.id === this.result!.diagnostico);
-    this.diseaseInfo = getDiseaseInfo(this.result.diagnostico, guide);
+    this.result.set(result);
+    this.symptoms.set(state?.selectedSymptoms ?? []);
+    this.especie.set(state?.especie ?? 'perro');
+    this.petNombre.set(result.mascota ?? state?.petNombre ?? null);
   }
 
-  // Ionic reutiliza esta página desde su caché (p. ej. al repetir la
-  // predicción desde "volver"), así que el resultado se relee en cada entrada.
-  ionViewWillEnter() {
-    this.ngOnInit();
-  }
-
-  getProbabilityPercent(): number {
-    return Math.round((this.result?.probabilidad ?? 0) * 100);
-  }
-
-  getDiagnosticoLabel(): string {
-    return (this.result?.diagnostico ?? '').replace(/_/g, ' ');
-  }
-
-  get savedToHistory(): boolean {
-    return !!this.result?.guardado_en_historial;
-  }
-
-  get hasDifferential(): boolean {
-    return !!this.result?.diagnostico_alternativo;
-  }
-
-  get hasThirdOption(): boolean {
-    return !!this.result?.diagnostico_tercero;
-  }
-
-  getDiagnosticoTerceroLabel(): string {
-    return (this.result?.diagnostico_tercero ?? '').replace(/_/g, ' ');
-  }
-
-  getProbabilidadTerceroPercent(): number {
-    return Math.round((this.result?.probabilidad_tercero ?? 0) * 100);
-  }
-
-  // Cuando no hay un segundo diagnóstico cercano pero la probabilidad del
-  // principal igual es baja, el banner de diferencial no se muestra y el
-  // usuario podría leer el resultado como más certero de lo que es. Se
-  // avisa aparte para no depender solo del diferencial.
-  get hasLowConfidence(): boolean {
-    return !this.hasDifferential && this.getProbabilityPercent() < 50;
-  }
-
-  getDiagnosticoAlternativoLabel(): string {
-    return (this.result?.diagnostico_alternativo ?? '').replace(/_/g, ' ');
-  }
-
-  getProbabilidadAlternativaPercent(): number {
-    return Math.round((this.result?.probabilidad_alternativa ?? 0) * 100);
-  }
-
-  getSeverityLabel(value: number): string {
-    return (['', 'Leve', 'Moderado', 'Grave'])[value] ?? '';
-  }
-
-  getSeverityClass(value: number): string {
-    return (SEVERITY_COLORS as any)[value] ?? '';
-  }
-
-  getSeverityIcon(value: number): string {
-    const icons = { 1: 'remove-circle-outline', 2: 'alert-circle-outline', 3: 'warning-outline' };
-    return (icons as any)[value] ?? 'ellipse-outline';
-  }
-
-  getGravedadIcon(): string {
-    const map = { leve: 'checkmark-circle', moderada: 'alert-circle', grave: 'warning' };
-    return (map as any)[this.result?.gravedad ?? ''] ?? 'information-circle';
-  }
-
-  getCareLevel() {
-    return this.careLevelConfig[this.diseaseInfo?.nivelCuidado ?? 'medio'];
-  }
-
-  goToSchedule() {
-    this.router.navigate(['/schedule']);
-  }
-
-  // Genera un PDF vía el diálogo "Guardar como PDF" de impresión del
-  // navegador en vez de una librería de generación de PDF: sin dependencia
-  // nueva, y el usuario controla el destino (imprimir o guardar) igual que
-  // con cualquier documento. El CSS @media print de este componente oculta
-  // la navegación y deja solo el contenido clínico relevante.
-  exportPdf() {
+  // PDF vía el diálogo de impresión del navegador ("Guardar como PDF"): sin
+  // dependencias y el usuario elige el destino. El CSS @media print oculta
+  // la navegación y deja solo el contenido clínico.
+  protected exportPdf(): void {
     window.print();
-  }
-
-  goBack() {
-    const param = this.especie === 'gato' ? 'felino' : 'canino';
-    this.router.navigate(['/symptoms-selection/' + param]);
   }
 }

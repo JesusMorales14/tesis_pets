@@ -1,321 +1,121 @@
-<!-- Header dinámico según paso -->
 <ion-header>
-  <ion-toolbar class="custom-toolbar">
-    @if (step === 1 || step === 3) {
-      <ion-buttons slot="start">
-        <ion-button fill="clear" (click)="goBack()">
-          <ion-icon name="arrow-back-outline"></ion-icon>
-        </ion-button>
-      </ion-buttons>
-    }
-    <ion-title class="title">
-      @if (step === 1) { Método de Pago }
-      @if (step === 3) { Enviar comprobante }
-      @if (step === 4) { Confirmación }
-    </ion-title>
-  </ion-toolbar>
+  <app-page-toolbar
+    [title]="title()"
+    [backLink]="backLink()"
+    [handleBack]="step() === 'upload'"
+    (back)="backToMethod()"
+  ></app-page-toolbar>
 </ion-header>
 
 <ion-content class="payment-content">
+  @if (booking(); as b) {
+  <main>
+    @switch (step()) {
+    @case ('success') {
+    <app-payment-success
+      [fecha]="b.fecha"
+      [hora]="b.hora"
+      [diagnostico]="b.result.diagnostico"
+      [especie]="b.especie"
+      [metodo]="metodo()!"
+      [petNombre]="b.result.mascota ?? b.petNombre"
+    ></app-payment-success>
+    }
 
-  <!-- ══════════════════════════════════════════════════════════════════
-       PASO 4 — ÉXITO
-  ══════════════════════════════════════════════════════════════════ -->
-  @if (step === 4) {
-    <div class="success-wrap">
-      <div class="success-icon">
-        <ion-icon name="checkmark-circle"></ion-icon>
-      </div>
-      <h1>¡Pago enviado correctamente!</h1>
-      <p>
-        Tu horario quedó apartado y tu comprobante ya está en la clínica.
-        <strong>Ahora debes esperar a que el veterinario verifique tu pago.</strong>
-        Cuando lo apruebe, tu cita aparecerá como <strong>Confirmada</strong> en
-        Mi cuenta → Mis citas{{ petNombre ? ' y el diagnóstico de ' + petNombre + ' ya está en su historial' : '' }}.
-      </p>
+    @case ('method') {
+    <section class="section" aria-labelledby="summary-title">
+      <h2 class="section-label" id="summary-title">Resumen de tu cita</h2>
+      <app-booking-summary
+        [diagnostico]="b.result.diagnostico"
+        [gravedad]="b.result.gravedad"
+        [especie]="b.especie"
+        [fecha]="b.fecha"
+        [hora]="b.hora"
+      ></app-booking-summary>
+    </section>
 
-      <div class="success-detail">
-        <div class="detail-row">
-          <ion-icon name="calendar-outline"></ion-icon>
-          <span>{{ fechaLabel }}</span>
-        </div>
-        <div class="detail-row">
-          <ion-icon name="time-outline"></ion-icon>
-          <span>{{ hora }}</span>
-        </div>
-        <div class="detail-row">
-          <ion-icon name="paw-outline"></ion-icon>
-          <span>{{ formatDiagnostico(result?.diagnostico ?? '') | titlecase }} · {{ especie | titlecase }}</span>
-        </div>
-        <div class="detail-row">
-          <ion-icon name="cash-outline"></ion-icon>
-          <span>{{ metodo === 'yape' ? 'Billetera Digital' : 'Transferencia' }} · Pago en verificación</span>
-        </div>
-      </div>
+    <section class="section">
+      <app-payment-method-picker [selected]="metodo()" (methodSelected)="metodo.set($event)"></app-payment-method-picker>
+    </section>
 
-      <button class="home-btn" (click)="goToProfile()">
-        <ion-icon name="person-outline"></ion-icon>
-        <span>Ver mis citas</span>
-      </button>
-      <button class="home-btn secondary" (click)="goHome()">
-        <ion-icon name="home-outline"></ion-icon>
-        <span>Volver al inicio</span>
-      </button>
-    </div>
-  }
-
-  <!-- ══════════════════════════════════════════════════════════════════
-       PASO 1 — ELEGIR MÉTODO
-  ══════════════════════════════════════════════════════════════════ -->
-  @if (step === 1) {
-
-    <!-- Resumen de cita -->
-    <div class="section">
-      <p class="section-label">Resumen de tu cita</p>
-      <div class="summary-card">
-        <div class="summary-row">
-          <ion-icon name="paw-outline"></ion-icon>
-          <div>
-            <strong>{{ formatDiagnostico(result?.diagnostico ?? '') | titlecase }}</strong>
-            <span>{{ especie | titlecase }} · {{ result?.gravedad | titlecase }}</span>
-          </div>
-        </div>
-        <div class="summary-divider"></div>
-        <div class="summary-row">
-          <ion-icon name="calendar-outline"></ion-icon>
-          <div>
-            <strong>{{ fechaLabel }}</strong>
-            <span>{{ hora }} — CityVet</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Métodos -->
-    <div class="section">
-      <p class="section-label">Selecciona método de pago</p>
-
-      <div class="payment-card" [class.selected]="metodo === 'yape'" (click)="selectMetodo('yape')">
-        <div class="payment-logo wallet-logo">
-          <img src="assets/img/yape-logo.png" alt="Yape" class="billetera-icon" />
-          <img src="assets/img/plin-logo.png" alt="Plin" class="billetera-icon" />
-        </div>
-        <div class="payment-info">
-          <strong>Billetera Digital</strong>
-          <p>Escanea el QR o envía al número de la clínica</p>
-        </div>
-        @if (metodo === 'yape') {
-          <ion-icon name="checkmark-circle" class="check-icon"></ion-icon>
-        }
-      </div>
-
-      <div class="payment-card" [class.selected]="metodo === 'transferencia'" (click)="selectMetodo('transferencia')">
-        <div class="payment-logo card-logo">
-          <ion-icon name="business-outline"></ion-icon>
-        </div>
-        <div class="payment-info">
-          <strong>Transferencia bancaria</strong>
-          <p>Deposita a la cuenta interbancaria de la clínica</p>
-        </div>
-        @if (metodo === 'transferencia') {
-          <ion-icon name="checkmark-circle" class="check-icon"></ion-icon>
-        }
-      </div>
-    </div>
-
-    <div class="section">
+    <section class="section">
       <div class="info-hint">
-        <ion-icon name="information-circle-outline"></ion-icon>
+        <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
         <span>
-          Selecciona tu método de pago preferido. En el siguiente paso verás los datos para
-          pagar y deberás adjuntar tu comprobante para confirmar la reserva de tu cita.
+          Selecciona tu método de pago preferido. En el siguiente paso verás los datos para pagar y deberás adjuntar
+          tu comprobante para confirmar la reserva de tu cita.
         </span>
       </div>
-    </div>
+    </section>
 
-    @if (errorMsg) {
-      <div class="section">
-        <div class="error-banner">
-          <ion-icon name="alert-circle-outline"></ion-icon>{{ errorMsg }}
-        </div>
-      </div>
-    }
-
-    @if (slotTaken) {
-      <div class="section confirm-section">
-        <button class="confirm-btn" (click)="goToSchedule()">
-          <ion-icon name="calendar-outline"></ion-icon>
-          <span>Elegir otro horario</span>
-        </button>
-      </div>
-    }
-
-    <div class="section confirm-section">
-      <button
-        class="confirm-btn"
-        [class.disabled-btn]="!metodo"
-        (click)="continuar()"
-        [disabled]="!metodo"
-        >
-        <ion-icon name="arrow-forward-outline"></ion-icon>
+    <section class="section confirm-section">
+      <button type="button" class="confirm-btn" [class.disabled-btn]="!metodo()" [disabled]="!metodo()" (click)="continueToUpload()">
+        <ion-icon name="arrow-forward-outline" aria-hidden="true"></ion-icon>
         <span>Continuar al pago</span>
       </button>
-    </div>
-  }
+    </section>
+    }
 
-  <!-- ══════════════════════════════════════════════════════════════════
-       PASO 3 — PAGAR Y SUBIR COMPROBANTE
-  ══════════════════════════════════════════════════════════════════ -->
-  @if (step === 3) {
-
-    <div class="section">
+    @case ('upload') {
+    <section class="section">
       <div class="info-hint">
-        <ion-icon name="time-outline"></ion-icon>
+        <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
         <span>
-          Horario a reservar: {{ fechaLabel }} a las {{ hora }}. Realiza el pago y adjunta tu comprobante a continuación para completar la reserva.
+          Horario a reservar: {{ b.fecha | appDate: 'long' }} a las {{ b.hora }}. Realiza el pago y adjunta tu
+          comprobante a continuación para completar la reserva.
         </span>
       </div>
-    </div>
+    </section>
 
-    @if (metodo === 'yape') {
-      <div class="section">
-        <p class="section-label">Paga con Billetera Digital</p>
-        <div class="yape-card">
-          <div class="yape-header">
-            <div class="yape-logo-wrap wallet-logo-wrap">
-              <img src="assets/img/yape-logo.png" alt="Yape" class="billetera-icon" />
-              <img src="assets/img/plin-logo.png" alt="Plin" class="billetera-icon" />
-            </div>
-            <div>
-              <span class="yape-brand">BILLETERA DIGITAL</span>
-              <span class="yape-sub">CityVet</span>
-            </div>
-          </div>
-          @if (paymentConfig?.yape_qr_url) {
-            <img class="yape-qr" [src]="apiUrl + paymentConfig!.yape_qr_url" alt="Código QR de Yape" />
-          }
-          <div class="yape-to">
-            <span class="yape-to-label">Número Billetera Digital</span>
-            <button class="copy-row" (click)="copyToClipboard(paymentConfig?.yape_phone ?? null, 'yape')">
-              <span class="yape-to-phone">{{ paymentConfig?.yape_phone || 'No configurado todavía' }}</span>
-              @if (paymentConfig?.yape_phone) {
-                <ion-icon [name]="copiedField === 'yape' ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
-              }
-            </button>
-          </div>
-        </div>
+    <section class="section">
+      <app-payment-instructions [metodo]="metodo()!" [config]="config()"></app-payment-instructions>
+    </section>
+
+    <section class="section">
+      <app-receipt-upload
+        [file]="file()"
+        [disabled]="isUploading()"
+        (fileChange)="onFileChange($event)"
+        (invalidFile)="errorMsg.set($event)"
+      ></app-receipt-upload>
+    </section>
+
+    @if (errorMsg()) {
+    <section class="section">
+      <div class="error-banner" role="alert">
+        <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>{{ errorMsg() }}
       </div>
+    </section>
     }
 
-    @if (metodo === 'transferencia') {
-      <div class="section">
-        <p class="section-label">Datos para transferencia</p>
-        <div class="bank-card">
-          <div class="bank-row">
-            <span class="bank-label">Banco</span>
-            <span class="bank-value">{{ paymentConfig?.banco || 'No configurado todavía' }}</span>
-          </div>
-          <div class="bank-row">
-            <span class="bank-label">Tipo de cuenta</span>
-            <span class="bank-value">{{ paymentConfig?.tipo_cuenta || '—' }}</span>
-          </div>
-          <div class="bank-row">
-            <span class="bank-label">N.° de cuenta</span>
-            <button class="copy-row" (click)="copyToClipboard(paymentConfig?.numero_cuenta ?? null, 'cuenta')">
-              <span class="bank-value">{{ paymentConfig?.numero_cuenta || '—' }}</span>
-              @if (paymentConfig?.numero_cuenta) {
-                <ion-icon [name]="copiedField === 'cuenta' ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
-              }
-            </button>
-          </div>
-          <div class="bank-row">
-            <span class="bank-label">CCI</span>
-            <button class="copy-row" (click)="copyToClipboard(paymentConfig?.cci ?? null, 'cci')">
-              <span class="bank-value">{{ paymentConfig?.cci || '—' }}</span>
-              @if (paymentConfig?.cci) {
-                <ion-icon [name]="copiedField === 'cci' ? 'checkmark-outline' : 'copy-outline'"></ion-icon>
-              }
-            </button>
-          </div>
-          <div class="bank-row">
-            <span class="bank-label">Titular</span>
-            <span class="bank-value">{{ paymentConfig?.titular || '—' }}</span>
-          </div>
-        </div>
-      </div>
+    @if (slotTaken()) {
+    <section class="section confirm-section">
+      <a class="confirm-btn" routerLink="/schedule">
+        <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+        <span>Elegir otro horario</span>
+      </a>
+    </section>
     }
 
-    <div class="section">
-      <p class="section-label">Sube tu comprobante</p>
-      <input
-        #fileInput
-        type="file"
-        accept="image/png,image/jpeg,image/webp"
-        (change)="onFileSelected($event)"
-        hidden
-      />
-      @if (!selectedFile) {
-        <button type="button" class="upload-box" (click)="fileInput.click()">
-          <ion-icon name="cloud-upload-outline"></ion-icon>
-          <strong>Elegir comprobante</strong>
-          <span>Foto o captura del pago · PNG, JPG o WEBP · máx. 5 MB</span>
-        </button>
-      } @else {
-        <div class="file-card" role="status">
-          <div class="file-card-icon">
-            <ion-icon name="checkmark-circle"></ion-icon>
-          </div>
-          <div class="file-card-info">
-            <strong>Comprobante adjuntado</strong>
-            <span class="file-name" [title]="selectedFile.name">{{ selectedFile.name }}</span>
-            <span class="file-meta">{{ fileDetails }}</span>
-          </div>
-          <div class="file-card-actions">
-            <button type="button" class="file-action" (click)="fileInput.click()" [disabled]="isUploading">
-              Cambiar
-            </button>
-            <button
-              type="button"
-              class="file-action icon"
-              (click)="removeFile()"
-              [disabled]="isUploading"
-              aria-label="Quitar comprobante"
-              title="Quitar comprobante"
-            >
-              <ion-icon name="close-outline"></ion-icon>
-            </button>
-          </div>
-        </div>
-        <p class="file-review-note">
-          <ion-icon name="information-circle-outline"></ion-icon>
-          <span>
-            Al confirmar la cita, tu comprobante se enviará al veterinario para su revisión.
-            Te avisaremos cuando el pago quede verificado.
-          </span>
-        </p>
-      }
-    </div>
-
-    @if (errorMsg) {
-      <div class="section">
-        <div class="error-banner">
-          <ion-icon name="alert-circle-outline"></ion-icon>{{ errorMsg }}
-        </div>
-      </div>
-    }
-
-    <div class="section confirm-section">
+    <section class="section confirm-section">
       <button
+        type="button"
         class="confirm-btn"
-        [class.disabled-btn]="!selectedFile || isUploading"
-        [disabled]="!selectedFile || isUploading"
-        (click)="subirComprobante()"
-        >
-        @if (isUploading) { <ion-spinner name="crescent"></ion-spinner> }
-        @else { <ion-icon name="checkmark-circle-outline"></ion-icon> }
-        <span>{{ isUploading ? 'Confirmando reserva…' : 'Confirmar cita y enviar comprobante' }}</span>
+        [class.disabled-btn]="!file() || isUploading()"
+        [disabled]="!file() || isUploading()"
+        (click)="submit()"
+      >
+        @if (isUploading()) {
+        <ion-spinner name="crescent" aria-hidden="true"></ion-spinner>
+        } @else {
+        <ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon>
+        }
+        <span>{{ isUploading() ? 'Confirmando reserva…' : 'Confirmar cita y enviar comprobante' }}</span>
       </button>
-    </div>
+    </section>
+    }
+    }
+  </main>
   }
 
   <div class="bottom-spacer"></div>

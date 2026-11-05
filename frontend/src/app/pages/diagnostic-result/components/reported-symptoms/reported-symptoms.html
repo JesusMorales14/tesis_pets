@@ -1,0 +1,41 @@
+<section class="section" aria-labelledby="symptoms-title">
+  <h2 class="section-label" id="symptoms-title">Síntomas reportados</h2>
+  <ul class="chips-wrap">
+    @for (s of symptoms(); track s.key) {
+    @let sev = severity(s.severity);
+    <li class="chip" [class]="'chip chip-' + sev.cls">
+      <ion-icon [name]="sev.icon" aria-hidden="true"></ion-icon>
+      {{ s.label }}
+      <em>· {{ sev.label }}</em>
+    </li>
+    }
+  </ul>
+</section>
+
+<section class="section" aria-labelledby="reasoning-title">
+  <h2 class="section-label" id="reasoning-title">
+    <ion-icon name="analytics-outline" aria-hidden="true"></ion-icon>
+    ¿Por qué este diagnóstico?
+  </h2>
+  <div class="info-card reasoning-card">
+    <p>
+      El modelo de IA analizó
+      <strong>{{ symptoms().length }} síntoma{{ symptoms().length === 1 ? '' : 's' }}</strong>
+      reportados. Los síntomas de mayor peso en la predicción fueron:
+    </p>
+    <ul>
+      @for (s of symptoms(); track s.key) {
+      @let sev = severity(s.severity);
+      <li>
+        <ion-icon [name]="sev.icon" [class]="sev.cls" aria-hidden="true"></ion-icon>
+        {{ s.label }}
+        <span class="sev-tag" [class]="'sev-tag ' + sev.cls">{{ sev.label }}</span>
+      </li>
+      }
+    </ul>
+    <p class="disclaimer-small">
+      <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+      Este resultado es orientativo. Solo un veterinario puede confirmar el diagnóstico.
+    </p>
+  </div>
+</section>

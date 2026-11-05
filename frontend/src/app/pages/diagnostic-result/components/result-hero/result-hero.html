@@ -1,0 +1,31 @@
+<div
+  class="confidence-ring-wrap"
+  role="img"
+  [attr.aria-label]="'Confianza de la IA: ' + percent() + ' por ciento'"
+>
+  <svg class="confidence-ring" viewBox="0 0 120 120" aria-hidden="true">
+    <circle class="ring-bg" cx="60" cy="60" r="52" />
+    <circle
+      class="ring-fill"
+      cx="60"
+      cy="60"
+      r="52"
+      [attr.stroke-dasharray]="circumference"
+      [style.stroke-dashoffset]="dashOffset()"
+    />
+  </svg>
+  <div class="ring-inner" aria-hidden="true">
+    <span class="pct">{{ percent() }}%</span>
+    <span class="pct-label">Confianza IA</span>
+  </div>
+</div>
+
+<div class="hero-badge">
+  <ion-icon [name]="gravedadIcon()" aria-hidden="true"></ion-icon>
+  <span><span class="visually-hidden">Gravedad: </span>{{ gravedad() | titlecase }}</span>
+</div>
+
+<p class="hero-species">
+  <ion-icon name="paw-outline" aria-hidden="true"></ion-icon>
+  {{ especie() | titlecase }}
+</p>

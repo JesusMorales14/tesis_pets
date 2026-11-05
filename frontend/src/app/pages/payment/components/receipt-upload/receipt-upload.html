@@ -1,0 +1,50 @@
+<h2 class="section-label" id="receipt-title">Sube tu comprobante</h2>
+<input
+  #fileInput
+  id="receipt-input"
+  type="file"
+  class="visually-hidden"
+  tabindex="-1"
+  [accept]="accept"
+  (change)="onSelected($event)"
+  aria-labelledby="receipt-title"
+/>
+
+@if (file(); as f) {
+<div class="file-card" role="status">
+  <div class="file-card-icon" aria-hidden="true">
+    <ion-icon name="checkmark-circle"></ion-icon>
+  </div>
+  <div class="file-card-info">
+    <strong>Comprobante adjuntado</strong>
+    <span class="file-name" [title]="f.name">{{ f.name }}</span>
+    <span class="file-meta">{{ details() }}</span>
+  </div>
+  <div class="file-card-actions">
+    <button type="button" class="file-action" (click)="fileInput.click()" [disabled]="disabled()">Cambiar</button>
+    <button
+      type="button"
+      class="file-action icon"
+      (click)="fileChange.emit(null)"
+      [disabled]="disabled()"
+      title="Quitar comprobante"
+    >
+      <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+      <span class="visually-hidden">Quitar comprobante</span>
+    </button>
+  </div>
+</div>
+<p class="file-review-note">
+  <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+  <span>
+    Al confirmar la cita, tu comprobante se enviará al veterinario para su revisión. Te avisaremos cuando el pago
+    quede verificado.
+  </span>
+</p>
+} @else {
+<button type="button" class="upload-box" (click)="fileInput.click()">
+  <ion-icon name="cloud-upload-outline" aria-hidden="true"></ion-icon>
+  <strong>Elegir comprobante</strong>
+  <span>Foto o captura del pago · PNG, JPG o WEBP · máx. 5 MB</span>
+</button>
+}

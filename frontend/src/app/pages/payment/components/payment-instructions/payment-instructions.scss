@@ -1,0 +1,91 @@
+:host {
+  display: block;
+}
+
+.section-label {
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.7px; color: var(--ion-color-medium); margin: 0 0 10px;
+}
+
+.billetera-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.yape-card {
+  background: linear-gradient(135deg, #7b2ff7 0%, #4a00b4 100%);
+  border-radius: 20px; padding: 20px;
+  box-shadow: 0 8px 24px rgba(123,47,247,0.4);
+  color: #fff;
+}
+
+.yape-header {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 20px;
+}
+
+.yape-logo-wrap {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: rgba(255,255,255,0.2);
+  display: flex; align-items: center; justify-content: center;
+  ion-icon { font-size: 24px; color: #fff; }
+}
+
+.wallet-logo-wrap {
+  width: auto;
+  padding: 0 8px;
+  gap: 6px;
+}
+
+.yape-brand { display: block; font-size: 18px; font-weight: 900; color: #fff; }
+
+.yape-sub   { font-size: 11px; color: rgba(255,255,255,0.7); }
+
+.yape-to {
+  display: flex; flex-direction: column; gap: 4px; margin-bottom: 16px;
+}
+
+.yape-to-label { font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.5px; }
+
+.yape-to-phone { font-size: 14px; color: rgba(255,255,255,0.85); }
+
+.yape-qr {
+  display: block; width: 100%; max-width: 220px; margin: 0 auto 16px;
+  border-radius: 12px; background: #fff; padding: 10px;
+}
+
+.bank-card {
+  background: var(--app-surface); border-radius: 16px; padding: 16px;
+  box-shadow: 0 2px 12px var(--app-shadow);
+  display: flex; flex-direction: column; gap: 12px;
+}
+
+.bank-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+
+.bank-label { font-size: 12px; color: var(--ion-color-medium); flex-shrink: 0; }
+
+.bank-value { font-size: 14px; font-weight: 700; color: var(--ion-text-color); text-align: right; }
+
+.copy-row {
+  display: flex; align-items: center; gap: 6px; background: none; border: none;
+  cursor: pointer; padding: 0;
+  ion-icon { font-size: 15px; color: var(--ion-color-primary); }
+}
+
+// Lista de definición sin estilos de navegador.
+.bank-card {
+  margin: 0;
+}
+
+dd {
+  margin: 0;
+}
+
+.copy-row:focus-visible {
+  outline: 3px solid var(--ion-color-primary);
+  outline-offset: 2px;
+}

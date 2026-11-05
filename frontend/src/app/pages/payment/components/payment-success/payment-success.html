@@ -1,0 +1,41 @@
+<div class="success-wrap" role="status">
+  <div class="success-icon" aria-hidden="true">
+    <ion-icon name="checkmark-circle"></ion-icon>
+  </div>
+  <h2 class="success-title">¡Pago enviado correctamente!</h2>
+  <p>
+    Tu horario quedó apartado y tu comprobante ya está en la clínica.
+    <strong>Ahora debes esperar a que el veterinario verifique tu pago.</strong>
+    Cuando lo apruebe, tu cita aparecerá como <strong>Confirmada</strong> en Mi cuenta → Mis citas{{
+      petNombre() ? ' y el diagnóstico de ' + petNombre() + ' ya está en su historial' : ''
+    }}.
+  </p>
+
+  <ul class="success-detail">
+    <li class="detail-row">
+      <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+      <span>{{ fecha() | appDate: 'long' }}</span>
+    </li>
+    <li class="detail-row">
+      <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+      <span>{{ hora() }}</span>
+    </li>
+    <li class="detail-row">
+      <ion-icon name="paw-outline" aria-hidden="true"></ion-icon>
+      <span>{{ diagnostico() | diagnosisLabel }} · {{ especie() | titlecase }}</span>
+    </li>
+    <li class="detail-row">
+      <ion-icon name="cash-outline" aria-hidden="true"></ion-icon>
+      <span>{{ methodLabel(metodo(), true) }} · Pago en verificación</span>
+    </li>
+  </ul>
+
+  <a class="home-btn" routerLink="/profile">
+    <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
+    <span>Ver mis citas</span>
+  </a>
+  <a class="home-btn secondary" routerLink="/tabs/tab1">
+    <ion-icon name="home-outline" aria-hidden="true"></ion-icon>
+    <span>Volver al inicio</span>
+  </a>
+</div>

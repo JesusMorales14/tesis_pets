@@ -1,0 +1,37 @@
+<section class="section" aria-labelledby="clinic-title">
+  <h2 class="section-label" id="clinic-title">Dirección de Clínica</h2>
+  <div class="clinic-card">
+    <div class="clinic-map-container">
+      <iframe
+        [src]="mapUrl"
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        title="Ubicación de CityVet en Google Maps"
+        class="clinic-map-iframe"
+      ></iframe>
+    </div>
+    <div class="clinic-info">
+      <div class="clinic-text">
+        <h3>{{ clinic.name }}</h3>
+        <address>
+          <ion-icon name="location-outline" aria-hidden="true"></ion-icon>
+          {{ clinic.address }}
+        </address>
+      </div>
+      <div class="clinic-status" [class.abierto]="isOpen" [class.cerrado]="!isOpen">
+        {{ isOpen ? 'ABIERTO' : 'CERRADO' }}
+      </div>
+    </div>
+    <div class="clinic-bottom-bar">
+      <div class="clinic-hours">
+        <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+        Horario: {{ clinic.hoursLabel }}
+      </div>
+      <a class="directions-btn" [href]="clinic.directionsUrl" target="_blank" rel="noopener noreferrer">
+        <ion-icon name="navigate-outline" aria-hidden="true"></ion-icon>
+        <span>Cómo llegar</span>
+        <span class="visually-hidden">(se abre en una pestaña nueva)</span>
+      </a>
+    </div>
+  </div>
+</section>

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 
@@ -30,4 +30,10 @@ export class PageToolbarComponent {
   /** Ruta a la que lleva el botón volver. Sin valor, no se muestra. */
   readonly backLink = input<string | null>(null);
   readonly backLabel = input('Volver');
+  /**
+   * Si es true, el botón volver no navega: emite `back` para que la página
+   * decida (p. ej. retroceder un paso dentro de un asistente).
+   */
+  readonly handleBack = input(false);
+  readonly back = output<void>();
 }

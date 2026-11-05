@@ -1,0 +1,74 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 760px;
+  margin-inline: auto;
+  padding: 20px 16px 0;
+}
+
+// Con `inline` el banner va dentro de una sección que ya tiene márgenes.
+:host(.inline) {
+  padding: 0;
+  max-width: none;
+}
+
+.alert-banner {
+  --banner-accent: var(--ion-color-medium);
+  --banner-title: var(--ion-text-color);
+
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+
+  > div {
+    flex: 1;
+    min-width: 0;
+  }
+
+  > ion-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    color: var(--banner-accent);
+  }
+
+  strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 3px;
+    color: var(--banner-title);
+  }
+
+  &.urgent {
+    --banner-accent: #e74c3c;
+    --banner-title: #c0392b;
+    background: rgba(255, 59, 48, 0.1);
+    border: 1.5px solid rgba(255, 59, 48, 0.3);
+  }
+
+  &.safe {
+    --banner-accent: #2ecc71;
+    --banner-title: #1e8449;
+    background: rgba(52, 199, 89, 0.1);
+    border: 1.5px solid rgba(52, 199, 89, 0.3);
+  }
+
+  &.differential {
+    --banner-accent: #d68910;
+    --banner-title: #9b6200;
+    background: rgba(255, 165, 0, 0.1);
+    border: 1.5px solid rgba(255, 165, 0, 0.3);
+  }
+}
+
+// El texto proyectado hereda tipografía y color (sin ::ng-deep).
+.banner-body {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ion-color-medium);
+}

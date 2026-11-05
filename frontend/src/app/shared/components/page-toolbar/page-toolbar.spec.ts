@@ -28,6 +28,6 @@ describe('PageToolbarComponent', () => {
     fixture.componentRef.setInput('backLink', '/tabs/tab1');
     fixture.detectChanges();
     const btn: HTMLElement = fixture.nativeElement.querySelector('ion-button');
-    expect(btn.getAttribute('aria-label')).toBe('Volver');
+    expect(btn.textContent?.trim()).toBe('Volver');
   });
 });
