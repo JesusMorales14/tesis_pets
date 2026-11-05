@@ -4,7 +4,7 @@ import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '@core/services/auth';
 import { MyDataExport, MyDataPet, MyDataAppointment, MyDataVaccination, MyDataDiagnosis } from '@core/models/my-data-export';
-import { SEVERITY_LABELS } from '@core/models/symptom';
+import { SEVERITY_LABELS } from '@core/data/symptoms.data';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 

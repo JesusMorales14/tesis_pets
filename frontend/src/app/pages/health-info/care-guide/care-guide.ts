@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 
 import { IonicModule } from '@ionic/angular';
-import { CareSection } from '../disease-data';
+import { CareSection } from '@core/models/disease';
 
 @Component({
   selector: 'app-care-guide',

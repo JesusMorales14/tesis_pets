@@ -1,0 +1,77 @@
+<section class="section">
+  <h2 class="section-heading">
+    <button
+      type="button"
+      class="config-header"
+      [attr.aria-expanded]="expanded()"
+      aria-controls="payment-config-form"
+      (click)="toggle()"
+    >
+      <span class="section-label">Configuración de pagos</span>
+      <ion-icon [name]="expanded() ? 'chevron-up-outline' : 'chevron-down-outline'" aria-hidden="true"></ion-icon>
+    </button>
+  </h2>
+
+  @if (expanded()) {
+  <form id="payment-config-form" class="payment-config-card" [formGroup]="form" (ngSubmit)="save()">
+    <h3 class="config-subtitle">Yape</h3>
+    <div class="config-row">
+      <div class="qr-preview">
+        @if (config()?.yape_qr_url; as qr) {
+        <img [src]="apiUrl + qr" alt="QR de Yape actual" width="64" height="64" />
+        } @else {
+        <ion-icon name="qr-code-outline" aria-hidden="true"></ion-icon>
+        }
+      </div>
+      <label class="upload-qr-btn">
+        <input
+          type="file"
+          class="visually-hidden"
+          accept="image/png,image/jpeg,image/webp"
+          (change)="onQrSelected($event)"
+        />
+        @if (isUploadingQr()) {
+        <ion-spinner name="crescent" aria-label="Subiendo QR"></ion-spinner>
+        } @else {
+        <span>{{ config()?.yape_qr_url ? 'Cambiar QR' : 'Subir QR' }}</span>
+        }
+      </label>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="cfg-yape">Número de celular Yape</label>
+      <input id="cfg-yape" type="tel" class="form-input" formControlName="yape_phone" placeholder="987 654 321" inputmode="tel" />
+    </div>
+
+    <h3 class="config-subtitle">Transferencia bancaria</h3>
+    <div class="form-group">
+      <label class="form-label" for="cfg-banco">Banco</label>
+      <input id="cfg-banco" type="text" class="form-input" formControlName="banco" placeholder="BCP" />
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="cfg-tipo">Tipo de cuenta</label>
+      <input id="cfg-tipo" type="text" class="form-input" formControlName="tipo_cuenta" placeholder="Ahorros" />
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="cfg-numero">Número de cuenta</label>
+      <input id="cfg-numero" type="text" class="form-input" formControlName="numero_cuenta" inputmode="numeric" />
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="cfg-cci">CCI</label>
+      <input id="cfg-cci" type="text" class="form-input" formControlName="cci" inputmode="numeric" />
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="cfg-titular">Titular de la cuenta</label>
+      <input id="cfg-titular" type="text" class="form-input" formControlName="titular" placeholder="CityVet SAC" />
+    </div>
+
+    <button type="submit" class="save-config-btn" [disabled]="isSaving()">
+      @if (isSaving()) {
+      <ion-spinner name="crescent" aria-label="Guardando"></ion-spinner>
+      } @else {
+      <ion-icon name="save-outline" aria-hidden="true"></ion-icon>
+      }
+      <span>Guardar datos de pago</span>
+    </button>
+  </form>
+  }
+</section>

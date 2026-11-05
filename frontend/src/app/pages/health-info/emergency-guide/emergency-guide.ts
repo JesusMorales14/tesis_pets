@@ -1,12 +1,8 @@
 import { Component } from '@angular/core';
 
 import { IonicModule } from '@ionic/angular';
-import {
-  EMERGENCY_SCENARIOS,
-  UNIVERSAL_RED_FLAGS,
-  FIRST_AID_KIT,
-  EmergencyScenario,
-} from '../emergency-data';
+import { EmergencyScenario } from '@core/models/emergency';
+import { EMERGENCY_SCENARIOS, FIRST_AID_KIT, UNIVERSAL_RED_FLAGS } from '@core/data/emergencies.data';
 
 @Component({
   selector: 'app-emergency-guide',

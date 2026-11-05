@@ -1,0 +1,50 @@
+@let a = appointment();
+<article class="appt-item" [class.has-comprobante]="a.comprobante_url">
+  <div class="appt-left">
+    <div class="appt-info">
+      <div class="appt-date">
+        Fecha: {{ a.fecha | appDate }}
+        @if (showTomorrow()) {
+        <span class="tomorrow-tag">Mañana</span>
+        }
+      </div>
+      <div class="appt-diag">Diagnóstico: {{ a.diagnostico | diagnosisLabel }} · {{ a.especie | titlecase }}</div>
+      @if (a.probabilidad !== null && a.probabilidad !== undefined) {
+      <div class="appt-probabilidad">
+        <ion-icon name="analytics-outline" aria-hidden="true"></ion-icon>
+        <span>Probabilidad: {{ a.probabilidad * 100 | number: '1.1-1' }}%</span>
+      </div>
+      }
+      @if (a.pago_estado === 'pendiente' && a.estado !== 'cancelada') {
+      <p class="appt-hint">
+        El veterinario está verificando tu pago. <br />
+        Te avisaremos cuando la cita quede confirmada.
+      </p>
+      } @else if (a.pago_estado === 'rechazado') {
+      <p class="appt-hint">
+        No se pudo validar el comprobante y el horario se liberó. <br />
+        Puedes agendar una nueva cita.
+      </p>
+      }
+    </div>
+    <div class="appt-status-group">
+      @if (a.comprobante_url) {
+      <button
+        type="button"
+        class="view-details-btn"
+        (click)="viewComprobante.emit(a)"
+        aria-label="Ver comprobante de la cita"
+        title="Ver comprobante de la cita"
+      >
+        <ion-icon name="eye-outline" aria-hidden="true"></ion-icon>
+      </button>
+      } @else {
+      <!-- Mismo espacio que el ojito, para que los estados queden alineados -->
+      <span class="view-details-placeholder"></span>
+      }
+      <span class="appt-unified-status" [style.color]="status().color" [style.background]="status().color + '22'">
+        {{ status().label }}
+      </span>
+    </div>
+  </div>
+</article>

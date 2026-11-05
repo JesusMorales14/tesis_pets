@@ -1,0 +1,26 @@
+:host {
+  display: inline-block;
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+:host(.leve) {
+  background: #e8f8ef;
+  color: #1e8449;
+}
+
+:host(.moderada) {
+  background: #fff4e0;
+  color: #b9770e;
+}
+
+:host(.grave) {
+  background: #fdecea;
+  color: #c0392b;
+}

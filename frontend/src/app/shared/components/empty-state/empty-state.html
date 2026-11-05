@@ -1,0 +1,11 @@
+@if (icon(); as name) {
+<ion-icon [name]="name" aria-hidden="true"></ion-icon>
+}
+@if (variant() === 'rich') {
+@if (heading()) {
+<strong>{{ heading() }}</strong>
+}
+<p>{{ message() }}</p>
+} @else {
+<span>{{ message() }}</span>
+}

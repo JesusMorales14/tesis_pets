@@ -3,18 +3,14 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { IonicModule, ModalController } from '@ionic/angular';
 
 import { FormsModule } from '@angular/forms';
-import {
-  PredictionService,
-  PredictionRequest,
-} from '@core/services/prediction';
+import { PredictionService } from '@core/services/prediction';
+import { PredictionRequest } from '@core/models/prediction';
 import { ThemeService } from '@core/services/theme';
 import { BreakpointService } from '@core/services/breakpoint';
-import {
-  SYMPTOM_GROUPS,
-  SymptomCategory,
-  Symptom,
-} from '@core/models/symptom';
-import { getSeverityGuide as severityGuideFor, SeverityGuide } from '@core/models/severity-guide';
+import { SymptomCategory, Symptom } from '@core/models/symptom';
+import { SYMPTOM_GROUPS } from '@core/data/symptoms.data';
+import { SeverityGuide } from '@core/models/severity-guide';
+import { getSeverityGuide as severityGuideFor } from '@core/data/severity-guides.data';
 import { SymptomPickerComponent } from './symptom-picker/symptom-picker';
 import { DiagnosisFlowService } from '@core/services/diagnosis-flow';
 import { AuthService } from '@core/services/auth';

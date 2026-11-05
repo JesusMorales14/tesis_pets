@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
-import { Disease, Species } from '../disease-data';
+import { Disease, Species } from '@core/models/disease';
 import { PaginationComponent } from '@shared/components/pagination/pagination';
 
 @Component({

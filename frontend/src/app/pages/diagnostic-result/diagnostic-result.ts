@@ -2,12 +2,13 @@ import { Component, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
-import { PredictionResult } from '@core/services/prediction';
-import { DiseaseInfo, getDiseaseInfo } from '@core/models/disease-info';
+import { PredictionResult } from '@core/models/prediction';
+import { DiseaseInfo } from '@core/models/disease-info';
+import { getDiseaseInfo } from '@core/data/disease-info.data';
 import { ThemeService } from '@core/services/theme';
 import { BreakpointService } from '@core/services/breakpoint';
 import { DiagnosisFlowService } from '@core/services/diagnosis-flow';
-import { DISEASES } from '@pages/health-info/disease-data';
+import { DISEASES } from '@core/data/diseases.data';
 
 const SEVERITY_COLORS = { 1: 'leve', 2: 'moderado', 3: 'grave' };
 

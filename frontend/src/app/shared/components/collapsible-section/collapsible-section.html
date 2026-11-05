@@ -1,0 +1,33 @@
+<section class="section-block" [attr.aria-label]="heading()">
+  @if (collapsible()) {
+  <h2 class="section-heading">
+    <button
+      type="button"
+      class="section-header"
+      [attr.aria-expanded]="expanded()"
+      [attr.aria-controls]="contentId"
+      (click)="toggle()"
+    >
+      <span class="section-header-left">
+        <ion-icon [name]="icon()" aria-hidden="true"></ion-icon>
+        <span>{{ heading() }}</span>
+        @if (count()) {
+        <span class="badge" [attr.aria-label]="count() + ' elementos'">{{ count() }}</span>
+        }
+      </span>
+      <ion-icon [name]="expanded() ? 'chevron-up-outline' : 'chevron-down-outline'" aria-hidden="true"></ion-icon>
+    </button>
+  </h2>
+  } @else {
+  <h2 class="section-heading section-header-left static-header">
+    <ion-icon [name]="icon()" aria-hidden="true"></ion-icon>
+    <span>{{ heading() }}</span>
+  </h2>
+  }
+
+  @if (!collapsible() || expanded()) {
+  <div [id]="contentId">
+    <ng-content></ng-content>
+  </div>
+  }
+</section>

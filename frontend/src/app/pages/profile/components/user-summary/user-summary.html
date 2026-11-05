@@ -1,0 +1,28 @@
+<div class="user-hero">
+  <div class="user-avatar" aria-hidden="true">
+    <span>{{ initial() }}</span>
+  </div>
+  <div class="user-info">
+    <h2>{{ user().nombre }}</h2>
+    <p>{{ user().email }}</p>
+    <span class="role-badge" [class.admin-badge]="isAdmin()">
+      <ion-icon [name]="isAdmin() ? 'shield-checkmark-outline' : 'person-outline'" aria-hidden="true"></ion-icon>
+      {{ isAdmin() ? 'Administrador' : 'Usuario' }}
+    </span>
+  </div>
+</div>
+
+@if (isAdmin()) {
+<a class="admin-access" routerLink="/admin">
+  <span class="admin-access-left">
+    <span class="admin-icon" aria-hidden="true">
+      <ion-icon name="settings-outline"></ion-icon>
+    </span>
+    <span>
+      <strong>Panel de Administración</strong>
+      <span class="admin-access-desc">Gestionar citas y disponibilidad</span>
+    </span>
+  </span>
+  <ion-icon name="chevron-forward-outline" class="chevron" aria-hidden="true"></ion-icon>
+</a>
+}

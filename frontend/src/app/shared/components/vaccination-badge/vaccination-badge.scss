@@ -1,0 +1,31 @@
+:host {
+  display: inline-block;
+  flex-shrink: 0;
+  font-size: 9.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 20px;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+:host(.vencida) {
+  background: #fdecea;
+  color: #c0392b;
+}
+
+:host(.proxima) {
+  background: #fff3cd;
+  color: #856404;
+}
+
+:host(.al-dia) {
+  background: #d4edda;
+  color: #155724;
+}
+
+:host(.sin-fecha) {
+  background: var(--app-surface-alt);
+  color: var(--ion-color-medium);
+}

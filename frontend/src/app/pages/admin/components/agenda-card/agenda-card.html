@@ -1,0 +1,73 @@
+@let a = appointment();
+<header class="agenda-card-head">
+  <span class="agenda-time">
+    <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+    <time>{{ a.hora }}</time>
+  </span>
+  <span class="status-pill" [class]="'status-pill ' + status().cls">
+    <ion-icon [name]="status().icon" aria-hidden="true"></ion-icon>
+    {{ status().label }}
+  </span>
+</header>
+
+<div class="agenda-patient">
+  <span class="patient-avatar" [class.gato]="a.especie === 'gato'" aria-hidden="true">
+    <ion-icon name="paw"></ion-icon>
+  </span>
+  <div class="patient-text">
+    <strong class="truncate">{{ a.pet_nombre || 'Sin mascota registrada' }}</strong>
+    <span class="truncate" [title]="a.user_nombre + ' · ' + a.user_email">{{ a.especie | titlecase }} · {{ a.user_nombre }}</span>
+    <span class="truncate owner-email" [title]="a.user_email">{{ a.user_email }}</span>
+  </div>
+</div>
+
+<div class="agenda-dx">
+  <span class="dx-label">Pre-diagnóstico</span>
+  <div class="dx-line">
+    <strong class="dx-name">{{ a.diagnostico | diagnosisLabel }}</strong>
+    @if (a.gravedad) {
+    <app-severity-badge [gravedad]="a.gravedad"></app-severity-badge>
+    }
+    @if (a.probabilidad !== null && a.probabilidad !== undefined) {
+    <span class="dx-prob">{{ a.probabilidad * 100 | number: '1.0-0' }}%</span>
+    }
+  </div>
+</div>
+
+<footer class="agenda-card-foot">
+  <span class="pay-method">
+    <ion-icon name="card-outline" aria-hidden="true"></ion-icon>
+    {{ methodLabel() }} · {{ price | currency: 'PEN' : 'S/ ' : '1.2-2' }}
+  </span>
+  <div class="agenda-actions">
+    @if (a.pet_id) {
+    <button type="button" class="act-btn" (click)="openClinicalRecord.emit(a)">
+      <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+      <span>Ficha</span>
+    </button>
+    }
+    @if (pendingPayment()) {
+    <button type="button" class="act-btn warn" (click)="reviewPayment.emit(a)">
+      <ion-icon name="receipt-outline" aria-hidden="true"></ion-icon>
+      <span>Revisar pago</span>
+    </button>
+    } @else if (a.comprobante_url) {
+    <button type="button" class="act-btn" (click)="viewComprobante.emit(a)">
+      <ion-icon name="eye-outline" aria-hidden="true"></ion-icon>
+      <span>Comprobante</span>
+    </button>
+    }
+  </div>
+</footer>
+
+<!-- Cita sin comprobante: el veterinario decide directamente -->
+@if (a.estado === 'pendiente' && !a.comprobante_url) {
+<div class="decision-row">
+  <button type="button" class="decision-btn reject" (click)="decide('cancelada')">
+    <ion-icon name="close-outline" aria-hidden="true"></ion-icon> Rechazar
+  </button>
+  <button type="button" class="decision-btn accept" (click)="decide('confirmada')">
+    <ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon> Aceptar cita
+  </button>
+</div>
+}

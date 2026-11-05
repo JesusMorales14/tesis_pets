@@ -1,14 +1,5 @@
-export interface EmergencyScenario {
-  id: string;
-  title: string;
-  icon: string;
-  color: string;
-  shortDescription: string;
-  recognize: string[];
-  doNow: string[];
-  doNotDo: string[];
-  goNowIf: string;
-}
+/** Escenarios de emergencia y botiquín (sección Salud). */
+import { EmergencyScenario } from '@core/models/emergency';
 
 export const EMERGENCY_SCENARIOS: EmergencyScenario[] = [
   {

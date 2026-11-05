@@ -9,7 +9,7 @@ import {
   AnimalCard,
 } from './animal-card/animal-card';
 import { PredictTodayComponent } from './predict-today/predict-today';
-import { PetFormModalComponent } from './pet-form-modal/pet-form-modal';
+import { PetFormModalComponent } from '@shared/components/pet-form-modal/pet-form-modal';
 import { AuthService } from '@core/services/auth';
 import { PetService } from '@core/services/pet';
 import { PetImageService } from '@core/services/pet-image';

@@ -1,0 +1,90 @@
+:host {
+  display: block;
+}
+
+.section { padding: 20px 0 0; }
+
+.section-label {
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.7px; color: var(--ion-color-medium); margin: 0 0 10px;
+}
+
+.agenda-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  margin-bottom: 10px;
+  .section-label { margin: 0; }
+}
+
+.agenda-title { display: flex; align-items: center; white-space: nowrap; }
+
+.agenda-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 20px; height: 20px; padding: 0 6px; margin-left: 6px;
+  border-radius: 10px; background: var(--ion-color-primary); color: #fff;
+  font-size: 11px; font-weight: 800;
+}
+
+.agenda-date {
+  font-size: 12.5px; font-weight: 700; color: var(--ion-color-primary);
+  white-space: nowrap;
+}
+
+.agenda-grid {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px;
+  margin-bottom: 4px;
+  @media (min-width: 992px) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.appt-toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 8px; margin-bottom: 12px;
+}
+
+.chip-group { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+
+.chip-label { font-size: 12px; font-weight: 600; color: var(--ion-color-medium); }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 30px; padding: 0 12px; border-radius: 15px;
+  border: 1.5px solid var(--app-border); background: var(--app-surface);
+  color: var(--ion-text-color); font-size: 12px; font-weight: 600;
+  font-family: inherit; cursor: pointer;
+  ion-icon { font-size: 14px; }
+
+  &.active {
+    border-color: var(--ion-color-primary);
+    background: rgba(47, 109, 246, 0.1);
+    color: var(--ion-color-primary);
+  }
+}
+
+.chip:focus-visible {
+  outline: 3px solid var(--ion-color-primary);
+  outline-offset: 2px;
+}
+
+.agenda-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--app-surface);
+  box-shadow: 0 2px 12px var(--app-shadow);
+}
+
+.sk-55 {
+  width: 55%;
+  height: 15px;
+}
+
+.sk-75 {
+  width: 75%;
+  height: 12px;
+}
+
+.sk-65 {
+  width: 65%;
+  height: 12px;
+}

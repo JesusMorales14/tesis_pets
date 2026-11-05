@@ -1,0 +1,54 @@
+@let p = pet();
+<button
+  type="button"
+  class="pet-item-header"
+  [attr.aria-expanded]="expanded()"
+  [attr.aria-controls]="detailsId()"
+  (click)="toggleExpand.emit()"
+>
+  <img
+    class="pet-avatar"
+    [src]="avatar()"
+    [alt]="'Foto de ' + p.nombre"
+    width="50"
+    height="50"
+    loading="lazy"
+    decoding="async"
+    (error)="imageError.emit()"
+  />
+  <span class="pet-item-left">
+    <span class="pet-name-row">
+      <strong>{{ p.nombre }}</strong>
+      @if (vaccinationBadge(); as badge) {
+      <app-vaccination-badge [status]="badge"></app-vaccination-badge>
+      }
+    </span>
+    <span class="pet-meta">{{ p.especie | titlecase }}{{ subtitle() ? ' · ' + subtitle() : '' }}</span>
+  </span>
+  <ion-icon [name]="expanded() ? 'chevron-up-outline' : 'chevron-down-outline'" aria-hidden="true"></ion-icon>
+</button>
+
+<div class="pet-item-actions">
+  <button type="button" class="pet-action-btn" (click)="edit.emit()" [attr.aria-label]="'Editar a ' + p.nombre">
+    <ion-icon name="create-outline" aria-hidden="true"></ion-icon> Editar
+  </button>
+  <button type="button" class="pet-action-btn danger" (click)="remove.emit()" [attr.aria-label]="'Eliminar a ' + p.nombre">
+    <ion-icon name="trash-outline" aria-hidden="true"></ion-icon> Eliminar
+  </button>
+</div>
+
+@if (expanded()) {
+<div [id]="detailsId()">
+  <app-pet-vaccinations
+    [petName]="p.nombre"
+    [vaccinations]="vaccinations()"
+    (add)="addVaccination.emit()"
+    (remove)="removeVaccination.emit($event)"
+  ></app-pet-vaccinations>
+  <app-pet-diagnosis-history
+    [petName]="p.nombre"
+    [entries]="history()"
+    [loading]="loadingHistory()"
+  ></app-pet-diagnosis-history>
+</div>
+}

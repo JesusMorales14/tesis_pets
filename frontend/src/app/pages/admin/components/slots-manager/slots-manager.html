@@ -1,0 +1,36 @@
+<section class="section" aria-labelledby="slots-title">
+  <h2 class="section-label" id="slots-title">Gestión de Horarios</h2>
+
+  <div class="legend-row" aria-hidden="true">
+    <span class="legend-dot libre"></span><span>Libre</span>
+    <span class="legend-dot ocupado"></span><span>Con cita</span>
+    <span class="legend-dot bloqueado"></span><span>Bloqueado</span>
+  </div>
+
+  <ion-grid class="slots-grid">
+    <ion-row>
+      @if (loading()) {
+      @for (i of skeletons; track i) {
+      <ion-col size="4" size-md="3" size-lg="2">
+        <ion-skeleton-text [animated]="true" class="sk-slot"></ion-skeleton-text>
+      </ion-col>
+      }
+      } @else {
+      @for (slot of slots(); track slot.hora) {
+      <ion-col size="4" size-md="3" size-lg="2">
+        <button
+          type="button"
+          [class]="'admin-slot slot-' + slot.tipo"
+          [attr.aria-label]="ariaLabel(slot)"
+          [attr.aria-disabled]="slot.tipo === 'ocupado'"
+          (click)="slot.tipo !== 'ocupado' && toggleSlot.emit(slot)"
+        >
+          <span class="slot-time">{{ slot.hora }}</span>
+          <ion-icon [name]="icons[slot.tipo]" aria-hidden="true"></ion-icon>
+        </button>
+      </ion-col>
+      }
+      }
+    </ion-row>
+  </ion-grid>
+</section>

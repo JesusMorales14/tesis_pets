@@ -1,0 +1,142 @@
+:host {
+  display: block;
+}
+
+.appt-item {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-top: 1px solid var(--app-border);
+}
+
+.appt-info {
+  display: flex;
+  flex-direction: column;
+
+  gap: 3px;
+}
+
+.appt-left {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+
+  .appt-info {
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+.appt-date {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ion-text-color);
+}
+
+.tomorrow-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 10px;
+  background: rgba(47, 109, 246, 0.15);
+  color: var(--ion-color-primary);
+  font-size: 9.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.appt-diag {
+  font-size: 11px;
+  color: var(--ion-color-medium);
+  margin-right: 12px;
+  text-transform: capitalize;
+}
+
+.appt-hint {
+  margin: 4px 0 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--ion-color-medium);
+}
+
+.appt-probabilidad {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--ion-color-primary);
+  margin-top: 2px;
+
+  ion-icon {
+    font-size: 14px;
+  }
+}
+
+.appt-unified-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 128px;
+  height: 26px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 20px;
+  text-transform: capitalize;
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding: 0 8px;
+  ion-icon {
+    font-size: 13px;
+  }
+
+  .comprobante-icon {
+    font-size: 10px;
+    opacity: 0.7;
+  }
+}
+
+.appt-status-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.view-details-btn,
+.view-details-placeholder {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
+.view-details-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ion-color-primary);
+  cursor: pointer;
+  ion-icon {
+    font-size: 18px;
+  }
+  &:hover,
+  &:active {
+    background: rgba(47, 109, 246, 0.1);
+  }
+}
+
+.view-details-btn:focus-visible {
+  outline: 3px solid var(--ion-color-primary);
+  outline-offset: 2px;
+}

@@ -1,0 +1,42 @@
+@let p = payment();
+<div class="review-top">
+  @if (p.comprobante_url) {
+  <button type="button" class="comprobante-thumb" (click)="review.emit(p)" [attr.aria-label]="'Ver comprobante de ' + p.user_nombre">
+    <img [src]="apiUrl + p.comprobante_url" alt="" width="72" height="96" loading="lazy" decoding="async" />
+    <span class="thumb-label" aria-hidden="true"><ion-icon name="search-outline"></ion-icon> Ver</span>
+  </button>
+  }
+  <div class="payment-review-info">
+    <div class="review-client">
+      <strong class="clamp-2" [title]="p.user_nombre">{{ p.user_nombre }}</strong>
+      <span class="truncate" [title]="p.user_email">{{ p.user_email }}</span>
+    </div>
+    <div class="review-meta">
+      <span class="meta-row">
+        <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+        <span class="truncate">{{ p.fecha | appDate: 'weekday' }} · {{ p.hora }}</span>
+      </span>
+      <span class="meta-row">
+        <ion-icon name="heart-outline" aria-hidden="true"></ion-icon>
+        <span class="truncate">{{ p.pet_nombre || 'Sin mascota registrada' }} · {{ p.especie | titlecase }}</span>
+      </span>
+      <span class="meta-row meta-row--wrap">
+        <ion-icon name="pulse-outline" aria-hidden="true"></ion-icon>
+        <span class="meta-text">
+          {{ p.diagnostico | diagnosisLabel }}
+          @if (p.gravedad) {
+          <app-severity-badge [gravedad]="p.gravedad"></app-severity-badge>
+          }
+        </span>
+      </span>
+      <span class="meta-row">
+        <ion-icon name="card-outline" aria-hidden="true"></ion-icon>
+        <span class="truncate">{{ methodLabel(p.metodo_pago) }}</span>
+      </span>
+    </div>
+  </div>
+</div>
+<button type="button" class="review-btn" (click)="review.emit(p)">
+  <ion-icon name="receipt-outline" aria-hidden="true"></ion-icon>
+  Revisar comprobante
+</button>

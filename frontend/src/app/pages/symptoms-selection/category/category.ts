@@ -2,10 +2,8 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 
 import { IonicModule } from '@ionic/angular';
 import { ChipComponent } from '../chip/chip';
-import {
-  SymptomCategory,
-  SEVERITY_LABELS,
-} from '@core/models/symptom';
+import { SymptomCategory } from '@core/models/symptom';
+import { SEVERITY_LABELS } from '@core/data/symptoms.data';
 
 @Component({
   selector: 'app-category',

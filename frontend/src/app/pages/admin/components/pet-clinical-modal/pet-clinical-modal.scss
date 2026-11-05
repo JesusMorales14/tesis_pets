@@ -162,27 +162,3 @@
 }
 
 // Semáforo de vacunas: mismos colores que la cartilla del perfil del dueño.
-.vax-badge,
-.grav-badge {
-  flex-shrink: 0;
-  padding: 3px 9px;
-  border-radius: 20px;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.vax-badge {
-  &.vencida { background: #fdecea; color: #c0392b; }
-  &.proxima { background: #fff3cd; color: #856404; }
-  &.al-dia { background: #d4edda; color: #155724; }
-  &.sin-fecha { background: var(--app-border); color: var(--ion-color-medium); }
-}
-
-.grav-badge {
-  &.leve { background: #e8f8ef; color: #1e8449; }
-  &.moderada { background: #fff4e0; color: #b9770e; }
-  &.grave { background: #fdecea; color: #c0392b; }
-}

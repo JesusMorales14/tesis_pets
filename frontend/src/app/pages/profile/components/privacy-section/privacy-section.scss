@@ -1,0 +1,63 @@
+@use 'theme/forms';
+
+:host {
+  display: block;
+}
+
+.privacy-actions {
+  padding: 10px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.privacy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1.5px solid var(--app-border);
+  background: var(--app-surface-alt);
+  color: var(--ion-text-color);
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+  ion-spinner {
+    width: 16px;
+    height: 16px;
+  }
+
+  &.danger {
+    border-color: rgba(255, 59, 48, 0.3);
+    background: rgba(255, 59, 48, 0.06);
+    color: #c0392b;
+  }
+}
+
+.privacy-link {
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--ion-color-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.privacy-btn {
+  text-decoration: none;
+}
+
+.privacy-btn,
+.privacy-link {
+  &:focus-visible {
+    outline: 3px solid var(--ion-color-primary);
+    outline-offset: 2px;
+  }
+}

@@ -1,0 +1,140 @@
+:host {
+  --prio: var(--app-border);
+  display: flex; flex-direction: column; gap: 12px; min-width: 0;
+  padding: 14px 16px; border-radius: 16px;
+  background: var(--app-surface);
+  border-left: 4px solid var(--prio);
+  box-shadow: 0 2px 12px var(--app-shadow);
+
+}
+
+:host(.prio-grave) { --prio: #c0392b; }
+:host(.prio-moderada) { --prio: #d68910; }
+:host(.prio-leve) { --prio: #27ae60; }
+
+// Canceladas: siguen visibles para trazabilidad, sin competir con las activas.
+:host(.is-cancelled) { opacity: 0.62; --prio: var(--app-border); }
+
+.agenda-card-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+
+.agenda-time {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 18px; font-weight: 800; letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums; color: var(--ion-text-color);
+  ion-icon { font-size: 17px; color: var(--ion-color-primary); }
+}
+
+.status-pill {
+  display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+  height: 26px; padding: 0 10px; border-radius: 13px;
+  font-size: 11.5px; font-weight: 700; white-space: nowrap;
+  ion-icon { font-size: 14px; }
+
+  &.st-pending { background: rgba(47, 109, 246, 0.1); color: #2f6df6; }
+  &.st-review { background: rgba(214, 137, 16, 0.12); color: #b9770e; }
+  &.st-confirmed { background: rgba(39, 174, 96, 0.12); color: #1e8449; }
+  &.st-cancelled { background: rgba(192, 57, 43, 0.1); color: #c0392b; }
+}
+
+.agenda-patient { display: flex; align-items: center; gap: 12px; min-width: 0; }
+
+.patient-avatar {
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  width: 40px; height: 40px; border-radius: 12px;
+  background: rgba(47, 109, 246, 0.12); color: #2f6df6;
+  &.gato { background: rgba(15, 110, 86, 0.12); color: #0f6e56; }
+  ion-icon { font-size: 20px; }
+}
+
+.patient-text {
+  display: flex; flex-direction: column; gap: 1px; min-width: 0;
+  strong { font-size: 15px; font-weight: 700; color: var(--ion-text-color); }
+  span { font-size: 12.5px; color: var(--ion-color-medium); }
+  .owner-email { font-size: 11.5px; }
+}
+
+.agenda-dx {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 10px 12px; border-radius: 12px;
+  background: var(--app-surface-alt);
+}
+
+.dx-label {
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
+  color: var(--ion-color-medium);
+}
+
+.dx-line {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px;
+  app-severity-badge { margin-left: 0; }
+}
+
+.dx-name { font-size: 14px; font-weight: 700; color: var(--ion-text-color); }
+
+.dx-prob {
+  margin-left: auto; font-size: 12.5px; font-weight: 700;
+  color: var(--ion-color-primary); font-variant-numeric: tabular-nums;
+}
+
+.agenda-card-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 8px;
+  padding-top: 10px; border-top: 1px solid var(--app-border);
+}
+
+.pay-method {
+  display: inline-flex; align-items: center; gap: 6px; min-width: 0;
+  font-size: 12.5px; color: var(--ion-color-medium);
+  ion-icon { font-size: 15px; flex-shrink: 0; }
+}
+
+.agenda-actions { display: flex; gap: 6px; margin-left: auto; }
+
+.act-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 32px; padding: 0 12px; border-radius: 16px;
+  border: 1.5px solid var(--app-border); background: var(--app-surface);
+  color: var(--ion-color-primary); font-size: 12px; font-weight: 700;
+  font-family: inherit; cursor: pointer; white-space: nowrap;
+  ion-icon { font-size: 15px; }
+  &:hover { border-color: var(--ion-color-primary); background: rgba(47, 109, 246, 0.06); }
+
+  &.warn {
+    border-color: transparent; background: #d68910; color: #fff;
+    &:hover { filter: brightness(1.05); background: #d68910; }
+  }
+}
+
+.decision-row { display: grid; grid-template-columns: 1fr 1.4fr; gap: 8px; }
+
+.decision-btn {
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  height: 38px; border-radius: 10px;
+  font-size: 13px; font-weight: 700; font-family: inherit; cursor: pointer;
+  ion-icon { font-size: 17px; }
+  &:active { transform: scale(0.98); }
+
+  &.reject {
+    border: 1.5px solid rgba(192, 57, 43, 0.35); background: transparent; color: #c0392b;
+    &:hover { background: rgba(192, 57, 43, 0.06); }
+  }
+  &.accept {
+    border: none; background: #27ae60; color: #fff;
+    &:hover { filter: brightness(1.05); }
+  }
+}
+
+.truncate {
+  min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.act-btn,
+.decision-btn {
+  &:focus-visible {
+    outline: 3px solid var(--ion-color-primary);
+    outline-offset: 2px;
+  }
+}

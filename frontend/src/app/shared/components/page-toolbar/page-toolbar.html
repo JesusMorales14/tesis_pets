@@ -1,0 +1,15 @@
+<ion-toolbar class="custom-toolbar">
+  @if (backLink(); as link) {
+  <ion-buttons slot="start">
+    <ion-button fill="clear" [routerLink]="link" routerDirection="back" [attr.aria-label]="backLabel()">
+      <ion-icon slot="icon-only" name="arrow-back-outline" aria-hidden="true"></ion-icon>
+    </ion-button>
+  </ion-buttons>
+  }
+  <ion-title class="title">
+    <h1 class="title-text">{{ title() }}</h1>
+  </ion-title>
+  <ion-buttons slot="end">
+    <ng-content select="[toolbarEnd]"></ng-content>
+  </ion-buttons>
+</ion-toolbar>
