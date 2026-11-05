@@ -1,0 +1,249 @@
+:host {
+  display: block;
+}
+
+.symptom-card {
+  background: var(--ion-card-background, #ffffff);
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  transition: all 0.25s ease;
+
+  &.expanded {
+    border-color: var(--ion-color-primary, #185fa5);
+    box-shadow: 0 4px 16px rgba(24, 95, 165, 0.1);
+  }
+
+  &.has-severity {
+    border-color: rgba(0, 0, 0, 0.06);
+  }
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px;
+  gap: 10px;
+}
+
+.card-head-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.symptom-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ion-text-color, #1c1c1c);
+}
+
+.severity-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
+  align-self: flex-start;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+
+  &.empty {
+    background: var(--ion-color-step-100, #f0f0f0);
+    color: var(--ion-color-medium, #6b6b6b);
+  }
+  &.leve {
+    background: rgba(76, 217, 100, 0.15);
+    color: #2a7d3f;
+  }
+  &.moderado {
+    background: rgba(255, 165, 0, 0.15);
+    color: #9b6200;
+  }
+  &.grave {
+    background: rgba(255, 59, 48, 0.15);
+    color: #c0392b;
+  }
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.define-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--ion-color-step-50, #f4f4f8);
+  color: var(--ion-color-medium, #6b6b6b);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  ion-icon {
+    font-size: 14px;
+  }
+
+  &:hover {
+    background: var(--ion-color-primary, #185fa5);
+    color: #ffffff;
+    border-color: var(--ion-color-primary, #185fa5);
+  }
+
+  &.collapse {
+    background: var(--ion-color-primary, #185fa5);
+    color: #ffffff;
+    border-color: var(--ion-color-primary, #185fa5);
+  }
+}
+
+.remove-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: var(--ion-color-step-100, #f0f0f0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  ion-icon {
+    font-size: 16px;
+    color: var(--ion-color-medium, #6b6b6b);
+  }
+
+  &:hover {
+    background: rgba(255, 59, 48, 0.15);
+
+    ion-icon {
+      color: #ff3b30;
+    }
+  }
+}
+
+.severity-section {
+  padding: 0 14px 14px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  padding-top: 14px;
+  animation: slideDown 0.25s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.severity-question {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ion-color-medium, #6b6b6b);
+  margin: 0 0 10px;
+}
+
+.severity-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sev-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1.5px solid transparent;
+  background: var(--ion-color-step-50, #f4f4f8);
+  color: var(--ion-text-color);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+
+  ion-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+
+  span {
+    display: block;
+    font-size: 11.5px;
+    line-height: 1.4;
+    color: var(--ion-color-medium, #6b6b6b);
+  }
+
+  &.leve {
+    ion-icon { color: #4cd964; }
+    &:hover,
+    &.selected {
+      background: rgba(76, 217, 100, 0.15);
+      border-color: #4cd964;
+      strong { color: #2a7d3f; }
+    }
+  }
+
+  &.moderado {
+    ion-icon { color: #ffa500; }
+    &:hover,
+    &.selected {
+      background: rgba(255, 165, 0, 0.15);
+      border-color: #ffa500;
+      strong { color: #9b6200; }
+    }
+  }
+
+  &.grave {
+    ion-icon { color: #ff3b30; }
+    &:hover,
+    &.selected {
+      background: rgba(255, 59, 48, 0.15);
+      border-color: #ff3b30;
+      strong { color: #c0392b; }
+    }
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.define-btn,
+.remove-btn,
+.sev-option {
+  font-family: inherit;
+
+  &:focus-visible {
+    outline: 3px solid var(--ion-color-primary);
+    outline-offset: 2px;
+  }
+}
+
+.sev-option {
+  width: 100%;
+  text-align: left;
+}

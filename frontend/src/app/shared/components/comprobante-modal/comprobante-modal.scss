@@ -322,3 +322,22 @@ button:focus-visible {
     transition: none;
   }
 }
+
+// La imagen va dentro de un botón para poder ampliarla también con teclado.
+.viewer-toggle {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: zoom-in;
+
+  &[aria-pressed='true'] {
+    cursor: zoom-out;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--ion-color-primary);
+    outline-offset: 2px;
+  }
+}

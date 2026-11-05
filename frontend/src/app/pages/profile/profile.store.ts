@@ -30,15 +30,15 @@ export class ProfileStore {
   readonly pets = signal<Pet[]>([]);
   readonly isLoadingPets = signal(false);
   readonly expandedPetId = signal<number | null>(null);
-  readonly vaccinations = signal<Record<number, Vaccination[]>>({});
-  readonly histories = signal<Record<number, DiagnosisHistoryEntry[]>>({});
+  readonly vaccinations = signal<Partial<Record<number, Vaccination[]>>>({});
+  readonly histories = signal<Partial<Record<number, DiagnosisHistoryEntry[]>>>({});
   readonly loadingHistoryFor = signal<number | null>(null);
-  readonly images = signal<Record<number, string>>({});
+  readonly images = signal<Partial<Record<number, string>>>({});
 
   /** Peor estado de vacunación por mascota (insignia en la cabecera de la tarjeta). */
   readonly vaccinationBadges = computed(() => {
-    const badges: Record<number, VaccinationStatus | null> = {};
-    for (const [id, list] of Object.entries(this.vaccinations())) {
+    const badges: Partial<Record<number, VaccinationStatus | null>> = {};
+    for (const [id, list = []] of Object.entries(this.vaccinations())) {
       const statuses = list.map(vaccinationStatus);
       badges[+id] = statuses.includes('vencida') ? 'vencida' : statuses.includes('proxima') ? 'proxima' : null;
     }

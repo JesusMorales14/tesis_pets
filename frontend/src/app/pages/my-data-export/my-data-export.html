@@ -1,41 +1,34 @@
 <ion-header class="no-print">
-  <ion-toolbar class="custom-toolbar">
-    <ion-buttons slot="start">
-      <ion-button fill="clear" (click)="goBack()">
-        <ion-icon name="arrow-back-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-    <ion-title class="title">Mis datos</ion-title>
-    <ion-buttons slot="end">
-      <ion-button fill="clear" (click)="exportPdf()" [disabled]="!data">
-        <ion-icon name="download-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
+  <app-page-toolbar title="Mis datos" backLink="/profile">
+    <ion-button toolbarEnd fill="clear" (click)="exportPdf()" [disabled]="!data() || isGeneratingPdf()">
+      <ion-icon slot="icon-only" name="download-outline" aria-hidden="true"></ion-icon>
+      <span class="visually-hidden">Descargar mis datos en PDF</span>
+    </ion-button>
+  </app-page-toolbar>
 </ion-header>
 
 <ion-content class="export-content">
-  <div class="export-wrap">
+  <main class="export-wrap">
 
-    @if (isLoading) {
+    @if (isLoading()) {
       <div class="loading-row no-print">
         <ion-spinner name="crescent"></ion-spinner><span>Cargando tus datos…</span>
       </div>
     }
 
-    @if (errorMsg) {
+    @if (errorMsg()) {
       <div class="error-banner no-print">
-        <ion-icon name="alert-circle-outline"></ion-icon>{{ errorMsg }}
+        <ion-icon aria-hidden="true" name="alert-circle-outline"></ion-icon>{{ errorMsg() }}
       </div>
     }
 
-    @if (data) {
+    @if (data(); as data) {
       <div class="print-header">
         <strong>CityVet</strong> · Datos personales exportados el {{ todayLabel }}
       </div>
 
-      <button class="export-pdf-btn no-print" (click)="exportPdf()">
-        <ion-icon name="download-outline"></ion-icon>
+      <button type="button" class="export-pdf-btn no-print" (click)="exportPdf()" [disabled]="isGeneratingPdf()">
+        <ion-icon aria-hidden="true" name="download-outline"></ion-icon>
         <span>Guardar como PDF</span>
       </button>
 
@@ -82,7 +75,7 @@
               <ul class="data-list">
                 @for (d of pet.historial_diagnosticos; track d.created_at) {
                   <li>
-                    <strong>{{ formatDiagnostico(d.diagnostico) | titlecase }}</strong>
+                    <strong>{{ d.diagnostico | diagnosisLabel }}</strong>
                     ({{ (d.probabilidad * 100) | number:'1.0-0' }}%, {{ d.gravedad }}) — {{ formatDate(d.created_at) }}
                     <div class="symptom-tags">
                       @for (s of symptomEntries(d.sintomas); track s.key) {
@@ -105,9 +98,9 @@
           <ul class="data-list">
             @for (c of data.citas; track c.id) {
               <li>
-                {{ formatSimpleDate(c.fecha) }} {{ c.hora }} — <strong>{{ formatDiagnostico(c.diagnostico) | titlecase }}</strong>
+                {{ formatSimpleDate(c.fecha) }} {{ c.hora }} — <strong>{{ c.diagnostico | diagnosisLabel }}</strong>
                 ({{ c.especie | titlecase }}) · {{ c.estado | titlecase }} ·
-                {{ metodoPagoLabel(c.metodo_pago) }} ({{ c.pago_estado }})
+                {{ paymentLabel(c.metodo_pago) }} ({{ c.pago_estado }})
               </li>
             }
           </ul>
@@ -120,5 +113,5 @@
       </p>
     }
 
-  </div>
+  </main>
 </ion-content>

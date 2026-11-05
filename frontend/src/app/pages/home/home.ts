@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
-import { HeroComponent } from './hero/hero';
-import { StepsComponent } from './steps/steps';
-import { AboutAiComponent } from './about-ai/about-ai';
+import { HeroComponent } from './components/hero/hero';
+import { StepsComponent } from './components/steps/steps';
+import { AboutAiComponent } from './components/about-ai/about-ai';
 
 import { FooterComponent } from '@shared/components/footer/footer';
 

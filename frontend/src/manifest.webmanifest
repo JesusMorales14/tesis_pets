@@ -1,0 +1,16 @@
+{
+  "name": "CityVet · Diagnóstico veterinario con IA",
+  "short_name": "CityVet",
+  "description": "Pre-diagnóstico de enfermedades de perros y gatos, reserva de citas y cartilla de vacunación.",
+  "lang": "es-PE",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f4f5f8",
+  "theme_color": "#2f6df6",
+  "icons": [
+    { "src": "assets/icon/notification-icon.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "assets/icon/favicon.png", "sizes": "64x64", "type": "image/png" }
+  ]
+}

@@ -1,0 +1,56 @@
+<div class="symptom-card" [class.expanded]="expanded()" [class.has-severity]="severity() > 0">
+  <div class="card-head">
+    <div class="card-head-info">
+      <span class="symptom-name">{{ label() }}</span>
+      <span class="severity-pill" [class]="'severity-pill ' + severityCls()">
+        <span class="visually-hidden">Gravedad: </span>{{ severityLabel() }}
+      </span>
+    </div>
+    <div class="card-actions">
+      <button
+        type="button"
+        class="define-btn"
+        [class.collapse]="expanded()"
+        [attr.aria-expanded]="expanded()"
+        [attr.aria-controls]="panelId()"
+        (click)="toggleExpand.emit()"
+      >
+        @if (expanded()) {
+        Cerrar
+        <ion-icon name="chevron-up-outline" aria-hidden="true"></ion-icon>
+        } @else {
+        {{ severity() === 0 ? 'Definir gravedad' : 'Cambiar' }}
+        <ion-icon name="chevron-down-outline" aria-hidden="true"></ion-icon>
+        }
+      </button>
+      <button type="button" class="remove-btn" (click)="remove.emit()">
+        <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+        <span class="visually-hidden">Quitar {{ label() }}</span>
+      </button>
+    </div>
+  </div>
+
+  @if (expanded()) {
+  <div class="severity-section" [id]="panelId()">
+    <p class="severity-question" [id]="panelId() + '-q'">¿Qué tan grave es {{ label().toLowerCase() }}?</p>
+    <div class="severity-options" role="radiogroup" [attr.aria-labelledby]="panelId() + '-q'">
+      @for (opt of options; track opt.value) {
+      <button
+        type="button"
+        role="radio"
+        [class]="'sev-option ' + opt.cls"
+        [class.selected]="severity() === opt.value"
+        [attr.aria-checked]="severity() === opt.value"
+        (click)="severityChange.emit(opt.value)"
+      >
+        <ion-icon [name]="opt.icon" aria-hidden="true"></ion-icon>
+        <span class="sev-option-text">
+          <strong>{{ opt.label }}</strong>
+          <span>{{ guide()[opt.guideKey] }}</span>
+        </span>
+      </button>
+      }
+    </div>
+  </div>
+  }
+</div>

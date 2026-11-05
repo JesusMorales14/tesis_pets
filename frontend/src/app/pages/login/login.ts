@@ -1,66 +1,64 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
-
-import { FormsModule } from '@angular/forms';
 import { AuthService } from '@core/services/auth';
-import { ThemeService } from '@core/services/theme';
+import { navigateAfterAuth } from '@core/utils/auth-redirect';
+import { getApiErrorMessage } from '@core/utils/http-error';
 
+/** Inicio de sesión. */
 @Component({
   selector: 'app-login',
   templateUrl: './login.html',
   styleUrls: ['./login.scss'],
   standalone: true,
-  imports: [IonicModule, FormsModule],
+  imports: [IonicModule, ReactiveFormsModule, RouterLink],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LoginComponent implements OnInit {
-  private auth = inject(AuthService);
-  private router = inject(Router);
-  themeService = inject(ThemeService);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly fb = inject(NonNullableFormBuilder);
 
-  email = '';
-  password = '';
-  showPassword = false;
-  isLoading = false;
-  errorMsg = '';
+  protected readonly form = this.fb.group({
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', Validators.required],
+  });
+  protected readonly showPassword = signal(false);
+  protected readonly isLoading = signal(false);
+  protected readonly errorMsg = signal('');
+  /** Se conserva el estado (returnTo) al pasar al registro. */
+  protected readonly navState = history.state;
 
-  ngOnInit() {
+  ngOnInit(): void {
     if (history.state?.expiredSession) {
-      this.errorMsg = 'Tu sesión ha expirado. Inicia sesión nuevamente para continuar.';
+      this.errorMsg.set('Tu sesión ha expirado. Inicia sesión nuevamente para continuar.');
     }
   }
 
-  togglePassword() { this.showPassword = !this.showPassword; }
+  protected invalid(control: 'email' | 'password'): boolean {
+    const c = this.form.controls[control];
+    return c.touched && c.invalid;
+  }
 
-  login() {
-    if (!this.email.trim() || !this.password) {
-      this.errorMsg = 'Por favor completa todos los campos';
+  protected submit(): void {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.errorMsg.set('Por favor completa todos los campos');
       return;
     }
-    this.isLoading = true;
-    this.errorMsg = '';
-    this.auth.login(this.email.trim(), this.password).subscribe({
+    const { email, password } = this.form.getRawValue();
+    this.isLoading.set(true);
+    this.errorMsg.set('');
+    this.auth.login(email.trim(), password).subscribe({
       next: () => {
-        this.isLoading = false;
-        const state = history.state;
-        // Sin una pantalla a la que volver, cada rol entra a su vista
-        // principal: el veterinario a su panel, el dueño al inicio.
-        const returnTo = state?.returnTo || (this.auth.isAdmin ? '/admin' : '/tabs/tab1');
-        const returnState = state?.returnState;
-        this.router.navigate([returnTo], returnState ? { state: returnState } : {});
+        this.isLoading.set(false);
+        void navigateAfterAuth(this.router, this.auth.isAdmin);
       },
       error: (err) => {
-        this.errorMsg = err?.error?.detail || 'Correo o contraseña incorrectos';
-        this.isLoading = false;
+        this.isLoading.set(false);
+        this.errorMsg.set(getApiErrorMessage(err, 'Correo o contraseña incorrectos'));
       },
     });
-  }
-
-  goToRegister() {
-    this.router.navigate(['/register'], { state: history.state });
-  }
-
-  goBack() {
-    this.router.navigate(['/tabs/tab1']);
   }
 }

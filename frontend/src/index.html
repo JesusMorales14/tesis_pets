@@ -1,27 +1,71 @@
 <!doctype html>
-<html lang="en">
+<html lang="es-PE">
+  <head>
+    <meta charset="utf-8" />
+    <title>CityVet · Diagnóstico veterinario con IA para perros y gatos</title>
+    <base href="/" />
 
-<head>
-  <meta charset="utf-8" />
-  <title>CityVet App</title>
+    <!-- SEO -->
+    <meta
+      name="description"
+      content="CityVet: identifica posibles enfermedades de tu perro o gato a partir de sus síntomas con inteligencia artificial, reserva una cita veterinaria en Chincha Alta y lleva su historial de vacunas."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://cityvet.example.com/" />
 
-  <base href="/" />
+    <!-- Open Graph / redes sociales -->
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_PE" />
+    <meta property="og:site_name" content="CityVet" />
+    <meta property="og:title" content="CityVet · Diagnóstico veterinario con IA" />
+    <meta
+      property="og:description"
+      content="Pre-diagnóstico de enfermedades de perros y gatos por síntomas, reserva de citas y cartilla de vacunación."
+    />
+    <meta property="og:image" content="https://cityvet.example.com/assets/icon/notification-icon.png" />
+    <meta name="twitter:card" content="summary" />
 
-  <meta name="color-scheme" content="light dark" />
-  <meta name="viewport"
-    content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="format-detection" content="telephone=no" />
-  <meta name="msapplication-tap-highlight" content="no" />
+    <!-- Móvil / PWA. Sin maximum-scale ni user-scalable=no: bloquear el
+         zoom incumple WCAG 1.4.4 (cambio de tamaño del texto). -->
+    <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f4f5f8" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="CityVet" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="assets/icon/favicon.png" />
+    <link rel="apple-touch-icon" href="assets/icon/notification-icon.png" />
 
-  <link rel="icon" type="image/png" href="assets/icon/favicon.png" />
+    <!-- Rendimiento: conexión anticipada a los servicios de terceros que usa la app -->
+    <link rel="preconnect" href="https://www.google.com" crossorigin />
+    <link rel="dns-prefetch" href="https://dog.ceo" />
+    <link rel="dns-prefetch" href="https://api.thecatapi.com" />
 
-  <!-- add to homescreen for ios -->
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-</head>
+    <!-- Datos estructurados (schema.org) para buscadores -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "VeterinaryCare",
+        "name": "Clínica Veterinaria CityVet",
+        "telephone": "+51956472846",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Jirón Los Ángeles 270",
+          "addressLocality": "Chincha Alta",
+          "addressRegion": "Ica",
+          "addressCountry": "PE"
+        },
+        "openingHours": "Mo-Su 09:00-22:00",
+        "geo": { "@type": "GeoCoordinates", "latitude": -13.4156907, "longitude": -76.1312858 }
+      }
+    </script>
+  </head>
 
-<body>
-  <app-root></app-root>
-</body>
-
+  <body>
+    <noscript>CityVet necesita JavaScript activado para funcionar.</noscript>
+    <app-root></app-root>
+  </body>
 </html>

@@ -38,6 +38,21 @@
                 "glob": "sw.js",
                 "input": "src",
                 "output": "."
+              },
+              {
+                "glob": "manifest.webmanifest",
+                "input": "src",
+                "output": "."
+              },
+              {
+                "glob": "robots.txt",
+                "input": "src",
+                "output": "."
+              },
+              {
+                "glob": "sitemap.xml",
+                "input": "src",
+                "output": "."
               }
             ],
             "styles": [
@@ -51,7 +66,14 @@
               "includePaths": [
                 "src"
               ]
-            }
+            },
+            "allowedCommonJsDependencies": [
+              "html2canvas",
+              "canvg",
+              "core-js",
+              "raf",
+              "rgbcolor"
+            ]
           },
           "configurations": {
             "production": {

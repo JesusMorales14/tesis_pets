@@ -152,25 +152,6 @@ ion-alert.destructive-alert {
   border: 0;
 }
 
-// Enlace "Saltar al contenido" para usuarios de teclado y lector de pantalla.
-.skip-link {
-  position: absolute;
-  top: -48px;
-  left: 8px;
-  z-index: 10000;
-  padding: 8px 16px;
-  border-radius: 8px;
-  background: var(--ion-color-primary);
-  color: #fff;
-  font-weight: 700;
-  text-decoration: none;
-  transition: top 0.2s ease;
-
-  &:focus {
-    top: calc(env(safe-area-inset-top) + 8px);
-  }
-}
-
 // Respeta la preferencia del sistema de reducir animaciones.
 @media (prefers-reduced-motion: reduce) {
   *,

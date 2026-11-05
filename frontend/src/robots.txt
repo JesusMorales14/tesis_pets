@@ -1,0 +1,10 @@
+# Las pantallas privadas (cuenta, pago, panel) requieren sesión y no aportan
+# a buscadores; se indexa la información pública de salud.
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /payment
+Disallow: /profile
+Disallow: /mis-datos
+
+Sitemap: https://cityvet.example.com/sitemap.xml

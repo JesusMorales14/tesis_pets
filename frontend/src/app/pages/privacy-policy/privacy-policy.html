@@ -1,12 +1,6 @@
 <ion-header>
-  <ion-toolbar class="custom-toolbar">
-    <ion-buttons slot="start">
-      <ion-button fill="clear" (click)="goBack()">
-        <ion-icon name="arrow-back-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-    <ion-title class="title">Política de Privacidad</ion-title>
-  </ion-toolbar>
+  <!-- Se llega desde el registro o desde Mi cuenta: "volver" regresa a donde estaba. -->
+  <app-page-toolbar title="Política de Privacidad" backLink="/tabs/tab1" [handleBack]="true" (back)="goBack()"></app-page-toolbar>
 </ion-header>
 
 <ion-content class="policy-content">
