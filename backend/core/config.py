@@ -30,6 +30,20 @@ ALLOWED_IMAGE_TYPES = frozenset({"image/png", "image/jpeg", "image/webp"})
 MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5 MB
 
 
+def _database_url(raw: str | None) -> str:
+    """URL de la base. Una ruta SQLite relativa (``sqlite:///./veterinary.db``)
+    se resuelve contra la carpeta backend/ y no contra el directorio desde el
+    que se lanzó el servidor, para usar siempre la misma base."""
+    if not raw:
+        return f"sqlite:///{BASE_DIR / 'veterinary.db'}"
+    prefix = "sqlite:///"
+    if raw.startswith(prefix):
+        path = Path(raw[len(prefix) :])
+        if not path.is_absolute() and str(path) != ":memory:":
+            return f"{prefix}{(BASE_DIR / path).resolve()}"
+    return raw
+
+
 def _csv(value: str | None) -> list[str]:
     return [item.strip() for item in value.split(",") if item.strip()] if value else []
 
@@ -39,9 +53,7 @@ class Settings:
     """Valores de configuración inmutables, leídos del entorno."""
 
     environment: str = field(default_factory=lambda: os.getenv("ENVIRONMENT", "development"))
-    database_url: str = field(
-        default_factory=lambda: os.getenv("DATABASE_URL") or f"sqlite:///{BASE_DIR / 'veterinary.db'}"
-    )
+    database_url: str = field(default_factory=lambda: _database_url(os.getenv("DATABASE_URL")))
 
     # Seguridad. SECRET_KEY y ADMIN_CODE NUNCA tienen un valor fijo en el
     # código (el repositorio es público): sin .env se genera uno aleatorio
