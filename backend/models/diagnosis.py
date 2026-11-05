@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, DateTime, Float
-from datetime import datetime
-from database import Base
+from sqlalchemy import Column, DateTime, Float, Integer, String
+
+from core.database import Base
+from core.time_utils import utc_now
 
 
 class DiagnosisRecord(Base):
@@ -10,6 +11,7 @@ class DiagnosisRecord(Base):
     diagnóstico "rápido" sin mascota seleccionada no queda guardado, para no
     forzar cuenta/registro a quien solo quiere una consulta puntual.
     """
+
     __tablename__ = "diagnosis_records"
     __table_args__ = {"sqlite_autoincrement": True}
     id = Column(Integer, primary_key=True, index=True)
@@ -20,4 +22,4 @@ class DiagnosisRecord(Base):
     probabilidad_alternativa = Column(Float, nullable=True)
     gravedad = Column(String, nullable=False)
     sintomas_json = Column(String, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)

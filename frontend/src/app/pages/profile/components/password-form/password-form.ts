@@ -42,7 +42,7 @@ export class PasswordFormComponent {
 
   protected showError(control: 'currentPassword' | 'newPassword' | 'confirmPassword'): boolean {
     const c = this.form.controls[control];
-    if (control === 'confirmPassword') return c.touched && this.form.hasError('passwordMismatch');
+    if (control === 'confirmPassword') return c.touched && (c.invalid || this.form.hasError('passwordMismatch'));
     return c.touched && c.invalid;
   }
 

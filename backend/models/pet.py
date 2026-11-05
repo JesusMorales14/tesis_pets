@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, DateTime, Float
-from datetime import datetime
-from database import Base
+from sqlalchemy import Column, DateTime, Float, Integer, String
+
+from core.database import Base
+from core.time_utils import utc_now
 
 
 class Pet(Base):
@@ -14,4 +15,4 @@ class Pet(Base):
     raza = Column(String, nullable=True)
     edad_meses = Column(Integer, nullable=True)
     peso_kg = Column(Float, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=utc_now)

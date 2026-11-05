@@ -1,22 +1,22 @@
-# -*- coding: utf-8 -*-
 """
 Registrarse sin aceptar la Política de Privacidad no debe crear la cuenta:
 es el consentimiento mínimo exigible antes de guardar datos de salud de
 mascotas y contacto del dueño. Usa una base de datos SQLite en memoria.
 """
+
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
 from sqlalchemy import create_engine  # noqa: E402
 from sqlalchemy.orm import sessionmaker  # noqa: E402
 from sqlalchemy.pool import StaticPool  # noqa: E402
-from fastapi.testclient import TestClient  # noqa: E402
 
+from core.database import get_db  # noqa: E402
 from main import app  # noqa: E402
-from database import get_db  # noqa: E402
 from models import Base, User  # noqa: E402
 
 
@@ -53,7 +53,9 @@ def test_register_without_accepting_privacy_policy_is_rejected(client):
     r = test_client.post(
         "/auth/register",
         json={
-            "nombre": "Ana", "email": "ana@test.com", "password": "secret123",
+            "nombre": "Ana",
+            "email": "ana@test.com",
+            "password": "secret123",
             "accepted_privacy": False,
         },
     )
@@ -65,7 +67,9 @@ def test_register_with_accepted_privacy_records_timestamp(client):
     r = test_client.post(
         "/auth/register",
         json={
-            "nombre": "Ana", "email": "ana@test.com", "password": "secret123",
+            "nombre": "Ana",
+            "email": "ana@test.com",
+            "password": "secret123",
             "accepted_privacy": True,
         },
     )

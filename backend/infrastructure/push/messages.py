@@ -12,11 +12,24 @@ convierte en la notificación del sistema:
   vez de acumularse (p. ej. "pago en revisión" → "pago aprobado").
 - urgent: la notificación queda visible hasta que el usuario la atienda.
 """
+
 from datetime import date
 
 _DIAS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
-_MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio",
-          "agosto", "septiembre", "octubre", "noviembre", "diciembre"]
+_MESES = [
+    "enero",
+    "febrero",
+    "marzo",
+    "abril",
+    "mayo",
+    "junio",
+    "julio",
+    "agosto",
+    "septiembre",
+    "octubre",
+    "noviembre",
+    "diciembre",
+]
 
 
 def fecha_legible(iso: str) -> str:
@@ -36,47 +49,60 @@ def _notif(type_: str, title: str, body: str, url: str, tag: str, urgent: bool =
 
 # ── Para el dueño de la mascota ────────────────────────────────────────────
 
+
 def pago_aprobado(appt) -> dict:
     return _notif(
-        "cita", "Pago aprobado · Cita confirmada",
+        "cita",
+        "Pago aprobado · Cita confirmada",
         f"Te esperamos el {fecha_legible(appt.fecha)} a las {appt.hora} con {_paciente(appt)} en CityVet.",
-        "/profile", f"cita-{appt.id}",
+        "/profile",
+        f"cita-{appt.id}",
     )
 
 
 def pago_rechazado(appt) -> dict:
     return _notif(
-        "pago", "No pudimos validar tu pago",
+        "pago",
+        "No pudimos validar tu pago",
         f"Tu cita del {fecha_legible(appt.fecha)} a las {appt.hora} fue cancelada y el horario se liberó. "
         "Puedes agendar una nueva cita.",
-        "/profile", f"cita-{appt.id}", urgent=True,
+        "/profile",
+        f"cita-{appt.id}",
+        urgent=True,
     )
 
 
 def cita_confirmada(appt) -> dict:
     return _notif(
-        "cita", "Cita confirmada",
+        "cita",
+        "Cita confirmada",
         f"CityVet confirmó tu cita del {fecha_legible(appt.fecha)} a las {appt.hora} con {_paciente(appt)}.",
-        "/profile", f"cita-{appt.id}",
+        "/profile",
+        f"cita-{appt.id}",
     )
 
 
 def cita_cancelada(appt) -> dict:
     return _notif(
-        "cita", "Cita cancelada",
+        "cita",
+        "Cita cancelada",
         f"CityVet canceló tu cita del {fecha_legible(appt.fecha)} a las {appt.hora}. "
         "Puedes agendar una nueva desde la app.",
-        "/profile", f"cita-{appt.id}", urgent=True,
+        "/profile",
+        f"cita-{appt.id}",
+        urgent=True,
     )
 
 
 def recordatorio_cita(appt, cuando: str) -> dict:
     """cuando: 'hoy' o 'mañana'."""
     return _notif(
-        "cita", f"Tu cita es {cuando} a las {appt.hora}",
+        "cita",
+        f"Tu cita es {cuando} a las {appt.hora}",
         f"{_paciente(appt).capitalize()} tiene consulta en CityVet el {fecha_legible(appt.fecha)}. "
         "Jr. Los Ángeles 270, Chincha Alta.",
-        "/profile", f"cita-{appt.id}",
+        "/profile",
+        f"cita-{appt.id}",
     )
 
 
@@ -85,14 +111,19 @@ def vacuna_proxima(v, pet, dias: int) -> dict:
     if v.estado == "programada":
         body = f"{pet.nombre} tiene programada la vacuna {cuando}, el {fecha_legible(v.fecha_programada)}."
     else:
-        body = f"El refuerzo de {pet.nombre} vence {cuando}, el {fecha_legible(v.fecha_proxima)}. Agenda su cita en CityVet."
+        body = (
+            f"El refuerzo de {pet.nombre} vence {cuando}, el {fecha_legible(v.fecha_proxima)}. "
+            "Agenda su cita en CityVet."
+        )
     return _notif("vacuna", f"Vacuna próxima: {v.nombre}", body, "/profile", f"vacuna-{v.id}")
 
 
 def vacuna_pendiente(v, pet) -> dict:
     if v.estado == "programada":
-        body = (f"{pet.nombre} tenía programada esta vacuna para el {fecha_legible(v.fecha_programada)} "
-                "y aún no se registra como aplicada. Acude a CityVet.")
+        body = (
+            f"{pet.nombre} tenía programada esta vacuna para el {fecha_legible(v.fecha_programada)} "
+            "y aún no se registra como aplicada. Acude a CityVet."
+        )
     else:
         body = f"El refuerzo de {pet.nombre} venció el {fecha_legible(v.fecha_proxima)}. Acude a CityVet."
     return _notif("vacuna", f"Vacuna pendiente: {v.nombre}", body, "/profile", f"vacuna-{v.id}", urgent=True)
@@ -100,18 +131,23 @@ def vacuna_pendiente(v, pet) -> dict:
 
 def prueba() -> dict:
     return _notif(
-        "cita", "Notificaciones activadas",
+        "cita",
+        "Notificaciones activadas",
         "Así verás los avisos de CityVet: recordatorios de citas, pagos y vacunas de tus mascotas.",
-        "/profile", "prueba",
+        "/profile",
+        "prueba",
     )
 
 
 # ── Para el veterinario ────────────────────────────────────────────────────
 
+
 def comprobante_nuevo(appt, cliente: str) -> dict:
     return _notif(
-        "admin", "Nuevo comprobante por revisar",
+        "admin",
+        "Nuevo comprobante por revisar",
         f"{cliente} · cita del {fecha_legible(appt.fecha)} a las {appt.hora} "
         f"({_paciente(appt) if appt.pet_nombre else 'sin mascota registrada'}, {appt.especie}).",
-        "/admin", f"comprobante-{appt.id}",
+        "/admin",
+        f"comprobante-{appt.id}",
     )

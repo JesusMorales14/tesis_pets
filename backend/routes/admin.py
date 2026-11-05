@@ -2,9 +2,9 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, File, UploadFile
 
+from routes.dependencies import require_admin
 from schemas.appointment import BlockSlotBody, UpdateEstadoBody
 from schemas.payment import PagoDecisionBody, PaymentConfigBody
-from services.auth_service import require_admin
 from services.appointment_service import AppointmentService, get_appointment_service
 from services.payment_service import PaymentService, get_payment_service
 from services.pet_service import PetService, get_pet_service
@@ -29,7 +29,8 @@ def unblock_slot(fecha: str, hora: str, service: AppointmentService = Depends(ge
 
 @router.get("/appointments")
 def admin_all_appointments(
-    fecha: Optional[str] = None, service: AppointmentService = Depends(get_appointment_service),
+    fecha: Optional[str] = None,
+    service: AppointmentService = Depends(get_appointment_service),
 ):
     return service.admin_all_appointments(fecha)
 
@@ -41,14 +42,18 @@ def admin_pending_payments(service: AppointmentService = Depends(get_appointment
 
 @router.put("/appointments/{appt_id}/pago")
 def decide_payment(
-    appt_id: int, body: PagoDecisionBody, service: AppointmentService = Depends(get_appointment_service),
+    appt_id: int,
+    body: PagoDecisionBody,
+    service: AppointmentService = Depends(get_appointment_service),
 ):
     return service.decide_payment(appt_id, body)
 
 
 @router.put("/appointments/{appt_id}/estado")
 def update_appointment_estado(
-    appt_id: int, body: UpdateEstadoBody, service: AppointmentService = Depends(get_appointment_service),
+    appt_id: int,
+    body: UpdateEstadoBody,
+    service: AppointmentService = Depends(get_appointment_service),
 ):
     return service.update_appointment_estado(appt_id, body)
 
@@ -60,7 +65,8 @@ def update_payment_config(body: PaymentConfigBody, service: PaymentService = Dep
 
 @router.post("/payment-config/qr")
 async def upload_payment_qr(
-    file: UploadFile = File(...), service: PaymentService = Depends(get_payment_service),
+    file: UploadFile = File(...),
+    service: PaymentService = Depends(get_payment_service),
 ):
     return await service.upload_payment_qr(file)
 

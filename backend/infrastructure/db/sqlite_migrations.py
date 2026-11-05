@@ -10,17 +10,20 @@ se haya borrado. Si el usuario eliminaba su última mascota (id=5) y creaba
 otra, la nueva recibía también id=5 y "heredaba" las vacunas, diagnósticos
 y citas que hubieran quedado apuntando a ese id.
 """
+
+import logging
+
 from sqlalchemy.engine import Engine
 from sqlalchemy.schema import CreateIndex, CreateTable
+
+logger = logging.getLogger(__name__)
 
 # Tablas cuyos ids se referencian desde otras (pet_id, appointment.id...).
 _AUTOINCREMENT_TABLES = ("pets", "vaccinations", "diagnosis_records", "appointments")
 
 
 def _table_sql(cursor, name: str) -> str | None:
-    row = cursor.execute(
-        "SELECT sql FROM sqlite_master WHERE type='table' AND name=?", (name,)
-    ).fetchone()
+    row = cursor.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name=?", (name,)).fetchone()
     return row[0] if row else None
 
 
@@ -35,7 +38,8 @@ def _rebuild_with_autoincrement(cursor, engine: Engine, table) -> None:
     cols = ", ".join(c.name for c in table.columns if c.name in old_cols)
 
     cursor.execute(ddl)
-    cursor.execute(f"INSERT INTO {tmp} ({cols}) SELECT {cols} FROM {table.name}")
+    # Nombres de tabla/columna salen de los modelos (Base.metadata), no de datos del usuario.
+    cursor.execute(f"INSERT INTO {tmp} ({cols}) SELECT {cols} FROM {table.name}")  # noqa: S608
     cursor.execute(f"DROP TABLE {table.name}")
     cursor.execute(f"ALTER TABLE {tmp} RENAME TO {table.name}")
     for index in table.indexes:
@@ -73,8 +77,7 @@ def _delete_orphans(cursor) -> None:
     cursor.execute("DELETE FROM vaccinations WHERE pet_id NOT IN (SELECT id FROM pets)")
     cursor.execute("DELETE FROM diagnosis_records WHERE pet_id NOT IN (SELECT id FROM pets)")
     cursor.execute(
-        "UPDATE appointments SET pet_id = NULL "
-        "WHERE pet_id IS NOT NULL AND pet_id NOT IN (SELECT id FROM pets)"
+        "UPDATE appointments SET pet_id = NULL WHERE pet_id IS NOT NULL AND pet_id NOT IN (SELECT id FROM pets)"
     )
 
 
@@ -114,7 +117,7 @@ def run_sqlite_migrations(engine: Engine) -> None:
             try:
                 cursor.execute(_create_index_sql(index, engine))
             except Exception as e:
-                print(f"[db_migrations] No se pudo crear el índice {index.name}: {e}")
+                logger.warning("No se pudo crear el índice %s: %s", index.name, e)
         cursor.execute("PRAGMA legacy_alter_table=OFF")
         cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()

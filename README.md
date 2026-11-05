@@ -32,6 +32,7 @@ Desarrollado como proyecto de tesis para la veterinaria **CityVet** — Chincha 
 - [Estructura del Proyecto](#estructura-del-proyecto)
 - [Variables de Entorno](#variables-de-entorno)
 - [Scripts Disponibles](#scripts-disponibles)
+- [Calidad de Código y CI/CD](#calidad-de-código-y-cicd)
 - [Autores](#autores)
 
 ---
@@ -79,7 +80,7 @@ El sistema está diseñado para la clínica **CityVet** y permite a los veterina
                     HTTP/REST (CORS habilitado)
                                │
 ┌──────────────────────────────▼───────────────────────────────────┐
-│                  FRONTEND — Angular 20 + Ionic 8                  │
+│                  FRONTEND — Angular 21 + Ionic 8                  │
 │                                                                    │
 │  Páginas          Servicios           Guards                       │
 │  ─────────────    ────────────────    ─────────────────────────   │
@@ -186,23 +187,49 @@ Opción: agendar cita con diagnóstico pre-cargado
 
 ### Arquitectura del frontend
 
-Desde la migración a Angular 21, el proyecto usa una organización explícita por
-responsabilidad en `frontend/src/app/`, con alias de import (`@core/*`,
-`@shared/*`, `@layout/*`, `@pages/*` definidos en `tsconfig.json`) en vez de
-rutas relativas (`../../../..`):
+Angular 21 + Ionic 8 con componentes **standalone**, `inject()`, **signals** y
+alias de import (`@core/*`, `@shared/*`, `@layout/*`, `@pages/*`). La
+organización sigue el patrón **Core / Shared / Features** y, dentro de cada
+página, **Container / Presentational**:
 
-- **`core/`** — servicios singleton (`services/`), guards (`guards/`),
-  modelos de datos (`models/`) y constantes (`constants/`) usados en toda la app.
-- **`shared/`** — componentes reutilizables sin lógica de negocio propia
-  (`components/`: header, footer, paginación).
-- **`layout/`** — el shell de la aplicación: `app-shell` (sidebar de escritorio)
-  y `tabs`/`tab1`/`tab2`/`tab3` (navegación móvil por pestañas).
-- **`pages/`** — páginas de features, una carpeta por pantalla.
+- **`core/`** — todo lo que existe una sola vez en la app:
+  - `models/` solo interfaces y tipos (contratos de la API);
+  - `data/` catálogos estáticos (enfermedades, síntomas, emergencias);
+  - `services/` acceso a la API y servicios transversales (`DialogService`, `ToastService`, `ThemeService`…);
+  - `utils/` funciones puras y testeadas (fechas, estado de citas, errores HTTP, validación de archivos…);
+  - `constants/` datos de la clínica, claves de storage, breakpoints;
+  - `seo/` `AppTitleStrategy` + `SeoService` (título y metaetiquetas por ruta);
+  - `guards/`, `interceptors/`.
+- **`shared/`** — piezas reutilizables sin lógica de negocio: `components/`
+  (page-toolbar, date-strip, collapsible-section, empty-state, badges, modales…),
+  `pipes/` (`diagnosisLabel`, `appDate`) y `validators/`.
+- **`layout/`** — shell de la app (sidebar en escritorio, pestañas en móvil).
+- **`pages/<pantalla>/`** — un **contenedor** (`<pantalla>.ts`) que orquesta datos
+  y navegación, y sus subcomponentes de presentación en `components/`, que
+  reciben `input()` y emiten `output()`. Las páginas con mucho estado usan un
+  **store por página** (patrón Facade), p. ej. `profile/profile.store.ts`.
 
-Todos los componentes son standalone (sin `NgModule`), el bootstrap se hace vía
-`bootstrapApplication` + `ApplicationConfig` (`app.config.ts`, `app.routes.ts`)
-en lugar de `AppModule`, y la inyección de dependencias usa `inject()` en vez
-de constructores.
+Reglas que hace cumplir ESLint: sin `any`, sin `console.log`, componentes con
+`OnPush`, archivos de menos de 250 líneas y reglas de **accesibilidad** en los
+templates (`label` asociado, `alt` en imágenes, foco en elementos interactivos).
+
+### Arquitectura del backend
+
+FastAPI organizado **por capas**; cada capa solo depende de las internas:
+
+| Capa | Carpeta | Responsabilidad |
+| --- | --- | --- |
+| Presentación | `routes/` | Endpoints HTTP, validación de entrada (`schemas/`), dependencias de autenticación (`routes/dependencies.py`) |
+| Aplicación | `services/` | Casos de uso y reglas de negocio; lanzan excepciones de dominio, no `HTTPException` |
+| Acceso a datos | `repositories/` | Consultas SQLAlchemy (patrón Repository) |
+| Dominio | `domain/`, `models/` | Enums de estados (`AppointmentStatus`, `PaymentStatus`, `Role`…), calendario de vacunas, entidades |
+| Infraestructura | `infrastructure/` | Web Push (VAPID) y migraciones de SQLite |
+| Transversal | `core/` | Configuración centralizada (`config.py`), base de datos, seguridad (JWT/bcrypt), errores, logging |
+
+Patrones aplicados: **Repository**, **Service Layer**, **Dependency Injection**
+(`Depends`), **Application Factory** (`create_app()` en `main.py`) y un
+**manejador único de errores** que traduce las excepciones de dominio
+(`core/exceptions.py`) a respuestas `{"detail": "..."}`.
 
 ---
 
@@ -489,126 +516,138 @@ Clasificación de gravedad
 
 ```
 tesis_pets/
+├── .github/
+│   ├── workflows/
+│   │   ├── ci.yml                 # Lint, tests, cobertura, build y SonarQube
+│   │   ├── cd.yml                 # Imágenes Docker a ghcr.io y despliegue
+│   │   └── codeql.yml             # Análisis de seguridad (SAST)
+│   ├── dependabot.yml             # Actualización semanal de dependencias
+│   └── pull_request_template.md
+├── sonar-project.properties       # Configuración de SonarQube
+├── docker-compose.yml             # Stack completo en local
 │
-├── backend/                        # Servidor FastAPI
-│   ├── main.py                     # Aplicación principal y endpoints
-│   ├── db_models.py                # Modelos SQLAlchemy (Users, Appointments, Slots)
-│   ├── database.py                 # Configuración de la base de datos SQLite
-│   ├── auth_utils.py               # JWT: creación, verificación y hash bcrypt
-│   ├── requirements.txt            # Dependencias Python
-│   ├── veterinary.db               # Base de datos SQLite (generada automáticamente)
-│   ├── ml/
-│   │   ├── predict.py              # Motor de predicción (carga modelos, pipeline ML)
-│   │   ├── model_perro.pkl         # Pipeline de clasificación — perros
-│   │   ├── model_gato.pkl          # Pipeline de clasificación — gatos
-│   │   ├── le_especie.pkl          # LabelEncoder especie
-│   │   ├── le_enfermedad.pkl       # LabelEncoder enfermedad
-│   │   └── models_by_species.pkl   # Índice de modelos por especie
-│   └── data/
-│       └── dataset.csv             # Dataset de entrenamiento (310 × 45)
+├── backend/                       # API FastAPI
+│   ├── main.py                    # create_app(): routers, middlewares, scheduler
+│   ├── core/                      # config, database, security, exceptions, logging, time_utils
+│   ├── domain/                    # enums de estados, calendario de vacunas
+│   ├── infrastructure/
+│   │   ├── push/                  # web_push.py (VAPID) y messages.py (textos)
+│   │   └── db/                    # sqlite_migrations.py
+│   ├── routes/                    # endpoints + dependencies.py (auth)
+│   ├── schemas/                   # modelos Pydantic de entrada/salida
+│   ├── services/                  # casos de uso
+│   ├── repositories/              # acceso a datos
+│   ├── models/                    # entidades SQLAlchemy
+│   ├── ml/                        # predict.py, train.py y modelos .pkl
+│   ├── data/                      # dataset.csv y generador
+│   ├── scripts/                   # generate_vapid_keys.py
+│   ├── tests/                     # pytest (100 tests)
+│   ├── pyproject.toml             # ruff, pytest y coverage
+│   └── Dockerfile
 │
-└── frontend/                       # Aplicación Angular + Ionic
+└── frontend/                      # Angular 21 + Ionic 8
     ├── src/
     │   ├── app/
-    │   │   ├── pages/
-    │   │   │   ├── home/                   # Tab 1: Pantalla de bienvenida
-    │   │   │   ├── pet-selection/          # Tab 2: Selección de especie
-    │   │   │   ├── health-info/            # Tab 3: Base de conocimiento
-    │   │   │   ├── symptoms-selection/     # Selector de síntomas con categorías
-    │   │   │   ├── diagnostic-result/      # Pantalla de resultado del diagnóstico
-    │   │   │   ├── schedule/               # Calendario de citas
-    │   │   │   ├── payment/                # Métodos de pago
-    │   │   │   ├── admin/                  # Panel administrativo
-    │   │   │   ├── login/                  # Inicio de sesión
-    │   │   │   ├── register/               # Registro de usuario
-    │   │   │   └── profile/                # Perfil del usuario
-    │   │   ├── tabs/                       # Navegación por pestañas
-    │   │   ├── components/
-    │   │   │   ├── header/                 # Barra superior con toggle de tema
-    │   │   │   ├── footer/                 # Pie de página
-    │   │   │   └── precision/              # Indicador de confianza
-    │   │   ├── services/
-    │   │   │   ├── auth.service.ts         # Login, registro, JWT
-    │   │   │   ├── prediction.service.ts   # Llamadas a /predict
-    │   │   │   ├── appointment.service.ts  # CRUD de citas y admin
-    │   │   │   └── theme.service.ts        # Toggle de tema oscuro/claro
-    │   │   ├── guards/
-    │   │   │   ├── auth.guard.ts           # Redirige a /login si no autenticado
-    │   │   │   └── admin.guard.ts          # Redirige a /home si no es admin
-    │   │   └── models/
-    │   │       ├── symptom.model.ts        # Definición de síntomas y categorías
-    │   │       └── disease-info.model.ts   # Base de conocimiento de enfermedades
-    │   ├── assets/                         # Imágenes y recursos estáticos
-    │   ├── theme/                          # Variables de tema Ionic
-    │   └── global.scss                     # Estilos globales
-    ├── angular.json
-    ├── ionic.config.json
-    ├── tsconfig.json
-    └── package.json
+    │   │   ├── core/              # models, data, services, utils, constants, seo, guards, interceptors
+    │   │   ├── shared/            # components, pipes, validators
+    │   │   ├── layout/            # app-shell y pestañas
+    │   │   └── pages/
+    │   │       ├── profile/       # profile.ts + profile.store.ts + components/ (11)
+    │   │       ├── admin/         # admin.ts + agenda.utils.ts + components/ (8)
+    │   │       ├── diagnostic-result/, payment/, schedule/, symptoms-selection/ …
+    │   │       └── …              # cada página con su carpeta components/
+    │   ├── theme/                 # variables, mixins y _forms.scss
+    │   ├── index.html             # SEO: description, Open Graph, JSON-LD
+    │   ├── manifest.webmanifest, robots.txt, sitemap.xml
+    │   └── sw.js                  # service worker de notificaciones push
+    ├── nginx.conf                 # servidor de producción (+ proxy /api)
+    └── Dockerfile
 ```
 
 ---
 
 ## Variables de Entorno
 
-El proyecto actualmente usa valores hardcodeados para desarrollo local. Para producción, se recomienda crear un archivo `.env` en `backend/` con las siguientes variables:
+Toda la configuración del backend se lee en un único lugar: `backend/core/config.py`.
+Copia `backend/.env.example` a `backend/.env` y ajusta los valores:
 
-```env
-# backend/.env
+| Variable | Uso | Por defecto (solo desarrollo) |
+| --- | --- | --- |
+| `ENVIRONMENT` | `production` oculta `/docs` y `/redoc` | `development` |
+| `SECRET_KEY`, `ADMIN_CODE` | Firma de JWT y código de veterinario | aleatorios por proceso |
+| `DATABASE_URL` | Cualquier URL de SQLAlchemy (SQLite, PostgreSQL…) | SQLite en `backend/veterinary.db` |
+| `CORS_ORIGINS` | Orígenes permitidos, separados por coma | `*` |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY_PEM` | Notificaciones push (`python scripts/generate_vapid_keys.py`) | par nuevo por arranque |
+| `LOG_LEVEL` | Nivel de logging | `INFO` |
 
-# Seguridad
-SECRET_KEY=cambia-esta-clave-en-produccion
-ADMIN_CODE=codigo-secreto-para-admins
-ALGORITHM=HS256
-TOKEN_EXPIRE_DAYS=7
+> **Importante**: nunca subas `.env` al repositorio (ya está en `.gitignore`).
+> En GitHub Actions los secretos van en *Settings → Secrets and variables → Actions*.
 
-# Base de datos
-DATABASE_URL=sqlite:///./veterinary.db
-
-# CORS — lista de orígenes permitidos separados por coma
-CORS_ORIGINS=http://localhost:4200,https://tu-dominio.com
-```
-
-> **Importante**: Nunca subas el archivo `.env` al repositorio. Ya está incluido en el `.gitignore`.
-
-Para el frontend, la URL base de la API se configura en los archivos de servicio. En producción, se recomienda usar los archivos de entorno de Angular (`src/environments/`).
+En el frontend, la URL de la API está en `src/environments/`. En producción es
+`/api`: Nginx la reenvía al backend (variable `API_UPSTREAM` del contenedor).
 
 ---
 
 ## Scripts Disponibles
 
-### Backend
+### Backend (`cd backend`)
 
 ```bash
-# Desarrollo con recarga automática
-uvicorn main:app --reload --port 8000
-
-# Producción
-uvicorn main:app --host 0.0.0.0 --port 8000 --workers 2
-
-# Tests (dataset integrity, pipeline de ML, API, rate limiting)
-pip install -r requirements-dev.txt
-pytest tests/ -v
+uvicorn main:app --reload --port 8000        # desarrollo
+pip install -r requirements-dev.txt          # herramientas de desarrollo
+pytest --cov                                 # tests + cobertura
+ruff check . && ruff format --check .        # lint y formato
+ruff check . --fix && ruff format .          # corregir automáticamente
 ```
 
-### Frontend
+### Frontend (`cd frontend`)
 
 ```bash
-# Servidor de desarrollo (http://localhost:4200)
-npm start
-
-# Build de producción (genera frontend/www/)
-npm run build
-
-# Build en modo watch
-npm run watch
-
-# Ejecutar tests unitarios
-npm test
-
-# Linting
-npm run lint
+npm start              # servidor de desarrollo (http://localhost:4201)
+npm run build:prod     # build de producción (frontend/www/)
+npm test               # tests en modo watch
+npm run test:ci        # tests headless + cobertura (coverage/app/lcov.info)
+npm run lint           # ESLint (TypeScript + accesibilidad)
 ```
+
+### Todo el stack con Docker
+
+```bash
+docker compose up --build   # web en http://localhost:8080, API en http://localhost:8000/docs
+```
+
+---
+
+## Calidad de Código y CI/CD
+
+### Integración continua (`.github/workflows/ci.yml`)
+
+En cada push y pull request a `main`/`develop`:
+
+1. **Backend**: `ruff check`, `ruff format --check`, `pytest` con cobertura y `pip-audit`.
+2. **Frontend**: `ng lint` (incluye reglas de accesibilidad), tests en Chrome headless con cobertura, build de producción y `npm audit`.
+3. **SonarQube**: analiza ambos proyectos con su cobertura y **falla si no se aprueba el Quality Gate**.
+
+`codeql.yml` ejecuta además el análisis de seguridad de GitHub (JavaScript/TypeScript y Python) y
+`dependabot.yml` abre PRs semanales con dependencias actualizadas.
+
+### Despliegue continuo (`.github/workflows/cd.yml`)
+
+Cuando CI pasa en `main` (o al publicar un tag `vX.Y.Z`):
+
+1. Construye las imágenes `cityvet-backend` y `cityvet-frontend` y las publica en **GitHub Container Registry** (`ghcr.io`).
+2. Si existen los secretos `BACKEND_DEPLOY_HOOK` / `FRONTEND_DEPLOY_HOOK` (webhook de Render, Railway, Coolify…), dispara el despliegue. El job usa el *environment* `production`, así que puedes exigir aprobación manual.
+3. En los tags, crea un **Release** con notas generadas automáticamente.
+
+### Configurar SonarQube
+
+1. Crea el proyecto en tu servidor SonarQube o en [SonarQube Cloud](https://sonarcloud.io) con la clave `JesusMorales14_tesis_pets` (o cámbiala en `sonar-project.properties`).
+2. En GitHub → *Settings → Secrets and variables → Actions*, agrega:
+   - `SONAR_TOKEN`: token de análisis del proyecto.
+   - `SONAR_HOST_URL`: URL del servidor (`https://sonarcloud.io` si usas la versión en la nube; en ese caso descomenta `sonar.organization`).
+3. Recomendado: en *Settings → Branches* protege `main` exigiendo los checks **CI** y **SonarQube** antes de hacer merge.
+
+Sin esos secretos el job de SonarQube se omite con un aviso, y el resto del pipeline sigue funcionando.
 
 ---
 

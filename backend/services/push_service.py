@@ -1,10 +1,12 @@
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 
+from core.exceptions import NotFoundError
+from infrastructure.push import messages as notifications
+from infrastructure.push.web_push import VAPID_PUBLIC_KEY, send_push, send_push_to_admins, send_push_to_user
 from models import PushSubscription, User
-import notifications
-from push_utils import VAPID_PUBLIC_KEY, send_push, send_push_to_admins, send_push_to_user
 from repositories.push_subscription_repository import (
-    PushSubscriptionRepository, get_push_subscription_repository,
+    PushSubscriptionRepository,
+    get_push_subscription_repository,
 )
 from schemas.push import PushEndpointBody, PushSubscriptionBody
 
@@ -25,9 +27,14 @@ class PushService:
             existing.p256dh = body.p256dh
             existing.auth = body.auth
         else:
-            self.subscriptions.add(PushSubscription(
-                user_id=current_user.id, endpoint=body.endpoint, p256dh=body.p256dh, auth=body.auth,
-            ))
+            self.subscriptions.add(
+                PushSubscription(
+                    user_id=current_user.id,
+                    endpoint=body.endpoint,
+                    p256dh=body.p256dh,
+                    auth=body.auth,
+                )
+            )
         self.subscriptions.commit()
         return {"ok": True}
 
@@ -47,7 +54,7 @@ class PushService:
         """Notificación de ejemplo a este dispositivo, para ver cómo se ven."""
         sub = self.subscriptions.get_by_endpoint(body.endpoint)
         if not sub or sub.user_id != current_user.id:
-            raise HTTPException(status_code=404, detail="Este dispositivo no tiene las notificaciones activadas")
+            raise NotFoundError("Este dispositivo no tiene las notificaciones activadas")
         send_push(
             {"endpoint": sub.endpoint, "keys": {"p256dh": sub.p256dh, "auth": sub.auth}},
             notifications.prueba(),

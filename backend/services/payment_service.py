@@ -2,10 +2,11 @@ from typing import Optional
 
 from fastapi import Depends, UploadFile
 
-from config import QR_DIR
+from core.config import QR_DIR
 from models import PaymentConfig
 from repositories.payment_config_repository import (
-    PaymentConfigRepository, get_payment_config_repository,
+    PaymentConfigRepository,
+    get_payment_config_repository,
 )
 from schemas.payment import PaymentConfigBody
 from services.upload_service import save_uploaded_image
@@ -14,14 +15,22 @@ from services.upload_service import save_uploaded_image
 def payment_config_out(cfg: Optional[PaymentConfig]) -> dict:
     if not cfg:
         return {
-            "yape_phone": None, "yape_qr_url": None, "banco": None,
-            "tipo_cuenta": None, "numero_cuenta": None, "cci": None, "titular": None,
+            "yape_phone": None,
+            "yape_qr_url": None,
+            "banco": None,
+            "tipo_cuenta": None,
+            "numero_cuenta": None,
+            "cci": None,
+            "titular": None,
         }
     return {
         "yape_phone": cfg.yape_phone,
         "yape_qr_url": f"/uploads/{cfg.yape_qr_path}" if cfg.yape_qr_path else None,
-        "banco": cfg.banco, "tipo_cuenta": cfg.tipo_cuenta,
-        "numero_cuenta": cfg.numero_cuenta, "cci": cfg.cci, "titular": cfg.titular,
+        "banco": cfg.banco,
+        "tipo_cuenta": cfg.tipo_cuenta,
+        "numero_cuenta": cfg.numero_cuenta,
+        "cci": cfg.cci,
+        "titular": cfg.titular,
     }
 
 

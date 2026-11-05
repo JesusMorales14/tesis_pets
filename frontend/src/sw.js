@@ -3,7 +3,7 @@
 // interfiere con el ciclo normal de desarrollo (ng serve / HMR).
 //
 // El contenido (título, texto, tipo, agrupación) lo define el backend en
-// backend/notifications.py; aquí se decide cómo se presenta.
+// backend/infrastructure/push/messages.py; aquí se decide cómo se presenta.
 
 const ICON = '/assets/icon/notification-icon.png';   // logo CityVet a color
 const BADGE = '/assets/icon/notification-badge.png'; // silueta monocroma (barra de estado de Android)

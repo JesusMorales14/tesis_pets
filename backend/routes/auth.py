@@ -1,11 +1,10 @@
 from fastapi import APIRouter, Depends, Request
 
+from core.rate_limiter import limiter
 from models import User
-from rate_limiter import limiter
-from schemas.auth import RegisterBody, LoginBody, ChangePasswordBody
-from services.auth_service import (
-    AuthService, get_auth_service, get_current_user, user_out,
-)
+from routes.dependencies import get_current_user
+from schemas.auth import ChangePasswordBody, LoginBody, RegisterBody
+from services.auth_service import AuthService, get_auth_service, user_out
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 

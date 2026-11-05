@@ -1,19 +1,24 @@
 import json
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from database import get_db
-from models import Pet, User, DiagnosisRecord, Appointment, Vaccination
+from core.database import get_db
+from core.exceptions import ForbiddenError, NotFoundError
+from core.time_utils import utc_isoformat
+from models import Appointment, DiagnosisRecord, Pet, User, Vaccination
 from repositories.pet_repository import PetRepository, get_pet_repository
 from schemas.pet import PetBody
-from time_utils import utc_isoformat
 
 
 def pet_out(pet: Pet) -> dict:
     return {
-        "id": pet.id, "nombre": pet.nombre, "especie": pet.especie,
-        "raza": pet.raza, "edad_meses": pet.edad_meses, "peso_kg": pet.peso_kg,
+        "id": pet.id,
+        "nombre": pet.nombre,
+        "especie": pet.especie,
+        "raza": pet.raza,
+        "edad_meses": pet.edad_meses,
+        "peso_kg": pet.peso_kg,
     }
 
 
@@ -33,9 +38,9 @@ def diagnosis_out(r: DiagnosisRecord) -> dict:
 def get_owned_pet(pet_id: int, db: Session, current_user: User) -> Pet:
     pet = db.query(Pet).filter(Pet.id == pet_id).first()
     if not pet:
-        raise HTTPException(status_code=404, detail="Mascota no encontrada")
+        raise NotFoundError("Mascota no encontrada")
     if pet.owner_id != current_user.id:
-        raise HTTPException(status_code=403, detail="Esta mascota no te pertenece")
+        raise ForbiddenError("Esta mascota no te pertenece")
     return pet
 
 
@@ -78,7 +83,8 @@ class PetService:
         # NO cancelar citas: el usuario ya pagó por ellas. Solo se desvinculan
         # para que no queden apuntando al id de una mascota que ya no existe.
         self.db.query(Appointment).filter(Appointment.pet_id == pet.id).update(
-            {Appointment.pet_id: None}, synchronize_session=False,
+            {Appointment.pet_id: None},
+            synchronize_session=False,
         )
         self.pets.delete(pet)
         self.pets.commit()
@@ -96,12 +102,9 @@ class PetService:
 
         pet = self.pets.get_by_id(pet_id)
         if not pet:
-            raise HTTPException(status_code=404, detail="Mascota no encontrada")
+            raise NotFoundError("Mascota no encontrada")
         vaccinations = (
-            self.db.query(Vaccination)
-            .filter(Vaccination.pet_id == pet.id)
-            .order_by(Vaccination.fecha_proxima)
-            .all()
+            self.db.query(Vaccination).filter(Vaccination.pet_id == pet.id).order_by(Vaccination.fecha_proxima).all()
         )
         return {
             **pet_out(pet),

@@ -1,0 +1,48 @@
+# Configuración de herramientas de calidad del backend.
+[project]
+name = "cityvet-api"
+version = "1.0.0"
+description = "API de diagnóstico veterinario con IA (FastAPI)"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["venv", "alembic/versions", "uploads"]
+
+[tool.ruff.lint]
+# E/W: estilo PEP 8 · F: errores (imports sin usar, nombres indefinidos)
+# I: orden de imports · B: bugs comunes · UP: sintaxis moderna
+# S: seguridad (bandit) · SIM: simplificaciones · C4: comprensiones
+select = ["E", "W", "F", "I", "B", "UP", "S", "SIM", "C4"]
+ignore = [
+  "B008",   # Depends()/File() en argumentos por defecto: es el patrón de FastAPI
+  "S104",   # 0.0.0.0 al levantar uvicorn en el contenedor
+  "UP007",  # Optional[X] se mantiene por legibilidad en firmas de FastAPI
+  "UP045",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106", "S107", "E402"]  # assert y credenciales de prueba
+"alembic/env.py" = ["E402"]                     # plantilla de Alembic: ajusta sys.path antes de importar
+"data/**" = ["S311"]                            # random para generar el dataset sintético
+"ml/**" = ["S301"]                              # joblib/pickle de modelos propios versionados
+
+[tool.ruff.lint.isort]
+known-first-party = ["core", "domain", "infrastructure", "models", "repositories", "routes", "schemas", "services", "ml"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+filterwarnings = ["error::DeprecationWarning:core.*", "error::DeprecationWarning:services.*"]
+
+[tool.coverage.run]
+source = ["."]
+omit = ["tests/*", "venv/*", "alembic/*", "scripts/*", "data/*", "ml/train.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true

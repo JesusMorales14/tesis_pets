@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 
 from models import User
+from routes.dependencies import get_current_user
 from schemas.pet import PetBody
-from services.auth_service import get_current_user
 from services.pet_service import PetService, get_pet_service
 
 router = APIRouter(tags=["pets"])
@@ -27,7 +27,8 @@ def list_pets(
 
 @router.put("/pets/{pet_id}")
 def update_pet(
-    pet_id: int, body: PetBody,
+    pet_id: int,
+    body: PetBody,
     current_user: User = Depends(get_current_user),
     service: PetService = Depends(get_pet_service),
 ):

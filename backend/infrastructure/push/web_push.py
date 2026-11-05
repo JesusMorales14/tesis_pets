@@ -14,14 +14,19 @@ genera un par nuevo en cada arranque del proceso — las suscripciones no
 sobreviven un reinicio, pero es la única opción que no deja un par de
 claves real embebido en el código fuente público de este repositorio.
 """
+
 import base64
 import json
-import os
+import logging
 
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
 from py_vapid import Vapid
-from pywebpush import webpush, WebPushException
+from pywebpush import WebPushException, webpush
 from sqlalchemy.orm import Session
+
+from core.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 def _generate_dev_keypair() -> tuple[str, str]:
@@ -33,8 +38,8 @@ def _generate_dev_keypair() -> tuple[str, str]:
     return private_pem, public_b64
 
 
-_env_private = os.getenv("VAPID_PRIVATE_KEY_PEM")
-_env_public = os.getenv("VAPID_PUBLIC_KEY")
+_env_private = settings.vapid_private_key_pem
+_env_public = settings.vapid_public_key
 
 if _env_private and _env_public:
     # En un .env de una sola línea los saltos del PEM se escriben como \n literal.
@@ -42,10 +47,12 @@ if _env_private and _env_public:
     VAPID_PUBLIC_KEY = _env_public
 else:
     VAPID_PRIVATE_KEY_PEM, VAPID_PUBLIC_KEY = _generate_dev_keypair()
-    print("[push_utils] VAPID_PRIVATE_KEY_PEM/VAPID_PUBLIC_KEY no definidos en el entorno — "
-          "generando un par nuevo para esta sesión (las suscripciones push no sobrevivirán un reinicio).")
+    logger.warning(
+        "VAPID_PRIVATE_KEY_PEM/VAPID_PUBLIC_KEY no definidos — se genera un par nuevo para esta sesión "
+        "(las suscripciones push no sobrevivirán un reinicio)."
+    )
 
-VAPID_CLAIMS_EMAIL = os.getenv("VAPID_CLAIMS_EMAIL", "mailto:contacto@cityvet.pe")
+VAPID_CLAIMS_EMAIL = settings.vapid_claims_email
 
 # pywebpush interpreta un string como clave en formato DER (no PEM) y falla
 # al leerla: se le entrega el objeto Vapid ya construido, una sola vez.
@@ -70,39 +77,38 @@ def send_push(subscription_info: dict, payload: dict) -> bool:
         # otra clave VAPID (p. ej. claves regeneradas al reiniciar sin .env).
         if status in (403, 404, 410):
             return False
-        print("Error enviando push:", e)
+        logger.warning("Error transitorio enviando push: %s", e)
         return True  # error transitorio: no borrar la suscripción
-    except Exception as e:
+    except Exception:
         # Una notificación fallida nunca debe romper la operación que la
         # originó (subir un comprobante, aprobar un pago…).
-        print("Error inesperado enviando push:", e)
+        logger.exception("Error inesperado enviando push")
         return True
+
+
+def _send_to_subscriptions(db: Session, subs, payload: dict) -> None:
+    """Envía a cada suscripción y borra las que el navegador ya invalidó."""
+    for sub in subs:
+        still_valid = send_push(
+            {"endpoint": sub.endpoint, "keys": {"p256dh": sub.p256dh, "auth": sub.auth}},
+            payload,
+        )
+        if not still_valid:
+            db.delete(sub)
+    db.commit()
 
 
 def send_push_to_user(db: Session, user_id: int, payload: dict) -> None:
     from models import PushSubscription
 
     subs = db.query(PushSubscription).filter(PushSubscription.user_id == user_id).all()
-    for sub in subs:
-        still_valid = send_push(
-            {"endpoint": sub.endpoint, "keys": {"p256dh": sub.p256dh, "auth": sub.auth}},
-            payload,
-        )
-        if not still_valid:
-            db.delete(sub)
-    db.commit()
+    _send_to_subscriptions(db, subs, payload)
 
 
 def send_push_to_admins(db: Session, payload: dict) -> None:
+    from domain.enums import Role
     from models import PushSubscription, User
 
-    admin_ids = [u.id for u in db.query(User).filter(User.role == "admin").all()]
+    admin_ids = db.query(User.id).filter(User.role == Role.ADMIN)
     subs = db.query(PushSubscription).filter(PushSubscription.user_id.in_(admin_ids)).all()
-    for sub in subs:
-        still_valid = send_push(
-            {"endpoint": sub.endpoint, "keys": {"p256dh": sub.p256dh, "auth": sub.auth}},
-            payload,
-        )
-        if not still_valid:
-            db.delete(sub)
-    db.commit()
+    _send_to_subscriptions(db, subs, payload)

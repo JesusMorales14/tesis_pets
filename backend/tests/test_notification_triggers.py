@@ -1,10 +1,10 @@
-# -*- coding: utf-8 -*-
 """
 Cada acción del sistema que debe avisar por push, de punta a punta: se
 recorren los flujos reales por la API y se verifica QUÉ notificación llega
 y a QUIÉN (dueño o veterinarios). El envío real (pywebpush) se reemplaza
 por un registro en memoria; usa una base SQLite en memoria.
 """
+
 import io
 import os
 import sys
@@ -13,15 +13,15 @@ from datetime import date, datetime, timedelta
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
 from sqlalchemy import create_engine  # noqa: E402
 from sqlalchemy.orm import sessionmaker  # noqa: E402
 from sqlalchemy.pool import StaticPool  # noqa: E402
-from fastapi.testclient import TestClient  # noqa: E402
 
-import push_utils  # noqa: E402
+from core.database import get_db  # noqa: E402
+from infrastructure.push import web_push as push_utils  # noqa: E402
 from main import app  # noqa: E402
-from database import get_db  # noqa: E402
-from models import Base, Appointment  # noqa: E402
+from models import Base  # noqa: E402
 from services.reminder_service import send_reminders_for_db, send_vaccine_reminders_for_db  # noqa: E402
 
 TOMORROW = (date.today() + timedelta(days=1)).isoformat()
@@ -52,7 +52,8 @@ def ctx(monkeypatch):
 
 def _user(client, email, admin=False, device=None):
     """Registra un usuario y, si se indica, activa las notificaciones en un dispositivo."""
-    from auth_utils import ADMIN_CODE
+    from core.security import ADMIN_CODE
+
     body = {"nombre": email.split("@")[0].title(), "email": email, "password": "secret123", "accepted_privacy": True}
     if admin:
         body["admin_code"] = ADMIN_CODE
@@ -63,12 +64,22 @@ def _user(client, email, admin=False, device=None):
 
 
 def _book(client, h, hora, pet_id=None, fecha=TOMORROW):
-    data = {"fecha": fecha, "hora": hora, "diagnostico": "parvovirus", "especie": "perro",
-            "gravedad": "grave", "metodo_pago": "yape"}
+    data = {
+        "fecha": fecha,
+        "hora": hora,
+        "diagnostico": "parvovirus",
+        "especie": "perro",
+        "gravedad": "grave",
+        "metodo_pago": "yape",
+    }
     if pet_id:
         data["pet_id"] = str(pet_id)
-    r = client.post("/appointments/with-comprobante", data=data,
-                    files={"file": ("c.png", io.BytesIO(b"\x89PNG\r\n\x1a\nx"), "image/png")}, headers=h)
+    r = client.post(
+        "/appointments/with-comprobante",
+        data=data,
+        files={"file": ("c.png", io.BytesIO(b"\x89PNG\r\n\x1a\nx"), "image/png")},
+        headers=h,
+    )
     assert r.status_code == 200, r.text
     return r.json()["id"]
 
@@ -100,9 +111,18 @@ def test_every_trigger_notifies_the_right_person(ctx):
     assert last["title"] == "No pudimos validar tu pago" and last["urgent"] is True
 
     # 4) Veterinario confirma / cancela una cita desde la agenda → aviso al dueño.
-    a3 = client.post("/appointments", headers=ana, json={
-        "fecha": TOMORROW, "hora": "12:00", "diagnostico": "otitis_canina", "especie": "perro",
-        "gravedad": "leve", "metodo_pago": "transferencia"}).json()["id"]
+    a3 = client.post(
+        "/appointments",
+        headers=ana,
+        json={
+            "fecha": TOMORROW,
+            "hora": "12:00",
+            "diagnostico": "otitis_canina",
+            "especie": "perro",
+            "gravedad": "leve",
+            "metodo_pago": "transferencia",
+        },
+    ).json()["id"]
     client.put(f"/admin/appointments/{a3}/estado", json={"estado": "confirmada"}, headers=vet)
     assert _titles(inbox, "https://push/ana")[-1] == "Cita confirmada"
     client.put(f"/admin/appointments/{a3}/estado", json={"estado": "cancelada"}, headers=vet)
@@ -120,10 +140,21 @@ def test_every_trigger_notifies_the_right_person(ctx):
 
     # 6) Vacunas: programada próxima y programada vencida → avisos al dueño.
     hoy = date.today()
-    client.post(f"/pets/{pet}/vaccinations", headers=ana, json={
-        "nombre": "Rabia", "estado": "programada", "fecha_programada": (hoy + timedelta(days=5)).isoformat(), "refuerzo_meses": 12})
-    client.post(f"/pets/{pet}/vaccinations", headers=ana, json={
-        "nombre": "Múltiple", "estado": "programada", "fecha_programada": hoy.isoformat(), "refuerzo_meses": 12})
+    client.post(
+        f"/pets/{pet}/vaccinations",
+        headers=ana,
+        json={
+            "nombre": "Rabia",
+            "estado": "programada",
+            "fecha_programada": (hoy + timedelta(days=5)).isoformat(),
+            "refuerzo_meses": 12,
+        },
+    )
+    client.post(
+        f"/pets/{pet}/vaccinations",
+        headers=ana,
+        json={"nombre": "Múltiple", "estado": "programada", "fecha_programada": hoy.isoformat(), "refuerzo_meses": 12},
+    )
     db = Session()
     try:
         assert send_vaccine_reminders_for_db(db) == 2
@@ -164,6 +195,7 @@ def test_a_failing_push_does_not_break_the_booking(ctx, monkeypatch):
 
     def boom(**kw):
         raise RuntimeError("servicio push caído")
+
     # Envío real con pywebpush fallando: la reserva igual debe guardarse (200).
     monkeypatch.setattr(push_utils, "send_push", _REAL_SEND_PUSH)
     monkeypatch.setattr(push_utils, "webpush", boom)

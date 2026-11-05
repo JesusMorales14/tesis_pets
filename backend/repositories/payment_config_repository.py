@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from database import get_db
+from core.database import get_db
 from models import PaymentConfig
 
 

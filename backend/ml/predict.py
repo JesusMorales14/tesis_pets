@@ -1,8 +1,11 @@
+import logging
 import os
+
 import joblib
-import pandas as pd
 import numpy as np
-import traceback
+import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 # Paths
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -14,10 +17,7 @@ LE_ENFERMEDAD_PATH = os.path.join(BASE_DIR, "le_enfermedad.pkl")
 models_by_species_paths = joblib.load(MODELS_DICT_PATH)
 
 # Cachear modelos en memoria para no cargarlos en cada petición
-models_cache = {
-    especie: joblib.load(os.path.join(BASE_DIR, path))
-    for especie, path in models_by_species_paths.items()
-}
+models_cache = {especie: joblib.load(os.path.join(BASE_DIR, path)) for especie, path in models_by_species_paths.items()}
 
 # Cargar LabelEncoders
 le_especie = joblib.load(LE_ESPECIE_PATH)
@@ -26,13 +26,12 @@ le_enfermedad = joblib.load(LE_ENFERMEDAD_PATH)
 # Cargar dataset de referencia
 DATA_PATH = os.path.abspath(os.path.join(BASE_DIR, "..", "data", "dataset.csv"))
 df_reference = pd.read_csv(DATA_PATH)
-print("Dataset cargado desde:", DATA_PATH)
+logger.info("Dataset de referencia cargado desde %s", DATA_PATH)
 
 
 def estimate_phase(input_vector, predicted_enfermedad_texto, especie):
     df_filtered = df_reference[
-        (df_reference["enfermedad"] == predicted_enfermedad_texto) &
-        (df_reference["especie"] == especie)
+        (df_reference["enfermedad"] == predicted_enfermedad_texto) & (df_reference["especie"] == especie)
     ]
 
     if df_filtered.empty:
@@ -80,22 +79,15 @@ def predict_sickness(data: dict):
                 especie_original = clase
                 break
         if especie_original is None:
-            raise ValueError(
-                f"Especie '{especie_input}' no reconocida. Opciones: {list(le_especie.classes_)}"
-            )
+            raise ValueError(f"Especie '{especie_input}' no reconocida. Opciones: {list(le_especie.classes_)}")
 
         # Obtener modelo desde cache
         if especie_original not in models_cache:
             raise ValueError(f"No hay modelo cargado para especie '{especie_original}'")
         model = models_cache[especie_original]
 
-        # Convertir especie a número
-        especie_num = le_especie.transform([especie_original])[0]
-
         # Columnas de síntomas
-        symptom_columns = [
-            col for col in df_reference.columns if col not in ("enfermedad", "especie")
-        ]
+        symptom_columns = [col for col in df_reference.columns if col not in ("enfermedad", "especie")]
 
         # Construir vector de entrada
         input_vector = [int(data.get(col, 0)) for col in symptom_columns]
@@ -157,7 +149,6 @@ def predict_sickness(data: dict):
             "probabilidad_tercero": probabilidad_tercero,
         }
 
-    except Exception as e:
-        print("Error en predict_sickness:")
-        traceback.print_exc()
-        raise e
+    except Exception:
+        logger.exception("Error en predict_sickness")
+        raise

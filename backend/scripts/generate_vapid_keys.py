@@ -1,12 +1,13 @@
 """Genera un par de claves VAPID para las notificaciones push.
 
 Uso (desde la carpeta backend):
-    python generate_vapid_keys.py
+    python scripts/generate_vapid_keys.py
 
 Copia las dos líneas que imprime en tu archivo .env. Las claves deben ser
 estables: si cambian, todas las suscripciones de los navegadores dejan de
 recibir notificaciones y cada usuario debe volver a activarlas.
 """
+
 import base64
 
 from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat

@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends
 
 from models import User
+from routes.dependencies import get_current_user
 from schemas.vaccination import VaccinationBody
-from services.auth_service import get_current_user
 from services.vaccination_service import (
-    VaccinationService, get_vaccination_service, get_vaccine_schedule,
+    VaccinationService,
+    get_vaccination_service,
+    get_vaccine_schedule,
 )
 
 router = APIRouter(tags=["vaccinations"])
@@ -17,7 +19,8 @@ def vaccine_schedule(especie: str):
 
 @router.post("/pets/{pet_id}/vaccinations")
 def create_vaccination(
-    pet_id: int, body: VaccinationBody,
+    pet_id: int,
+    body: VaccinationBody,
     current_user: User = Depends(get_current_user),
     service: VaccinationService = Depends(get_vaccination_service),
 ):
@@ -35,7 +38,8 @@ def list_vaccinations(
 
 @router.delete("/pets/{pet_id}/vaccinations/{vaccination_id}")
 def delete_vaccination(
-    pet_id: int, vaccination_id: int,
+    pet_id: int,
+    vaccination_id: int,
     current_user: User = Depends(get_current_user),
     service: VaccinationService = Depends(get_vaccination_service),
 ):

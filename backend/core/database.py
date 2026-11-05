@@ -1,12 +1,18 @@
-import os
+"""Conexión a la base de datos (SQLAlchemy) y sesión por petición."""
+
+from collections.abc import Iterator
+
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+from core.config import settings
+
 engine = create_engine(
-    f"sqlite:///{os.path.join(BASE_DIR, 'veterinary.db')}",
-    connect_args={"check_same_thread": False},
+    settings.database_url,
+    # SQLite: FastAPI atiende peticiones en varios hilos con la misma conexión.
+    connect_args={"check_same_thread": False} if settings.is_sqlite else {},
+    pool_pre_ping=not settings.is_sqlite,
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
@@ -23,7 +29,8 @@ def _enable_sqlite_foreign_keys(dbapi_connection, _):
         cursor.close()
 
 
-def get_db():
+def get_db() -> Iterator[Session]:
+    """Dependencia de FastAPI: una sesión por petición, cerrada al terminar."""
     db = SessionLocal()
     try:
         yield db
