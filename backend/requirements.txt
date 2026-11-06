@@ -33,7 +33,7 @@ propcache==0.5.2
 py-vapid==1.9.4
 pyasn1==0.6.3
 pycparser==3.0
-pydantic==2.12.5
+pydantic==2.14.2
 pydantic_core==2.41.5
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.2
