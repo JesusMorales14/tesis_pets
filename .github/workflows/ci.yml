@@ -124,13 +124,13 @@ jobs:
           fetch-depth: 0 # historial completo: Sonar lo usa para "código nuevo" y blame
 
       - name: Descargar cobertura del backend
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: backend-coverage
           path: backend
 
       - name: Descargar cobertura del frontend
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: frontend-coverage
           path: frontend/coverage/app
