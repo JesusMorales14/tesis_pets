@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 # 1) Compila la SPA  2) La sirve con Nginx (imagen final sin Node).
-FROM node:22-alpine AS build
+FROM node:25-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
