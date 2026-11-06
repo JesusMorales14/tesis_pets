@@ -7,7 +7,7 @@ RUN npm ci --no-audit --no-fund
 COPY . .
 RUN npx ng build --configuration production
 
-FROM nginxinc/nginx-unprivileged:1.27-alpine AS runtime
+FROM nginxinc/nginx-unprivileged:1.31-alpine AS runtime
 # Plantilla: la imagen sustituye ${API_UPSTREAM} al arrancar.
 ENV API_UPSTREAM=http://api:8000
 COPY nginx.conf /etc/nginx/templates/default.conf.template
