@@ -1,0 +1,108 @@
+# Despliegue continuo: cuando CI pasa en main (o se publica un tag vX.Y.Z),
+# construye las imágenes Docker, las publica en GitHub Container Registry y
+# dispara el despliegue si hay un webhook configurado.
+name: CD
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: false # nunca cortar un despliegue a medias
+
+permissions:
+  contents: write # crear el release en tags
+  packages: write # publicar en ghcr.io
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/cityvet
+
+jobs:
+  images:
+    name: Imagen ${{ matrix.service }}
+    # Solo si CI terminó bien (o es un tag / ejecución manual).
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: true
+      matrix:
+        service: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Login en GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Etiquetas de la imagen
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_PREFIX }}-${{ matrix.service }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,format=short
+            type=semver,pattern={{version}}
+
+      - name: Construir y publicar
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.service }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service }}
+
+  deploy:
+    name: Desplegar
+    needs: images
+    runs-on: ubuntu-latest
+    environment: production # permite exigir aprobación manual en GitHub
+    env:
+      BACKEND_DEPLOY_HOOK: ${{ secrets.BACKEND_DEPLOY_HOOK }}
+      FRONTEND_DEPLOY_HOOK: ${{ secrets.FRONTEND_DEPLOY_HOOK }}
+    steps:
+      # Webhook de despliegue del proveedor (Render, Railway, Coolify, un VPS
+      # con watchtower...). Sin secreto configurado, el paso se omite y las
+      # imágenes quedan listas en ghcr.io.
+      - name: Desplegar backend
+        if: env.BACKEND_DEPLOY_HOOK != ''
+        run: curl --fail --silent --show-error -X POST "$BACKEND_DEPLOY_HOOK"
+
+      - name: Desplegar frontend
+        if: env.FRONTEND_DEPLOY_HOOK != ''
+        run: curl --fail --silent --show-error -X POST "$FRONTEND_DEPLOY_HOOK"
+
+      - name: Resumen
+        run: |
+          echo "### Imágenes publicadas" >> "$GITHUB_STEP_SUMMARY"
+          echo "- \`${IMAGE_PREFIX}-backend\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "- \`${IMAGE_PREFIX}-frontend\`" >> "$GITHUB_STEP_SUMMARY"
+
+  release:
+    name: Release en GitHub
+    needs: images
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Crear release con notas automáticas
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release create "${GITHUB_REF_NAME}" --generate-notes --verify-tag

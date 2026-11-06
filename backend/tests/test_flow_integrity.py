@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
 """
 Flujo completo usuario → veterinario: mascota, predicción, cita con
 comprobante, decisión del pago y recordatorios de vacunas. Usa una base de
 datos SQLite en memoria — nunca toca veterinary.db.
 """
+
 import io
 import json
 import os
@@ -13,13 +13,13 @@ from datetime import date, timedelta
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
 from sqlalchemy import create_engine  # noqa: E402
 from sqlalchemy.orm import sessionmaker  # noqa: E402
 from sqlalchemy.pool import StaticPool  # noqa: E402
-from fastapi.testclient import TestClient  # noqa: E402
 
+from core.database import get_db  # noqa: E402
 from main import app  # noqa: E402
-from database import get_db  # noqa: E402
 from models import Base, Vaccination  # noqa: E402
 from services.reminder_service import send_vaccine_reminders_for_db  # noqa: E402
 
@@ -49,7 +49,7 @@ def ctx():
 
 
 def _register(client, email="ana@test.com", admin=False):
-    from auth_utils import ADMIN_CODE
+    from core.security import ADMIN_CODE
 
     body = {"nombre": "Ana", "email": email, "password": "secret123", "accepted_privacy": True}
     if admin:
@@ -77,15 +77,24 @@ def _fake_image():
 
 def _book_with_comprobante(client, headers, hora="10:00", fecha=FUTURE, **extra):
     data = {
-        "fecha": fecha, "hora": hora, "diagnostico": "parvovirus", "especie": "perro",
-        "gravedad": "grave", "metodo_pago": "yape", **{k: str(v) for k, v in extra.items()},
+        "fecha": fecha,
+        "hora": hora,
+        "diagnostico": "parvovirus",
+        "especie": "perro",
+        "gravedad": "grave",
+        "metodo_pago": "yape",
+        **{k: str(v) for k, v in extra.items()},
     }
     return client.post(
-        "/appointments/with-comprobante", data=data, files={"file": _fake_image()}, headers=headers,
+        "/appointments/with-comprobante",
+        data=data,
+        files={"file": _fake_image()},
+        headers=headers,
     )
 
 
 # ── Mascotas eliminadas no "contagian" su historial a mascotas nuevas ──────
+
 
 def test_deleted_pet_history_does_not_leak_into_new_pet(ctx):
     client, _ = ctx
@@ -122,6 +131,7 @@ def test_deleting_pet_keeps_paid_appointment_but_unlinks_it(ctx):
 
 # ── Predicción ─────────────────────────────────────────────────────────────
 
+
 def test_predict_with_pet_saves_history(ctx):
     client, _ = ctx
     headers = _register(client)
@@ -143,6 +153,7 @@ def test_predict_rejects_species_mismatch_with_pet(ctx):
 
 
 # ── Cita con comprobante ──────────────────────────────────────────────────
+
 
 def test_appointment_with_comprobante_keeps_prediction_data(ctx):
     client, _ = ctx
@@ -166,12 +177,15 @@ def test_cannot_book_with_someone_elses_pet(ctx):
     assert _book_with_comprobante(client, other, pet_id=pet_id).status_code == 403
 
 
-@pytest.mark.parametrize("fecha,hora", [
-    ((date.today() - timedelta(days=1)).isoformat(), "10:00"),  # pasado
-    (FUTURE, "10:15"),  # no es un horario de 30 min
-    (FUTURE, "23:00"),  # fuera del horario de atención
-    ("15/01/2099", "10:00"),  # formato inválido
-])
+@pytest.mark.parametrize(
+    "fecha,hora",
+    [
+        ((date.today() - timedelta(days=1)).isoformat(), "10:00"),  # pasado
+        (FUTURE, "10:15"),  # no es un horario de 30 min
+        (FUTURE, "23:00"),  # fuera del horario de atención
+        ("15/01/2099", "10:00"),  # formato inválido
+    ],
+)
 def test_rejects_invalid_slots(ctx, fecha, hora):
     client, _ = ctx
     headers = _register(client)
@@ -188,12 +202,15 @@ def test_same_slot_cannot_be_booked_twice(ctx):
 
 # ── Decisión del veterinario ──────────────────────────────────────────────
 
+
 def test_approved_payment_shows_as_confirmed_in_my_appointments(ctx):
     client, _ = ctx
     admin = _register(client, "vet@test.com", admin=True)
     user = _register(client)
     appt_id = _book_with_comprobante(
-        client, user, sintomas_json=json.dumps({"vomitos": 3}),
+        client,
+        user,
+        sintomas_json=json.dumps({"vomitos": 3}),
     ).json()["id"]
 
     assert client.get("/admin/appointments/pending-payments", headers=admin).json()[0]["id"] == appt_id
@@ -211,7 +228,9 @@ def test_rejected_payment_is_visible_and_frees_the_slot(ctx):
     user = _register(client)
     other = _register(client, "other@test.com")
     appt_id = _book_with_comprobante(
-        client, user, sintomas_json=json.dumps({"vomitos": 3}),
+        client,
+        user,
+        sintomas_json=json.dumps({"vomitos": 3}),
     ).json()["id"]
 
     r = client.put(f"/admin/appointments/{appt_id}/pago", json={"aprobado": False}, headers=admin)
@@ -228,9 +247,11 @@ def test_rejected_payment_is_visible_and_frees_the_slot(ctx):
 
 # ── Recordatorios de vacunas ───────────────────────────────────────────────
 
+
 def _add_vaccine(client, headers, pet_id, **body):
-    r = client.post(f"/pets/{pet_id}/vaccinations", json={"nombre": "Rabia", "refuerzo_meses": 12, **body},
-                    headers=headers)
+    r = client.post(
+        f"/pets/{pet_id}/vaccinations", json={"nombre": "Rabia", "refuerzo_meses": 12, **body}, headers=headers
+    )
     assert r.status_code == 200, r.text
     return r.json()["id"]
 
@@ -245,8 +266,9 @@ def test_vaccine_reminders_run_and_do_not_repeat(ctx):
     # Aplicada hace más de un año → refuerzo vencido.
     vencida = _add_vaccine(client, headers, pet_id, fecha_aplicacion=(hoy - timedelta(days=400)).isoformat())
     # Programada dentro de 10 días → recordatorio por la fecha programada.
-    programada = _add_vaccine(client, headers, pet_id, estado="programada",
-                              fecha_programada=(hoy + timedelta(days=10)).isoformat())
+    programada = _add_vaccine(
+        client, headers, pet_id, estado="programada", fecha_programada=(hoy + timedelta(days=10)).isoformat()
+    )
     # Aplicada hoy → refuerzo en un año, sin aviso.
     _add_vaccine(client, headers, pet_id, fecha_aplicacion=hoy.isoformat())
 
@@ -263,6 +285,7 @@ def test_vaccine_reminders_run_and_do_not_repeat(ctx):
 
 
 # ── Panel del veterinario: mascota de la cita y ficha clínica ──────────────
+
 
 def test_appointment_keeps_pet_name_even_after_pet_is_deleted(ctx):
     client, _ = ctx
@@ -297,8 +320,10 @@ def test_clinical_record_is_admin_only_and_complete(ctx):
 
 def test_migration_adds_pet_name_column_to_old_database(tmp_path):
     import sqlite3
+
     from sqlalchemy import create_engine as _create_engine
-    from db_migrations import run_sqlite_migrations
+
+    from infrastructure.db.sqlite_migrations import run_sqlite_migrations
 
     path = tmp_path / "old.db"
     con = sqlite3.connect(path)
@@ -309,7 +334,8 @@ def test_migration_adds_pet_name_column_to_old_database(tmp_path):
         CREATE TABLE appointments (id INTEGER NOT NULL, user_id INTEGER NOT NULL, fecha VARCHAR NOT NULL,
             hora VARCHAR NOT NULL, estado VARCHAR, pet_id INTEGER, PRIMARY KEY (id));
         INSERT INTO pets (id, owner_id, nombre, especie) VALUES (1, 1, 'Luna', 'gato');
-        INSERT INTO appointments (id, user_id, fecha, hora, estado, pet_id) VALUES (1, 1, '2099-01-01', '09:00', 'pendiente', 1);
+        INSERT INTO appointments (id, user_id, fecha, hora, estado, pet_id)
+            VALUES (1, 1, '2099-01-01', '09:00', 'pendiente', 1);
     """)
     con.commit()
     con.close()
@@ -327,6 +353,7 @@ def test_migration_adds_pet_name_column_to_old_database(tmp_path):
 
 # ── Fechas válidas según el tipo de vacuna ─────────────────────────────────
 
+
 def test_vaccine_dates_must_match_their_type(ctx):
     client, _ = ctx
     headers = _register(client)
@@ -336,8 +363,9 @@ def test_vaccine_dates_must_match_their_type(ctx):
     ayer = (hoy - timedelta(days=1)).isoformat()
 
     def post(**body):
-        return client.post(f"/pets/{pet_id}/vaccinations",
-                           json={"nombre": "Rabia", "refuerzo_meses": 12, **body}, headers=headers)
+        return client.post(
+            f"/pets/{pet_id}/vaccinations", json={"nombre": "Rabia", "refuerzo_meses": 12, **body}, headers=headers
+        )
 
     # Una vacuna aplicada no puede tener fecha futura…
     assert post(estado="aplicada", fecha_aplicacion=manana).status_code == 422

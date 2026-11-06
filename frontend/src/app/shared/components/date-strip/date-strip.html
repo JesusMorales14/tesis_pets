@@ -1,0 +1,23 @@
+<div class="date-header">
+  <h2 class="section-label" [id]="labelId">{{ label() }}</h2>
+  <span class="month-year" aria-live="polite">{{ monthYear() }}</span>
+</div>
+<div class="dates-scroll" role="group" [attr.aria-labelledby]="labelId">
+  @for (d of dates(); track d.isoDate) {
+  <button
+    type="button"
+    class="date-card"
+    [class.selected]="selectedIso() === d.isoDate"
+    [attr.aria-pressed]="selectedIso() === d.isoDate"
+    [attr.aria-label]="ariaLabel(d)"
+    (click)="dateSelected.emit(d)"
+  >
+    @if (d.isToday) {
+    <span class="date-today" aria-hidden="true">HOY</span>
+    }
+    <span class="date-month" aria-hidden="true">{{ d.monthAbbr }}</span>
+    <span class="date-num" aria-hidden="true">{{ d.dayNum }}</span>
+    <span class="date-day" aria-hidden="true">{{ d.dayAbbr }}</span>
+  </button>
+  }
+</div>

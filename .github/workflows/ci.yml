@@ -1,58 +1,149 @@
+# Integración continua: calidad, pruebas y análisis estático en cada push y PR.
 name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
+  workflow_dispatch:
+
+# Un solo run por rama: un push nuevo cancela el anterior que siga en curso.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   backend:
-    name: Backend (pytest)
+    name: Backend · lint, formato y tests
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Configurar Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: "pip"
+          cache: pip
           cache-dependency-path: backend/requirements-dev.txt
 
-      - name: Install dependencies
+      - name: Instalar dependencias
         run: pip install -r requirements-dev.txt
 
-      - name: Run tests
-        run: pytest tests/ -v
+      - name: Lint (ruff)
+        run: ruff check . --output-format=github
+
+      - name: Formato (ruff format)
+        run: ruff format --check .
+
+      - name: Tests con cobertura
+        run: pytest --cov --cov-report=xml:coverage.xml --cov-report=term
+
+      - name: Auditoría de dependencias (pip-audit)
+        # Informativo: no bloquea el merge, pero deja visible cualquier CVE.
+        continue-on-error: true
+        run: pip install pip-audit && pip-audit -r requirements.txt
+
+      - name: Publicar cobertura
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend/coverage.xml
+          retention-days: 7
 
   frontend:
-    name: Frontend (lint, build, test)
+    name: Frontend · lint, tests y build
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: "npm"
+          cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Instalar dependencias
+        run: npm ci --no-audit --no-fund
 
-      - name: Lint
+      - name: Lint (ESLint + reglas de accesibilidad)
         run: npm run lint
 
-      - name: Build
-        run: npm run build
+      - name: Tests unitarios con cobertura (Chrome headless)
+        run: npm run test:ci
 
-      - name: Unit tests (headless Chrome)
-        run: npx ng test --no-watch --no-progress --browsers=ChromeHeadlessCI
+      - name: Rutas de cobertura relativas a la raíz (para SonarQube)
+        run: sed -i 's#^SF:src/#SF:frontend/src/#' coverage/app/lcov.info
+
+      - name: Build de producción
+        run: npm run build:prod
+
+      - name: Auditoría de dependencias (npm audit)
+        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Publicar cobertura
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/app/lcov.info
+          retention-days: 7
+
+      - name: Publicar build
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-www
+          path: frontend/www
+          retention-days: 7
+
+  sonarqube:
+    name: SonarQube · análisis y Quality Gate
+    needs: [backend, frontend]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Los PR desde forks no reciben secretos: se omite el análisis.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # historial completo: Sonar lo usa para "código nuevo" y blame
+
+      - name: Descargar cobertura del backend
+        uses: actions/download-artifact@v4
+        with:
+          name: backend-coverage
+          path: backend
+
+      - name: Descargar cobertura del frontend
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/app
+
+      - name: Aviso si Sonar no está configurado
+        if: env.SONAR_TOKEN == ''
+        run: echo "::notice::Define los secretos SONAR_TOKEN y SONAR_HOST_URL para activar el análisis de SonarQube."
+
+      - name: Análisis SonarQube
+        if: env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarqube-scan-action@v5
+
+      - name: Verificar Quality Gate
+        if: env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarqube-quality-gate-action@v1
+        timeout-minutes: 5

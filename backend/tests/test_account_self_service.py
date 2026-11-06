@@ -1,22 +1,22 @@
-# -*- coding: utf-8 -*-
 """
 Prueba la exportación y eliminación de cuenta (derechos ARCO de la Ley
 N.° 29733). Usa una base de datos SQLite en memoria.
 """
+
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
 from sqlalchemy import create_engine  # noqa: E402
 from sqlalchemy.orm import sessionmaker  # noqa: E402
 from sqlalchemy.pool import StaticPool  # noqa: E402
-from fastapi.testclient import TestClient  # noqa: E402
 
+from core.database import get_db  # noqa: E402
 from main import app  # noqa: E402
-from database import get_db  # noqa: E402
-from models import Base, User, Pet, Vaccination, DiagnosisRecord, Appointment  # noqa: E402
+from models import Appointment, Base, DiagnosisRecord, Pet, User, Vaccination  # noqa: E402
 
 
 @pytest.fixture()
@@ -61,7 +61,9 @@ def test_export_includes_account_pets_and_appointments(client):
     headers = {"Authorization": f"Bearer {token}"}
 
     pet_id = test_client.post(
-        "/pets", json={"nombre": "Rocky", "especie": "perro"}, headers=headers,
+        "/pets",
+        json={"nombre": "Rocky", "especie": "perro"},
+        headers=headers,
     ).json()["id"]
     test_client.post(
         f"/pets/{pet_id}/vaccinations",
@@ -71,8 +73,12 @@ def test_export_includes_account_pets_and_appointments(client):
     test_client.post(
         "/appointments",
         json={
-            "fecha": "2099-01-15", "hora": "09:00", "diagnostico": "gastroenteritis",
-            "especie": "perro", "gravedad": "moderada", "metodo_pago": "yape",
+            "fecha": "2099-01-15",
+            "hora": "09:00",
+            "diagnostico": "gastroenteritis",
+            "especie": "perro",
+            "gravedad": "moderada",
+            "metodo_pago": "yape",
         },
         headers=headers,
     )
@@ -99,7 +105,9 @@ def test_delete_account_removes_everything(client):
     headers = {"Authorization": f"Bearer {token}"}
 
     pet_id = test_client.post(
-        "/pets", json={"nombre": "Rocky", "especie": "perro"}, headers=headers,
+        "/pets",
+        json={"nombre": "Rocky", "especie": "perro"},
+        headers=headers,
     ).json()["id"]
     test_client.post(
         f"/pets/{pet_id}/vaccinations",
@@ -114,8 +122,12 @@ def test_delete_account_removes_everything(client):
     test_client.post(
         "/appointments",
         json={
-            "fecha": "2099-01-15", "hora": "09:00", "diagnostico": "gastroenteritis",
-            "especie": "perro", "gravedad": "moderada", "metodo_pago": "yape",
+            "fecha": "2099-01-15",
+            "hora": "09:00",
+            "diagnostico": "gastroenteritis",
+            "especie": "perro",
+            "gravedad": "moderada",
+            "metodo_pago": "yape",
         },
         headers=headers,
     )
@@ -143,11 +155,13 @@ def test_deleting_one_users_account_does_not_affect_others(client):
     token_a = _register(test_client, email="ana@test.com")
     token_b = _register(test_client, email="beto@test.com")
     test_client.post(
-        "/pets", json={"nombre": "Rocky", "especie": "perro"},
+        "/pets",
+        json={"nombre": "Rocky", "especie": "perro"},
         headers={"Authorization": f"Bearer {token_a}"},
     )
     test_client.post(
-        "/pets", json={"nombre": "Michi", "especie": "gato"},
+        "/pets",
+        json={"nombre": "Michi", "especie": "gato"},
         headers={"Authorization": f"Bearer {token_b}"},
     )
 

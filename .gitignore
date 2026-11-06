@@ -6,3 +6,16 @@ __pycache__/
 .claude/
 *.db
 backend/uploads/
+
+# Herramientas de calidad / cobertura
+.ruff_cache/
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+frontend/coverage/
+frontend/.angular/
+.scannerwork/
+
+# Archivos subidos en cualquier ubicación del backend
+backend/**/uploads/

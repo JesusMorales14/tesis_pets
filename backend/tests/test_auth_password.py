@@ -1,22 +1,22 @@
-# -*- coding: utf-8 -*-
 """
 Prueba el flujo de cambio de contraseña de punto a punto. Usa una base
 de datos SQLite en memoria (no la veterinary.db real) para no ensuciar
 datos reales con usuarios de prueba.
 """
+
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
 from sqlalchemy import create_engine  # noqa: E402
 from sqlalchemy.orm import sessionmaker  # noqa: E402
 from sqlalchemy.pool import StaticPool  # noqa: E402
-from fastapi.testclient import TestClient  # noqa: E402
 
+from core.database import get_db  # noqa: E402
 from main import app  # noqa: E402
-from database import get_db  # noqa: E402
 from models import Base  # noqa: E402
 
 

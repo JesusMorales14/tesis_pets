@@ -1,15 +1,16 @@
 import calendar
 from datetime import date
 
-from fastapi import Depends, HTTPException
+from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from database import get_db
+from core.database import get_db
+from core.exceptions import BadRequestError, NotFoundError
+from domain.vaccine_schedule import VACCINE_SCHEDULE
 from models import User, Vaccination
 from repositories.vaccination_repository import VaccinationRepository, get_vaccination_repository
-from services.pet_service import get_owned_pet
 from schemas.vaccination import VaccinationBody
-from vaccine_schedule import VACCINE_SCHEDULE
+from services.pet_service import get_owned_pet
 
 
 def add_months(iso_date: str, months: int) -> str:
@@ -41,7 +42,7 @@ def vaccination_out(v: Vaccination) -> dict:
 def get_vaccine_schedule(especie: str) -> dict:
     especie = especie.strip().lower()
     if especie not in VACCINE_SCHEDULE:
-        raise HTTPException(status_code=400, detail="La especie debe ser 'perro' o 'gato'")
+        raise BadRequestError("La especie debe ser 'perro' o 'gato'")
     return VACCINE_SCHEDULE[especie]
 
 
@@ -53,7 +54,7 @@ class VaccinationService:
     def create_vaccination(self, pet_id: int, body: VaccinationBody, current_user: User) -> dict:
         get_owned_pet(pet_id, self.db, current_user)
 
-        if body.estado == 'aplicada':
+        if body.estado == "aplicada":
             fecha_aplicacion = body.fecha_aplicacion
             fecha_programada = None
             fecha_proxima = add_months(body.fecha_aplicacion, body.refuerzo_meses)
@@ -85,7 +86,7 @@ class VaccinationService:
         get_owned_pet(pet_id, self.db, current_user)
         v = self.vaccinations.get_by_id_and_pet(vaccination_id, pet_id)
         if not v:
-            raise HTTPException(status_code=404, detail="Registro de vacuna no encontrado")
+            raise NotFoundError("Registro de vacuna no encontrado")
         self.vaccinations.delete(v)
         return {"ok": True}
 

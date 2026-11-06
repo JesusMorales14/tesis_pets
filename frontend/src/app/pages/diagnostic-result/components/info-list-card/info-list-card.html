@@ -1,0 +1,16 @@
+@if (cardTitle()) {
+<h3 class="card-title">
+  @if (cardTitleIcon(); as icon) {
+  <ion-icon [name]="icon" aria-hidden="true"></ion-icon>
+  }
+  {{ cardTitle() }}
+</h3>
+}
+<ul>
+  @for (item of items(); track $index) {
+  <li>
+    <ion-icon [name]="itemIcon()" aria-hidden="true"></ion-icon>
+    {{ item }}
+  </li>
+  }
+</ul>

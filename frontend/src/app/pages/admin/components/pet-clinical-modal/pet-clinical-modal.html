@@ -1,0 +1,84 @@
+<div class="clinical-card" role="dialog" aria-modal="true" aria-labelledby="clinical-title">
+  <div class="clinical-header">
+    <h2 id="clinical-title">Ficha clínica</h2>
+    <button type="button" class="close-btn" aria-label="Cerrar ficha clínica" (click)="close()">
+      <ion-icon name="close-outline" aria-hidden="true"></ion-icon>
+    </button>
+  </div>
+
+  <div class="clinical-body">
+    @if (isLoading()) {
+      <div class="state" role="status">
+        <ion-spinner name="crescent" aria-hidden="true"></ion-spinner>
+        <span>Cargando ficha…</span>
+      </div>
+    } @else if (errorMsg()) {
+      <div class="state" role="alert">
+        <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+        <span>{{ errorMsg() }}</span>
+      </div>
+    } @else if (record(); as record) {
+      <!-- Paciente -->
+      <div class="patient">
+        <div class="patient-icon" [class.gato]="record.especie === 'gato'" aria-hidden="true">
+          <ion-icon name="paw"></ion-icon>
+        </div>
+        <div class="patient-info">
+          <strong>{{ record.nombre }}</strong>
+          <span>{{ record.especie | titlecase }}{{ record.raza ? ' · ' + record.raza : '' }}</span>
+        </div>
+      </div>
+      <div class="patient-facts">
+        <div class="fact">
+          <span class="fact-label">Edad</span>
+          <span class="fact-value">{{ formatAge(record.edad_meses) }}</span>
+        </div>
+        <div class="fact">
+          <span class="fact-label">Peso</span>
+          <span class="fact-value">{{ record.peso_kg !== null && record.peso_kg !== undefined ? record.peso_kg + ' kg' : 'Sin dato' }}</span>
+        </div>
+      </div>
+
+      <!-- Cartilla de vacunación -->
+      <h3 class="block-title">
+        <ion-icon name="medkit-outline" aria-hidden="true"></ion-icon>
+        Vacunas ({{ record.vacunas.length }})
+      </h3>
+      @if (record.vacunas.length === 0) {
+        <p class="empty">Sin vacunas registradas por el dueño.</p>
+      }
+      @for (v of record.vacunas; track v.id) {
+        <div class="item">
+          <div class="item-main">
+            <strong>{{ v.nombre }}</strong>
+            <span>{{ vaccineDates(v) }}</span>
+          </div>
+          <app-vaccination-badge [status]="statusOf(v)"></app-vaccination-badge>
+        </div>
+      }
+
+      <!-- Historial de diagnósticos -->
+      <h3 class="block-title">
+        <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+        Historial de diagnósticos ({{ record.diagnosticos.length }})
+      </h3>
+      @if (record.diagnosticos.length === 0) {
+        <p class="empty">Sin diagnósticos previos guardados.</p>
+      }
+      @for (d of record.diagnosticos; track d.id) {
+        <div class="item">
+          <div class="item-main">
+            <strong>{{ d.diagnostico | diagnosisLabel }}</strong>
+            <span>
+              {{ d.created_at | appDate: 'timestamp' }} · {{ d.probabilidad * 100 | number: '1.0-0' }}%
+              @if (d.diagnostico_alternativo) {
+                · Diferencial: {{ d.diagnostico_alternativo | diagnosisLabel }}
+              }
+            </span>
+          </div>
+          <app-severity-badge [gravedad]="d.gravedad"></app-severity-badge>
+        </div>
+      }
+    }
+  </div>
+</div>

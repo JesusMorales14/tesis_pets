@@ -1,0 +1,126 @@
+:host {
+  display: block;
+}
+
+.section { padding: 20px 0 0; }
+
+.section-label {
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.7px; color: var(--ion-color-medium); margin: 0 0 10px;
+}
+
+.pending-count {
+  display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;
+  min-width: 20px; height: 20px; padding: 0 5px; margin-left: 6px;
+  border-radius: 10px; background: #c0392b; color: #fff;
+  font-size: 11px; font-weight: 800;
+}
+
+.pending-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  .section-label { margin: 0; }
+}
+
+.pending-title {
+  display: flex; align-items: center; min-width: 0; white-space: nowrap;
+  .pending-count { margin-left: 6px; }
+  @media (max-width: 419px) { .label-long { display: none; } }
+}
+
+.carousel-nav { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+.carousel-position {
+  font-size: 12px; font-weight: 700; color: var(--ion-color-medium);
+  font-variant-numeric: tabular-nums;
+}
+
+.carousel-arrow {
+  display: none; align-items: center; justify-content: center;
+  width: 30px; height: 30px; padding: 0; border-radius: 50%;
+  border: 1.5px solid var(--app-border); background: var(--app-surface);
+  color: var(--ion-text-color); cursor: pointer;
+  ion-icon { font-size: 16px; }
+  &:disabled { opacity: 0.35; cursor: default; }
+  @media (hover: hover) { display: inline-flex; }
+}
+
+.queue-btn {
+  width: 100%; display: flex; align-items: center; gap: 10px;
+  margin: 10px 0 4px; padding: 10px 12px 10px 14px; border-radius: 12px;
+  border: 1.5px dashed #d68910; background: rgba(214, 137, 16, 0.08);
+  color: #b9770e; font-family: inherit; cursor: pointer; text-align: left;
+  ion-icon { font-size: 18px; flex-shrink: 0; }
+  .queue-chevron { margin-left: auto; font-size: 16px; }
+  &:hover { background: rgba(214, 137, 16, 0.14); }
+}
+
+.queue-text {
+  display: flex; flex-direction: column; gap: 1px; min-width: 0;
+  strong { font-size: 13px; font-weight: 700; }
+  small { font-size: 11px; font-weight: 500; color: var(--ion-color-medium); }
+}
+
+.pending-track {
+  display: flex; gap: 12px;
+  overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory; scroll-padding: 0 2px;
+  // Aire para que la sombra de las tarjetas no se corte.
+  padding: 10px 2px 14px; margin: 0 -2px;
+  scrollbar-width: thin;
+
+  .payment-review-card {
+    // Casi todo el ancho, dejando asomar ~28px de la siguiente para que se
+    // note que hay más (en porcentaje, en pantallas angostas quedaba estrecha).
+    flex: 0 0 calc(100% - 28px);
+    margin-bottom: 0;
+    scroll-snap-align: start;
+    @media (min-width: 768px) { flex-basis: 380px; }
+    &:only-child { flex-basis: 100%; }
+  }
+}
+
+
+.carousel-arrow,
+.queue-btn {
+  &:focus-visible {
+    outline: 3px solid var(--ion-color-primary);
+    outline-offset: 2px;
+  }
+}
+
+// Esqueleto con la misma silueta que la tarjeta real.
+.skeleton-card {
+  display: flex;
+  gap: 12px;
+  background: var(--app-surface);
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 2px 12px var(--app-shadow);
+}
+
+.sk-thumb {
+  width: 72px;
+  height: 96px;
+  border-radius: 10px;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.sk-lines {
+  flex: 1;
+}
+
+.sk-60 {
+  width: 60%;
+  height: 13px;
+}
+
+.sk-40 {
+  width: 40%;
+  height: 12px;
+}
+
+.sk-50 {
+  width: 50%;
+  height: 12px;
+}

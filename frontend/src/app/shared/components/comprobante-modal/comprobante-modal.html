@@ -1,5 +1,5 @@
 <!-- Solo el contenido del modal (sin overlay), para usar dentro de <ion-modal> -->
-<div class="comprobante-modal-container" (click)="$event.stopPropagation()">
+<div class="comprobante-modal-container" role="dialog" aria-modal="true" aria-label="Comprobante de pago">
   <!-- Header -->
   <div class="modal-header">
     <div class="modal-title">
@@ -24,13 +24,16 @@
     <!-- Visor de imagen a pantalla completa -->
     <div class="comprobante-viewer" [class.expanded]="isFullscreen">
       @if (appointment().comprobante_url && !imageError) {
-        <img
-          [src]="getImageUrl()"
-          alt="Comprobante de pago"
+        <button
+          type="button"
+          class="viewer-toggle"
+          [attr.aria-pressed]="isFullscreen"
+          [attr.aria-label]="isFullscreen ? 'Reducir comprobante' : 'Ampliar comprobante'"
           (click)="toggleFullscreen()"
-          (error)="onImageError()"
-        />
-        <div class="view-hint">
+        >
+          <img [src]="getImageUrl()" alt="Comprobante de pago" (error)="onImageError()" />
+        </button>
+        <div class="view-hint" aria-hidden="true">
           <ion-icon [name]="isFullscreen ? 'contract-outline' : 'expand-outline'"></ion-icon>
           <span>{{ isFullscreen ? 'Toca para reducir' : 'Toca para ampliar' }}</span>
         </div>

@@ -1,0 +1,40 @@
+<h3 class="pet-subsection-title">
+  <ion-icon name="medkit-outline" aria-hidden="true"></ion-icon>
+  <span>Vacunas</span>
+</h3>
+
+@for (v of vaccinations(); track v.id) {
+<div class="vax-entry">
+  <div class="vax-entry-left">
+    <div class="vax-name">{{ v.nombre }}</div>
+    <div class="vax-dates">
+      @if (v.estado === 'aplicada' && v.fecha_aplicacion) {
+      Aplicada {{ v.fecha_aplicacion | appDate }}
+      } @else if (v.estado === 'programada' && v.fecha_programada) {
+      Programada {{ v.fecha_programada | appDate }}
+      } @else {
+      Fecha no disponible
+      }
+      @if (v.fecha_proxima) {
+      · Refuerzo {{ v.fecha_proxima | appDate }}
+      }
+    </div>
+  </div>
+  <app-vaccination-badge [status]="statusOf(v)"></app-vaccination-badge>
+  <button
+    type="button"
+    class="vax-delete-btn"
+    [attr.aria-label]="'Eliminar vacuna ' + v.nombre"
+    (click)="remove.emit(v)"
+  >
+    <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+  </button>
+</div>
+} @empty {
+<app-empty-state variant="small" [message]="petName() + ' todavía no tiene vacunas registradas'"></app-empty-state>
+}
+
+<button type="button" class="add-vax-btn" (click)="add.emit()">
+  <ion-icon name="add-circle-outline" aria-hidden="true"></ion-icon>
+  <span>Registrar vacuna</span>
+</button>

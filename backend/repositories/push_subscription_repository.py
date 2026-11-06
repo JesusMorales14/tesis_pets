@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from database import get_db
+from core.database import get_db
 from models import PushSubscription
 
 
@@ -19,7 +19,8 @@ class PushSubscriptionRepository:
 
     def delete_by_endpoint_and_user(self, endpoint: str, user_id: int) -> None:
         self.db.query(PushSubscription).filter(
-            PushSubscription.endpoint == endpoint, PushSubscription.user_id == user_id,
+            PushSubscription.endpoint == endpoint,
+            PushSubscription.user_id == user_id,
         ).delete()
 
     def commit(self) -> None:

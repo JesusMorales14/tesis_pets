@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Estos tests existen porque el dataset tuvo bugs reales de este tipo
 exacto: columnas de síntomas mal asignadas hacían que dos enfermedades
@@ -8,7 +7,9 @@ rompía la validación del endpoint /predict. Si alguien edita
 dataset.csv y reintroduce alguno de estos problemas, estos tests deben
 fallar antes de que llegue a producción.
 """
+
 import os
+
 import pandas as pd
 import pytest
 

@@ -1,7 +1,7 @@
 import { Component, effect, inject, input, output, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, Platform } from '@ionic/angular';
-import { Appointment } from '@core/services/appointment';
+import { Appointment } from '@core/models/appointment';
 import { environment } from '../../../../environments/environment';
 
 @Component({

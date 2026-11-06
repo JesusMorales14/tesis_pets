@@ -1,0 +1,51 @@
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+
+
+  .species-label {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.75);
+    margin: 0 0 4px;
+  }
+
+  .species-name {
+    font-size: 26px;
+    font-weight: 800;
+    color: #ffffff;
+    margin: 0;
+  }
+
+  .species-counter {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+    padding: 10px 18px;
+
+    .counter-number {
+      font-size: 28px;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1;
+    }
+
+    .counter-label {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+  }
+}
+
+
+:host(.blue) {
+  background: linear-gradient(135deg, #2f6df6 0%, #185fa5 100%);
+}
+
+:host(.teal) {
+  background: linear-gradient(135deg, #0f6e56 0%, #0a4d3c 100%);
+}
+

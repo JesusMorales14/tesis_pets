@@ -1,0 +1,65 @@
+:host {
+  display: block;
+}
+
+.section-label {
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.7px; color: var(--ion-color-medium); margin: 0 0 10px;
+}
+
+.payment-card {
+  display: flex; align-items: center; gap: 14px; background: var(--app-surface);
+  border-radius: 16px; padding: 16px; margin-bottom: 10px;
+  box-shadow: 0 2px 12px var(--app-shadow); border: 2px solid transparent;
+  cursor: pointer; transition: all 0.2s;
+  &.selected { border-color: var(--ion-color-primary); background: rgba(47,109,246,0.04); }
+  &:active { transform: scale(0.99); }
+}
+
+.payment-logo {
+  width: 48px; height: 48px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  ion-icon { font-size: 24px; color: #fff; }
+}
+
+.yape-logo { background: linear-gradient(135deg, #7b2ff7 0%, #5a00c8 100%); }
+
+.card-logo  { background: linear-gradient(135deg, #1a56db 0%, #0d47a1 100%); }
+
+.wallet-logo {
+  background: transparent;
+  width: auto;
+  gap: 6px;
+  padding: 0 4px;
+}
+
+.billetera-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.payment-info {
+  flex: 1;
+  strong { display: block; font-size: 14px; font-weight: 700; color: var(--ion-text-color); }
+  .payment-desc { font-size: 12px; color: var(--ion-color-medium); margin: 2px 0 0; }
+}
+
+.check-icon { font-size: 22px; color: var(--ion-color-primary); }
+
+.payment-card {
+  width: 100%;
+  font: inherit;
+  text-align: left;
+
+  &:focus-visible {
+    outline: 3px solid var(--ion-color-primary);
+    outline-offset: 2px;
+  }
+}
+
+.payment-desc {
+  display: block;
+}

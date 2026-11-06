@@ -1,80 +1,81 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
-
-import { FormsModule } from '@angular/forms';
 import { AuthService } from '@core/services/auth';
-import { ThemeService } from '@core/services/theme';
+import { navigateAfterAuth } from '@core/utils/auth-redirect';
+import { getApiErrorMessage } from '@core/utils/http-error';
+import { PASSWORD_MIN_LENGTH, passwordMatchValidator } from '@shared/validators/password-match.validator';
 
+/** Registro de cuenta con consentimiento expreso (Ley N.° 29733). */
 @Component({
   selector: 'app-register',
   templateUrl: './register.html',
   styleUrls: ['./register.scss'],
   standalone: true,
-  imports: [IonicModule, FormsModule, RouterLink],
+  imports: [IonicModule, ReactiveFormsModule, RouterLink],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RegisterComponent {
-  private auth = inject(AuthService);
-  private router = inject(Router);
-  themeService = inject(ThemeService);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly fb = inject(NonNullableFormBuilder);
 
-  nombre = '';
-  email = '';
-  password = '';
-  confirmPassword = '';
-  adminCode = '';
-  showPassword = false;
-  showAdminCode = false;
-  acceptedPrivacy = false;
-  isLoading = false;
-  errorMsg = '';
+  protected readonly minLength = PASSWORD_MIN_LENGTH;
+  protected readonly form = this.fb.group(
+    {
+      nombre: ['', [Validators.required, Validators.maxLength(100)]],
+      email: ['', [Validators.required, Validators.email]],
+      newPassword: ['', [Validators.required, Validators.minLength(PASSWORD_MIN_LENGTH)]],
+      confirmPassword: ['', Validators.required],
+      adminCode: [''],
+      acceptedPrivacy: [false, Validators.requiredTrue],
+    },
+    { validators: passwordMatchValidator() },
+  );
+  protected readonly showPassword = signal(false);
+  protected readonly showAdminCode = signal(false);
+  protected readonly isLoading = signal(false);
+  protected readonly errorMsg = signal('');
+  protected readonly navState = history.state;
 
-  togglePassword() { this.showPassword = !this.showPassword; }
-  toggleAdminCode() { this.showAdminCode = !this.showAdminCode; }
+  protected invalid(control: keyof typeof this.form.controls): boolean {
+    const c = this.form.controls[control];
+    return c.touched && c.invalid;
+  }
 
-  register() {
-    if (!this.nombre.trim() || !this.email.trim() || !this.password) {
-      this.errorMsg = 'Por favor completa todos los campos';
+  protected submit(): void {
+    const message = this.validationMessage();
+    if (message) {
+      this.form.markAllAsTouched();
+      this.errorMsg.set(message);
       return;
     }
-    if (this.password !== this.confirmPassword) {
-      this.errorMsg = 'Las contraseñas no coinciden';
-      return;
-    }
-    if (this.password.length < 6) {
-      this.errorMsg = 'La contraseña debe tener al menos 6 caracteres';
-      return;
-    }
-    if (!this.acceptedPrivacy) {
-      this.errorMsg = 'Debes aceptar la Política de Privacidad para continuar';
-      return;
-    }
-    this.isLoading = true;
-    this.errorMsg = '';
-    this.auth.register(
-      this.nombre.trim(), this.email.trim(), this.password, this.adminCode, this.acceptedPrivacy,
-    ).subscribe({
+    const { nombre, email, newPassword, adminCode, acceptedPrivacy } = this.form.getRawValue();
+    this.isLoading.set(true);
+    this.errorMsg.set('');
+    this.auth.register(nombre.trim(), email.trim(), newPassword, adminCode, acceptedPrivacy).subscribe({
       next: () => {
-        this.isLoading = false;
-        const state = history.state;
-        // Sin una pantalla a la que volver, cada rol entra a su vista
-        // principal: el veterinario a su panel, el dueño al inicio.
-        const returnTo = state?.returnTo || (this.auth.isAdmin ? '/admin' : '/tabs/tab1');
-        const returnState = state?.returnState;
-        this.router.navigate([returnTo], returnState ? { state: returnState } : {});
+        this.isLoading.set(false);
+        void navigateAfterAuth(this.router, this.auth.isAdmin);
       },
       error: (err) => {
-        this.errorMsg = err?.error?.detail || 'Error al registrarse';
-        this.isLoading = false;
+        this.isLoading.set(false);
+        this.errorMsg.set(getApiErrorMessage(err, 'Error al registrarse'));
       },
     });
   }
 
-  goToLogin() {
-    this.router.navigate(['/login'], { state: history.state });
-  }
-
-  goBack() {
-    this.router.navigate(['/tabs/tab1']);
+  /** Primer problema del formulario, con el mismo orden y texto de antes. */
+  private validationMessage(): string | null {
+    const c = this.form.controls;
+    if (c.nombre.invalid || c.email.hasError('required') || c.newPassword.hasError('required')) {
+      return 'Por favor completa todos los campos';
+    }
+    if (c.email.invalid) return 'Ingresa un correo electrónico válido';
+    if (this.form.hasError('passwordMismatch') || c.confirmPassword.invalid) return 'Las contraseñas no coinciden';
+    if (c.newPassword.invalid) return `La contraseña debe tener al menos ${PASSWORD_MIN_LENGTH} caracteres`;
+    if (c.acceptedPrivacy.invalid) return 'Debes aceptar la Política de Privacidad para continuar';
+    return null;
   }
 }

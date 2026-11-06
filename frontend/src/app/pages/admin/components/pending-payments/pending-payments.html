@@ -1,0 +1,91 @@
+<section class="section" aria-labelledby="pending-title">
+  <div class="pending-header">
+    <h2 class="section-label pending-title" id="pending-title">
+      <span>Pagos pendientes<span class="label-long"> de revisión</span></span>
+      @if (payments().length > 0) {
+      <span class="pending-count" [attr.aria-label]="payments().length + ' pendientes'">{{ payments().length }}</span>
+      }
+    </h2>
+    @if (payments().length > 1) {
+    <div class="carousel-nav">
+      <span class="carousel-position" aria-live="polite">{{ carouselIndex() + 1 }} de {{ payments().length }}</span>
+      <button
+        type="button"
+        class="carousel-arrow"
+        aria-label="Comprobante anterior"
+        [disabled]="carouselIndex() === 0"
+        (click)="scrollCarousel(track, -1)"
+      >
+        <ion-icon name="chevron-back-outline" aria-hidden="true"></ion-icon>
+      </button>
+      <button
+        type="button"
+        class="carousel-arrow"
+        aria-label="Comprobante siguiente"
+        [disabled]="carouselIndex() >= payments().length - 1"
+        (click)="scrollCarousel(track, 1)"
+      >
+        <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon>
+      </button>
+    </div>
+    }
+  </div>
+
+  @if (payments().length > 1) {
+  <button type="button" class="queue-btn" (click)="startQueue()">
+    <ion-icon name="layers-outline" aria-hidden="true"></ion-icon>
+    <span class="queue-text">
+      <strong>Revisar uno por uno ({{ payments().length }})</strong>
+      <small>Primero las citas más próximas</small>
+    </span>
+    <ion-icon name="chevron-forward-outline" class="queue-chevron" aria-hidden="true"></ion-icon>
+  </button>
+  }
+
+  <div class="pending-track" role="list" #track (scroll)="onCarouselScroll(track)">
+    @if (isLoading()) {
+    @for (i of [1, 2]; track i) {
+    <div class="payment-review-card skeleton-card" aria-hidden="true">
+      <ion-skeleton-text [animated]="true" class="sk-thumb"></ion-skeleton-text>
+      <div class="sk-lines">
+        <ion-skeleton-text [animated]="true" class="sk-60"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" class="sk-40"></ion-skeleton-text>
+        <ion-skeleton-text [animated]="true" class="sk-50"></ion-skeleton-text>
+      </div>
+    </div>
+    }
+    }
+    @for (p of payments(); track p.id) {
+    <app-pending-payment-card [payment]="p" (review)="open($event)"></app-pending-payment-card>
+    }
+  </div>
+
+  @if (!isLoading() && payments().length === 0) {
+  <app-empty-state icon="checkmark-done-outline" message="No hay comprobantes esperando revisión"></app-empty-state>
+  }
+</section>
+
+<ion-modal
+  [isOpen]="!!selected()"
+  (didDismiss)="onModalDismiss()"
+  [canDismiss]="!decidingId()"
+  class="comprobante-modal"
+  [backdropDismiss]="true"
+  [keyboardClose]="true"
+>
+  <ng-template>
+    @if (selected(); as appt) {
+    <app-comprobante-modal
+      [appointment]="appt"
+      [showActions]="appt.pago_estado === 'pendiente'"
+      [progressLabel]="queueLabel()"
+      [onApprove]="approve"
+      [onReject]="reject"
+      [isProcessing]="decidingId() === appt.id"
+      approveText="Aprobar"
+      rejectText="Rechazar"
+      (closeModalEvent)="onModalDismiss()"
+    ></app-comprobante-modal>
+    }
+  </ng-template>
+</ion-modal>

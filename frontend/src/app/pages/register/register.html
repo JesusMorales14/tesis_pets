@@ -1,102 +1,141 @@
 <ion-content class="auth-content">
-  <div class="auth-wrap">
-
+  <main class="auth-wrap">
     <div class="auth-topbar">
-      <button class="back-btn" (click)="goBack()">
-        <ion-icon name="arrow-back-outline"></ion-icon>
-      </button>
+      <a class="back-btn" routerLink="/tabs/tab1" routerDirection="back">
+        <ion-icon name="arrow-back-outline" aria-hidden="true"></ion-icon>
+        <span class="visually-hidden">Volver al inicio</span>
+      </a>
     </div>
 
     <div class="auth-hero">
-      <div class="auth-logo">
+      <div class="auth-logo" aria-hidden="true">
         <ion-icon name="paw"></ion-icon>
       </div>
       <h1>Crear cuenta</h1>
       <p>Regístrate para reservar citas veterinarias</p>
     </div>
 
-    <div class="auth-card">
-
+    <form class="auth-card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
       <div class="form-group">
-        <label class="form-label">Nombre completo</label>
+        <label class="form-label" for="reg-nombre">Nombre completo</label>
         <div class="input-wrap">
-          <ion-icon name="person-outline" class="input-icon"></ion-icon>
-          <input type="text" class="form-input" [(ngModel)]="nombre" placeholder="Tu nombre" autocomplete="name" />
+          <ion-icon name="person-outline" class="input-icon" aria-hidden="true"></ion-icon>
+          <input
+            id="reg-nombre"
+            type="text"
+            class="form-input"
+            formControlName="nombre"
+            placeholder="Tu nombre"
+            autocomplete="name"
+            [attr.aria-invalid]="invalid('nombre')"
+          />
         </div>
       </div>
 
       <div class="form-group">
-        <label class="form-label">Correo electrónico</label>
+        <label class="form-label" for="reg-email">Correo electrónico</label>
         <div class="input-wrap">
-          <ion-icon name="mail-outline" class="input-icon"></ion-icon>
-          <input type="email" class="form-input" [(ngModel)]="email" placeholder="ejemplo@correo.com" autocomplete="email" />
+          <ion-icon name="mail-outline" class="input-icon" aria-hidden="true"></ion-icon>
+          <input
+            id="reg-email"
+            type="email"
+            class="form-input"
+            formControlName="email"
+            placeholder="ejemplo@correo.com"
+            autocomplete="email"
+            inputmode="email"
+            [attr.aria-invalid]="invalid('email')"
+          />
         </div>
       </div>
 
       <div class="form-group">
-        <label class="form-label">Contraseña</label>
+        <label class="form-label" for="reg-password">Contraseña</label>
         <div class="input-wrap">
-          <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
-          <input [type]="showPassword ? 'text' : 'password'" class="form-input" [(ngModel)]="password" placeholder="Mínimo 6 caracteres" />
-          <button class="eye-btn" (click)="togglePassword()" type="button">
-            <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+          <ion-icon name="lock-closed-outline" class="input-icon" aria-hidden="true"></ion-icon>
+          <input
+            id="reg-password"
+            [type]="showPassword() ? 'text' : 'password'"
+            class="form-input"
+            formControlName="newPassword"
+            [placeholder]="'Mínimo ' + minLength + ' caracteres'"
+            autocomplete="new-password"
+            [attr.aria-invalid]="invalid('newPassword')"
+          />
+          <button type="button" class="eye-btn" [attr.aria-pressed]="showPassword()" (click)="showPassword.set(!showPassword())">
+            <ion-icon [name]="showPassword() ? 'eye-off-outline' : 'eye-outline'" aria-hidden="true"></ion-icon>
+            <span class="visually-hidden">Mostrar contraseñas</span>
           </button>
         </div>
       </div>
 
       <div class="form-group">
-        <label class="form-label">Confirmar contraseña</label>
+        <label class="form-label" for="reg-confirm">Confirmar contraseña</label>
         <div class="input-wrap">
-          <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
-          <input [type]="showPassword ? 'text' : 'password'" class="form-input" [(ngModel)]="confirmPassword" placeholder="Repite tu contraseña" />
+          <ion-icon name="lock-closed-outline" class="input-icon" aria-hidden="true"></ion-icon>
+          <input
+            id="reg-confirm"
+            [type]="showPassword() ? 'text' : 'password'"
+            class="form-input"
+            formControlName="confirmPassword"
+            placeholder="Repite tu contraseña"
+            autocomplete="new-password"
+            [attr.aria-invalid]="form.controls.confirmPassword.touched && form.hasError('passwordMismatch')"
+          />
         </div>
       </div>
 
       <div class="form-group">
-        <label class="form-label admin-label">
-          <ion-icon name="shield-outline"></ion-icon>
+        <label class="form-label admin-label" for="reg-admin">
+          <ion-icon name="shield-outline" aria-hidden="true"></ion-icon>
           Código de administrador
           <span class="optional-tag">Opcional</span>
         </label>
         <div class="input-wrap">
-          <ion-icon name="key-outline" class="input-icon"></ion-icon>
-          <input [type]="showAdminCode ? 'text' : 'password'" class="form-input" [(ngModel)]="adminCode" placeholder="Solo si eres veterinario/admin" />
-          <button class="eye-btn" (click)="toggleAdminCode()" type="button">
-            <ion-icon [name]="showAdminCode ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+          <ion-icon name="key-outline" class="input-icon" aria-hidden="true"></ion-icon>
+          <input
+            id="reg-admin"
+            [type]="showAdminCode() ? 'text' : 'password'"
+            class="form-input"
+            formControlName="adminCode"
+            placeholder="Solo si eres veterinario/admin"
+            autocomplete="off"
+          />
+          <button type="button" class="eye-btn" [attr.aria-pressed]="showAdminCode()" (click)="showAdminCode.set(!showAdminCode())">
+            <ion-icon [name]="showAdminCode() ? 'eye-off-outline' : 'eye-outline'" aria-hidden="true"></ion-icon>
+            <span class="visually-hidden">Mostrar código de administrador</span>
           </button>
         </div>
       </div>
 
       <label class="privacy-check">
-        <input type="checkbox" [(ngModel)]="acceptedPrivacy" />
+        <input type="checkbox" formControlName="acceptedPrivacy" [attr.aria-invalid]="invalid('acceptedPrivacy')" />
         <span>
           He leído y acepto la
-          <a routerLink="/privacy-policy" target="_blank" rel="noopener">Política de Privacidad</a>
+          <a routerLink="/privacy-policy" target="_blank" rel="noopener noreferrer">Política de Privacidad</a>
         </span>
       </label>
 
-      @if (errorMsg) {
-        <div class="error-banner">
-          <ion-icon name="alert-circle-outline"></ion-icon>
-          {{ errorMsg }}
-        </div>
+      @if (errorMsg()) {
+      <div class="error-banner" role="alert">
+        <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+        {{ errorMsg() }}
+      </div>
       }
 
-      <button class="auth-btn" (click)="register()" [disabled]="isLoading">
-        @if (isLoading) {
-          <ion-spinner name="crescent"></ion-spinner>
+      <button type="submit" class="auth-btn" [disabled]="isLoading()">
+        @if (isLoading()) {
+        <ion-spinner name="crescent" aria-hidden="true"></ion-spinner>
+        } @else {
+        <ion-icon name="person-add-outline" aria-hidden="true"></ion-icon>
         }
-        @if (!isLoading) {
-          <ion-icon name="person-add-outline"></ion-icon>
-        }
-        <span>{{ isLoading ? 'Creando cuenta…' : 'Crear cuenta' }}</span>
+        <span>{{ isLoading() ? 'Creando cuenta…' : 'Crear cuenta' }}</span>
       </button>
-    </div>
+    </form>
 
     <div class="auth-footer">
       <p>¿Ya tienes cuenta?</p>
-      <button class="link-btn" (click)="goToLogin()">Iniciar sesión</button>
+      <a class="link-btn" routerLink="/login" [state]="navState">Iniciar sesión</a>
     </div>
-
-  </div>
+  </main>
 </ion-content>

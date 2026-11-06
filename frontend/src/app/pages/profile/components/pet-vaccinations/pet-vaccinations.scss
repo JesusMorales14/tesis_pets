@@ -1,0 +1,92 @@
+:host {
+  padding: 0 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pet-subsection-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ion-color-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding-top: 10px;
+  border-top: 1px solid var(--app-border);
+  ion-icon {
+    font-size: 14px;
+  }
+}
+
+.vax-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--app-surface-alt);
+}
+
+.vax-entry-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.vax-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ion-text-color);
+}
+
+.vax-dates {
+  font-size: 10.5px;
+  color: var(--ion-color-medium);
+  margin-top: 1px;
+}
+
+.vax-delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #c0392b;
+  cursor: pointer;
+  flex-shrink: 0;
+  ion-icon {
+    font-size: 15px;
+  }
+}
+
+.add-vax-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px;
+  border-radius: 10px;
+  border: 1.5px dashed var(--app-border);
+  background: transparent;
+  color: var(--ion-color-primary);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pet-subsection-title {
+  margin: 0;
+}
+
+.vax-delete-btn,
+.add-vax-btn {
+  &:focus-visible {
+    outline: 3px solid var(--ion-color-primary);
+    outline-offset: 2px;
+  }
+}

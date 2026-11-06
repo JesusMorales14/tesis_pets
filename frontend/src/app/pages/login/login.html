@@ -1,78 +1,83 @@
 <ion-content class="auth-content">
-  <div class="auth-wrap">
-
-    <!-- Header con botón atrás -->
+  <main class="auth-wrap">
     <div class="auth-topbar">
-      <button class="back-btn" (click)="goBack()">
-        <ion-icon name="arrow-back-outline"></ion-icon>
-      </button>
+      <a class="back-btn" routerLink="/tabs/tab1" routerDirection="back">
+        <ion-icon name="arrow-back-outline" aria-hidden="true"></ion-icon>
+        <span class="visually-hidden">Volver al inicio</span>
+      </a>
     </div>
 
-    <!-- Logo / Hero -->
     <div class="auth-hero">
-      <div class="auth-logo">
+      <div class="auth-logo" aria-hidden="true">
         <ion-icon name="paw"></ion-icon>
       </div>
       <h1>Bienvenido</h1>
       <p>Inicia sesión para reservar tu cita veterinaria</p>
     </div>
 
-    <!-- Formulario -->
-    <div class="auth-card">
+    <form class="auth-card" [formGroup]="form" (ngSubmit)="submit()" novalidate>
       <div class="form-group">
-        <label class="form-label">Correo electrónico</label>
+        <label class="form-label" for="login-email">Correo electrónico</label>
         <div class="input-wrap">
-          <ion-icon name="mail-outline" class="input-icon"></ion-icon>
+          <ion-icon name="mail-outline" class="input-icon" aria-hidden="true"></ion-icon>
           <input
+            id="login-email"
             type="email"
             class="form-input"
-            [(ngModel)]="email"
+            formControlName="email"
             placeholder="ejemplo@correo.com"
             autocomplete="email"
-            />
+            inputmode="email"
+            [attr.aria-invalid]="invalid('email')"
+          />
         </div>
       </div>
 
       <div class="form-group">
-        <label class="form-label">Contraseña</label>
+        <label class="form-label" for="login-password">Contraseña</label>
         <div class="input-wrap">
-          <ion-icon name="lock-closed-outline" class="input-icon"></ion-icon>
+          <ion-icon name="lock-closed-outline" class="input-icon" aria-hidden="true"></ion-icon>
           <input
-            [type]="showPassword ? 'text' : 'password'"
+            id="login-password"
+            [type]="showPassword() ? 'text' : 'password'"
             class="form-input"
-            [(ngModel)]="password"
+            formControlName="password"
             placeholder="••••••••"
             autocomplete="current-password"
-            />
-          <button class="eye-btn" (click)="togglePassword()" type="button">
-            <ion-icon [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+            [attr.aria-invalid]="invalid('password')"
+          />
+          <button
+            type="button"
+            class="eye-btn"
+            [attr.aria-pressed]="showPassword()"
+            (click)="showPassword.set(!showPassword())"
+          >
+            <ion-icon [name]="showPassword() ? 'eye-off-outline' : 'eye-outline'" aria-hidden="true"></ion-icon>
+            <span class="visually-hidden">Mostrar contraseña</span>
           </button>
         </div>
       </div>
 
-      @if (errorMsg) {
-        <div class="error-banner">
-          <ion-icon name="alert-circle-outline"></ion-icon>
-          {{ errorMsg }}
-        </div>
+      @if (errorMsg()) {
+      <div class="error-banner" role="alert">
+        <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+        {{ errorMsg() }}
+      </div>
       }
 
-      <button class="auth-btn" (click)="login()" [disabled]="isLoading">
-        @if (isLoading) {
-          <ion-spinner name="crescent"></ion-spinner>
+      <button type="submit" class="auth-btn" [disabled]="isLoading()">
+        @if (isLoading()) {
+        <ion-spinner name="crescent" aria-hidden="true"></ion-spinner>
+        } @else {
+        <ion-icon name="log-in-outline" aria-hidden="true"></ion-icon>
         }
-        @if (!isLoading) {
-          <ion-icon name="log-in-outline"></ion-icon>
-        }
-        <span>{{ isLoading ? 'Iniciando sesión…' : 'Iniciar sesión' }}</span>
+        <span>{{ isLoading() ? 'Iniciando sesión…' : 'Iniciar sesión' }}</span>
       </button>
-    </div>
+    </form>
 
-    <!-- Enlace a registro -->
     <div class="auth-footer">
       <p>¿No tienes cuenta?</p>
-      <button class="link-btn" (click)="goToRegister()">Regístrate aquí</button>
+      <a class="link-btn" routerLink="/register" [state]="navState">Regístrate aquí</a>
     </div>
-
-  </div>
+  </main>
 </ion-content>

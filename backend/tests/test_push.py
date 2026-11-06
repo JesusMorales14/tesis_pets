@@ -1,22 +1,22 @@
-# -*- coding: utf-8 -*-
 """
 Prueba el registro de suscripciones push (Web Push / VAPID). No prueba el
 envío real (requeriría un endpoint push real de un navegador); prueba que
 el backend guarda/borra suscripciones correctamente por usuario.
 """
+
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
 from sqlalchemy import create_engine  # noqa: E402
 from sqlalchemy.orm import sessionmaker  # noqa: E402
 from sqlalchemy.pool import StaticPool  # noqa: E402
-from fastapi.testclient import TestClient  # noqa: E402
 
+from core.database import get_db  # noqa: E402
 from main import app  # noqa: E402
-from database import get_db  # noqa: E402
 from models import Base, PushSubscription  # noqa: E402
 
 
@@ -59,9 +59,14 @@ def test_get_vapid_public_key_is_public(client):
 
 def test_subscribe_requires_authentication(client):
     test_client, _ = client
-    r = test_client.post("/push/subscribe", json={
-        "endpoint": "https://push.example.com/abc", "p256dh": "key1", "auth": "auth1",
-    })
+    r = test_client.post(
+        "/push/subscribe",
+        json={
+            "endpoint": "https://push.example.com/abc",
+            "p256dh": "key1",
+            "auth": "auth1",
+        },
+    )
     assert r.status_code == 401
 
 
@@ -156,7 +161,8 @@ def test_test_notification_requires_an_active_subscription(client, monkeypatch):
 
 def test_notification_content_is_readable():
     from types import SimpleNamespace
-    import notifications
+
+    from infrastructure.push import messages as notifications
 
     appt = SimpleNamespace(id=7, fecha="2026-10-27", hora="10:00", pet_nombre="Firulais", especie="perro")
     n = notifications.pago_aprobado(appt)
@@ -168,9 +174,12 @@ def test_notification_content_is_readable():
 
 # ── Envío real (pywebpush) ─────────────────────────────────────────────────
 
+
 def test_send_push_uses_a_valid_vapid_key(monkeypatch):
-    import push_utils
     from py_vapid import Vapid01
+
+    from infrastructure.push import web_push as push_utils
+
     seen = {}
     monkeypatch.setattr(push_utils, "webpush", lambda **kw: seen.update(kw))
     assert push_utils.send_push({"endpoint": "https://x", "keys": {}}, {"title": "t"}) is True
@@ -179,16 +188,19 @@ def test_send_push_uses_a_valid_vapid_key(monkeypatch):
 
 
 def test_push_failures_never_break_the_caller(monkeypatch):
-    import push_utils
     from pywebpush import WebPushException
+
+    from infrastructure.push import web_push as push_utils
 
     def boom(**kw):
         raise RuntimeError("red caída")
+
     monkeypatch.setattr(push_utils, "webpush", boom)
     assert push_utils.send_push({"endpoint": "https://x", "keys": {}}, {}) is True
 
     def rejected(**kw):
         raise WebPushException("clave distinta", response=type("R", (), {"status_code": 403})())
+
     monkeypatch.setattr(push_utils, "webpush", rejected)
     # 403 (otra clave VAPID): la suscripción ya no sirve y se descarta.
     assert push_utils.send_push({"endpoint": "https://x", "keys": {}}, {}) is False
@@ -196,6 +208,7 @@ def test_push_failures_never_break_the_caller(monkeypatch):
 
 def test_env_private_key_in_one_line_is_accepted():
     from py_vapid import Vapid
+
     v = Vapid()
     v.generate_keys()
     one_line = v.private_pem().decode().strip().replace("\n", "\n")

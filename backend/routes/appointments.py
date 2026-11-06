@@ -3,8 +3,8 @@ from typing import Optional
 from fastapi import APIRouter, Depends, File, Form, UploadFile
 
 from models import User
+from routes.dependencies import get_current_user
 from schemas.appointment import AppointmentBody
-from services.auth_service import get_current_user
 from services.appointment_service import AppointmentService, get_appointment_service
 
 router = APIRouter(tags=["appointments"])
@@ -58,7 +58,8 @@ def my_appointments(
 
 @router.post("/appointments/{appt_id}/comprobante")
 async def upload_comprobante(
-    appt_id: int, file: UploadFile = File(...),
+    appt_id: int,
+    file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     service: AppointmentService = Depends(get_appointment_service),
 ):

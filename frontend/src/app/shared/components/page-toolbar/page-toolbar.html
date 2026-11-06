@@ -1,0 +1,25 @@
+<ion-toolbar class="custom-toolbar">
+  @if (backLink(); as link) {
+  <ion-buttons slot="start">
+    <!-- Nombre accesible como texto oculto: ion-button observa aria-label y
+         falla si el atributo cambia antes de que el componente se hidrate. -->
+    @if (handleBack()) {
+    <ion-button fill="clear" (click)="back.emit()">
+      <ion-icon slot="icon-only" name="arrow-back-outline" aria-hidden="true"></ion-icon>
+      <span class="visually-hidden">{{ backLabel() }}</span>
+    </ion-button>
+    } @else {
+    <ion-button fill="clear" [routerLink]="link" routerDirection="back">
+      <ion-icon slot="icon-only" name="arrow-back-outline" aria-hidden="true"></ion-icon>
+      <span class="visually-hidden">{{ backLabel() }}</span>
+    </ion-button>
+    }
+  </ion-buttons>
+  }
+  <ion-title class="title">
+    <h1 class="title-text">{{ title() }}</h1>
+  </ion-title>
+  <ion-buttons slot="end">
+    <ng-content select="[toolbarEnd]"></ng-content>
+  </ion-buttons>
+</ion-toolbar>

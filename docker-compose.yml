@@ -1,0 +1,32 @@
+# Stack completo en local con las mismas imágenes que se publican en CD.
+#   docker compose up --build
+# Frontend: http://localhost:8080 (la API va por /api) · Docs: http://localhost:8000/docs
+services:
+  api:
+    build: ./backend
+    env_file:
+      - path: ./backend/.env
+        required: false
+    environment:
+      ENVIRONMENT: development
+      DATABASE_URL: sqlite:////app/data-volume/veterinary.db
+      CORS_ORIGINS: http://localhost:8080
+    ports:
+      - "8000:8000"
+    volumes:
+      # Base SQLite y comprobantes fuera del contenedor para no perderlos.
+      - api-data:/app/data-volume
+      - api-uploads:/app/uploads
+    restart: unless-stopped
+
+  web:
+    build: ./frontend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  api-data:
+  api-uploads:

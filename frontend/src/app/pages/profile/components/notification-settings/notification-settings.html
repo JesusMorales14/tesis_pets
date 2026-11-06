@@ -1,0 +1,54 @@
+@if (supported) {
+<app-collapsible-section heading="Notificaciones" icon="notifications-outline" [collapsible]="false">
+  <div class="notif-body">
+    <p>
+      @if (isAdmin()) {
+      Recibe un aviso en este dispositivo apenas llegue un comprobante de pago nuevo.
+      } @else {
+      Recibe en este dispositivo recordatorios de tus citas, avisos de pago y de las vacunas de tus mascotas.
+      }
+    </p>
+
+    @if (permission() === 'denied') {
+    <p class="notif-denied">
+      Bloqueaste las notificaciones para este sitio. Actívalas desde la configuración de tu navegador.
+    </p>
+    } @else if (subscribed() === null) {
+    <ion-skeleton-text [animated]="true" class="sk-btn"></ion-skeleton-text>
+    } @else if (subscribed()) {
+    <div class="notif-status">
+      <ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>
+      <span>Activadas en este dispositivo</span>
+    </div>
+    <button type="button" class="notif-btn active" (click)="disable()" [disabled]="isToggling()">
+      @if (isToggling()) {
+      <ion-spinner name="crescent" aria-label="Procesando"></ion-spinner>
+      } @else {
+      <ion-icon name="notifications-off-outline" aria-hidden="true"></ion-icon>
+      }
+      <span>Desactivar notificaciones</span>
+    </button>
+    <button type="button" class="notif-test" (click)="sendTest()" [disabled]="isSendingTest()">
+      <ion-icon name="paper-plane-outline" aria-hidden="true"></ion-icon>
+      {{ isSendingTest() ? 'Enviando…' : 'Enviar notificación de prueba' }}
+    </button>
+    } @else {
+    <button type="button" class="notif-btn" (click)="enable()" [disabled]="isToggling()">
+      @if (isToggling()) {
+      <ion-spinner name="crescent" aria-label="Procesando"></ion-spinner>
+      } @else {
+      <ion-icon name="notifications-outline" aria-hidden="true"></ion-icon>
+      }
+      <span>Activar notificaciones</span>
+    </button>
+    }
+
+    @if (info()) {
+    <p class="form-msg form-msg--success" role="status">{{ info() }}</p>
+    }
+    @if (error()) {
+    <p class="form-msg form-msg--error" role="alert">{{ error() }}</p>
+    }
+  </div>
+</app-collapsible-section>
+}

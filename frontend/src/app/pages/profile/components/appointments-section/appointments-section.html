@@ -1,0 +1,49 @@
+<app-collapsible-section
+  heading="Mis citas"
+  icon="calendar-outline"
+  [count]="store.appointments().length"
+  [(expanded)]="expanded"
+>
+  @if (store.isLoadingAppointments()) {
+  @for (i of [1, 2]; track i) {
+  <div class="appt-skeleton" aria-hidden="true">
+    <ion-skeleton-text [animated]="true" class="sk-date"></ion-skeleton-text>
+    <ion-skeleton-text [animated]="true" class="sk-diag"></ion-skeleton-text>
+  </div>
+  }
+  } @else {
+  @for (a of store.appointments(); track a.id) {
+  <app-appointment-item [appointment]="a" (viewComprobante)="openComprobante($event)"></app-appointment-item>
+  } @empty {
+  <app-empty-state
+    variant="rich"
+    icon="calendar-outline"
+    heading="Aún no reservaste ninguna cita"
+    message="Cuando tengas un diagnóstico, vas a poder agendar una consulta con un click."
+  ></app-empty-state>
+  }
+  }
+
+  <a class="add-appt-btn" routerLink="/tabs/tab2">
+    <ion-icon name="pulse" aria-hidden="true"></ion-icon>
+    <span>Hacer un nuevo diagnóstico</span>
+  </a>
+</app-collapsible-section>
+
+<ion-modal
+  [isOpen]="!!selected()"
+  (didDismiss)="closeComprobante()"
+  class="comprobante-modal"
+  [backdropDismiss]="true"
+  [keyboardClose]="true"
+>
+  <ng-template>
+    @if (selected(); as appointment) {
+    <app-comprobante-modal
+      [appointment]="appointment"
+      [showActions]="false"
+      (closeModalEvent)="closeComprobante()"
+    ></app-comprobante-modal>
+    }
+  </ng-template>
+</ion-modal>

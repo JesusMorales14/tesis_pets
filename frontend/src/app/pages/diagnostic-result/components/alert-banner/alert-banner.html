@@ -1,0 +1,9 @@
+<div [class]="'alert-banner ' + variant()">
+  <ion-icon [name]="icon()" aria-hidden="true"></ion-icon>
+  <div>
+    <strong>{{ heading() }}</strong>
+    <div class="banner-body">
+      <ng-content></ng-content>
+    </div>
+  </div>
+</div>

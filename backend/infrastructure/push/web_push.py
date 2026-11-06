@@ -1,0 +1,114 @@
+"""Envío de notificaciones push (Web Push / VAPID).
+
+No depende de Firebase ni de ninguna cuenta de terceros: VAPID es un
+estándar abierto (RFC 8292) soportado nativamente por los navegadores
+(Chrome, Firefox, Edge, Safari 16.4+). Las claves deben permanecer
+estables entre reinicios — si cambian, todas las suscripciones existentes
+en los navegadores de los usuarios dejan de funcionar y deben volver a
+suscribirse.
+
+En producción, define VAPID_PRIVATE_KEY_PEM y VAPID_PUBLIC_KEY vía
+variables de entorno con un par generado para ese despliegue (ver
+.env.example). Sin esas variables (desarrollo local / tests / CI) se
+genera un par nuevo en cada arranque del proceso — las suscripciones no
+sobreviven un reinicio, pero es la única opción que no deja un par de
+claves real embebido en el código fuente público de este repositorio.
+"""
+
+import base64
+import json
+import logging
+
+from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
+from py_vapid import Vapid
+from pywebpush import WebPushException, webpush
+from sqlalchemy.orm import Session
+
+from core.config import settings
+
+logger = logging.getLogger(__name__)
+
+
+def _generate_dev_keypair() -> tuple[str, str]:
+    vapid = Vapid()
+    vapid.generate_keys()
+    private_pem = vapid.private_pem().decode()
+    public_raw = vapid.public_key.public_bytes(Encoding.X962, PublicFormat.UncompressedPoint)
+    public_b64 = base64.urlsafe_b64encode(public_raw).decode().rstrip("=")
+    return private_pem, public_b64
+
+
+_env_private = settings.vapid_private_key_pem
+_env_public = settings.vapid_public_key
+
+if _env_private and _env_public:
+    # En un .env de una sola línea los saltos del PEM se escriben como \n literal.
+    VAPID_PRIVATE_KEY_PEM = _env_private.replace("\\n", "\n")
+    VAPID_PUBLIC_KEY = _env_public
+else:
+    VAPID_PRIVATE_KEY_PEM, VAPID_PUBLIC_KEY = _generate_dev_keypair()
+    logger.warning(
+        "VAPID_PRIVATE_KEY_PEM/VAPID_PUBLIC_KEY no definidos — se genera un par nuevo para esta sesión "
+        "(las suscripciones push no sobrevivirán un reinicio)."
+    )
+
+VAPID_CLAIMS_EMAIL = settings.vapid_claims_email
+
+# pywebpush interpreta un string como clave en formato DER (no PEM) y falla
+# al leerla: se le entrega el objeto Vapid ya construido, una sola vez.
+_VAPID = Vapid.from_pem(VAPID_PRIVATE_KEY_PEM.encode())
+
+
+def send_push(subscription_info: dict, payload: dict) -> bool:
+    """Envía una notificación a una suscripción. Devuelve False si la
+    suscripción ya no es válida (el navegador la eliminó / el usuario
+    revocó el permiso) para que el llamador la borre de la base de datos."""
+    try:
+        webpush(
+            subscription_info=subscription_info,
+            data=json.dumps(payload),
+            vapid_private_key=_VAPID,
+            vapid_claims={"sub": VAPID_CLAIMS_EMAIL},
+        )
+        return True
+    except WebPushException as e:
+        status = getattr(e.response, "status_code", None)
+        # 404/410: el navegador eliminó la suscripción. 403: fue creada con
+        # otra clave VAPID (p. ej. claves regeneradas al reiniciar sin .env).
+        if status in (403, 404, 410):
+            return False
+        logger.warning("Error transitorio enviando push: %s", e)
+        return True  # error transitorio: no borrar la suscripción
+    except Exception:
+        # Una notificación fallida nunca debe romper la operación que la
+        # originó (subir un comprobante, aprobar un pago…).
+        logger.exception("Error inesperado enviando push")
+        return True
+
+
+def _send_to_subscriptions(db: Session, subs, payload: dict) -> None:
+    """Envía a cada suscripción y borra las que el navegador ya invalidó."""
+    for sub in subs:
+        still_valid = send_push(
+            {"endpoint": sub.endpoint, "keys": {"p256dh": sub.p256dh, "auth": sub.auth}},
+            payload,
+        )
+        if not still_valid:
+            db.delete(sub)
+    db.commit()
+
+
+def send_push_to_user(db: Session, user_id: int, payload: dict) -> None:
+    from models import PushSubscription
+
+    subs = db.query(PushSubscription).filter(PushSubscription.user_id == user_id).all()
+    _send_to_subscriptions(db, subs, payload)
+
+
+def send_push_to_admins(db: Session, payload: dict) -> None:
+    from domain.enums import Role
+    from models import PushSubscription, User
+
+    admin_ids = db.query(User.id).filter(User.role == Role.ADMIN)
+    subs = db.query(PushSubscription).filter(PushSubscription.user_id.in_(admin_ids)).all()
+    _send_to_subscriptions(db, subs, payload)

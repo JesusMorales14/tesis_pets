@@ -1,20 +1,22 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ModalController } from '@ionic/angular';
 
 import { NavigationEnd, Router } from '@angular/router';
-import { Subscription, filter } from 'rxjs';
+import { filter } from 'rxjs';
 import {
   AnimalCardComponent,
   AnimalCard,
-} from './animal-card/animal-card';
-import { PredictTodayComponent } from './predict-today/predict-today';
-import { PetFormModalComponent } from './pet-form-modal/pet-form-modal';
+} from './components/animal-card/animal-card';
+import { PredictTodayComponent } from './components/predict-today/predict-today';
+import { PetFormModalComponent } from '@shared/components/pet-form-modal/pet-form-modal';
 import { AuthService } from '@core/services/auth';
 import { PetService } from '@core/services/pet';
 import { PetImageService } from '@core/services/pet-image';
 import { DiagnosisFlowService } from '@core/services/diagnosis-flow';
 import { Pet, PetBody } from '@core/models/pet';
+import { ToastService } from '@core/services/toast';
 
 @Component({
   selector: 'app-pet-selection',
@@ -28,15 +30,15 @@ import { Pet, PetBody } from '@core/models/pet';
     PredictTodayComponent
 ],
 })
-export class PetSelectionComponent implements OnInit, OnDestroy {
+export class PetSelectionComponent implements OnInit {
   private router = inject(Router);
   private modalCtrl = inject(ModalController);
   auth = inject(AuthService);
   private petService = inject(PetService);
   private flow = inject(DiagnosisFlowService);
 
-  private navSubscription?: Subscription;
-  private authSub?: Subscription;
+  private toast = inject(ToastService);
+  private destroyRef = inject(DestroyRef);
 
   selectedAnimal: AnimalCard | null = null;
 
@@ -83,7 +85,7 @@ export class PetSelectionComponent implements OnInit, OnDestroy {
   // vuelve a esta pestaña, sin importar el reuso de componentes de Ionic.
   ngOnInit() {
     // Suscribirse a cambios de autenticación para limpiar/recargar datos
-    this.authSub = this.auth.user$.subscribe((user) => {
+    this.auth.user$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((user) => {
       if (user) {
         this.loadPets();
       } else {
@@ -91,18 +93,16 @@ export class PetSelectionComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.navSubscription = this.router.events
-      .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+    this.router.events
+      .pipe(
+        filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe((e) => {
         if (this.auth.isLoggedIn && e.urlAfterRedirects.startsWith('/tabs/tab2')) {
           this.loadPets();
         }
       });
-  }
-
-  ngOnDestroy() {
-    this.navSubscription?.unsubscribe();
-    this.authSub?.unsubscribe();
   }
 
   private clearPetData() {
@@ -120,12 +120,10 @@ export class PetSelectionComponent implements OnInit, OnDestroy {
         // Las imágenes van por id: se reinician para que una mascota nueva
         // nunca muestre la foto de una eliminada.
         this.petImages = {};
-        console.log('[PetSelection] Mascotas cargadas:', pets.length);
-        this.loadPetImages(pets);
+        void this.loadPetImages(pets);
       },
-      error: (err) => { 
-        this.isLoadingPets = false; 
-        console.error('[PetSelection] Error cargando mascotas:', err);
+      error: () => {
+        this.isLoadingPets = false;
       },
     });
   }
@@ -163,28 +161,14 @@ export class PetSelectionComponent implements OnInit, OnDestroy {
       this.petService.createPet(data as PetBody).subscribe({
         next: () => {
           this.loadPets();
-          this.showToast('Mascota agregada correctamente');
+          void this.toast.success('Mascota agregada correctamente');
         },
-        error: (err) => {
-          console.error('Error creating pet:', err);
-          this.showToast('Error al crear la mascota', true);
-        },
+        error: () => void this.toast.error('Error al crear la mascota'),
       });
     }
   }
 
   petIcon(pet: Pet): string {
     return pet.especie === 'gato' ? 'assets/img/cat.jpg' : 'assets/img/dog.jpg';
-  }
-
-  private showToast(message: string, isError = false) {
-    const toast = document.createElement('ion-toast');
-    toast.message = message;
-    toast.duration = 2500;
-    toast.color = isError ? 'danger' : 'success';
-    toast.position = 'bottom';
-    toast.buttons = [{ text: 'OK', role: 'cancel' }];
-    document.body.appendChild(toast);
-    toast.present();
   }
 }

@@ -1,0 +1,16 @@
+<section class="section" aria-labelledby="diag-summary-title">
+  <h2 class="section-label" id="diag-summary-title">Diagnóstico de tu mascota</h2>
+  <div class="diagnosis-card" [style.border-left-color]="borderColor()">
+    <div class="diag-left">
+      <div class="species-badge" [class.gato]="especie() === 'gato'">
+        <ion-icon [name]="especie() === 'gato' ? 'fish-outline' : 'paw-outline'" aria-hidden="true"></ion-icon>
+        <span>{{ especie() | titlecase }}</span>
+      </div>
+      <p class="diag-name">{{ diagnostico() | diagnosisLabel }}</p>
+    </div>
+    <div class="gravedad-badge" [class]="'gravedad-badge ' + gravedad()">
+      <ion-icon name="warning-outline" aria-hidden="true"></ion-icon>
+      <span><span class="visually-hidden">Gravedad: </span>{{ gravedad() | titlecase }}</span>
+    </div>
+  </div>
+</section>

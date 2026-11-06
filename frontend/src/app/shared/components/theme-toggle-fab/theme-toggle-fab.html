@@ -1,0 +1,14 @@
+@if (!breakpoints.isDesktop()) {
+<button
+  type="button"
+  class="theme-toggle-fab"
+  (click)="theme.toggle()"
+  [attr.aria-label]="theme.isDark ? 'Activar modo claro' : 'Activar modo oscuro'"
+  [attr.aria-pressed]="theme.isDark"
+>
+  <span class="toggle-track" [class.dark]="theme.isDark">
+    <ion-icon class="toggle-icon sun" name="sunny" aria-hidden="true" [class.visible]="theme.isDark"></ion-icon>
+    <ion-icon class="toggle-icon moon" name="moon" aria-hidden="true" [class.visible]="!theme.isDark"></ion-icon>
+  </span>
+</button>
+}

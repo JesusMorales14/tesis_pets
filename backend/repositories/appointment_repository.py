@@ -3,7 +3,8 @@ from typing import Optional
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from database import get_db
+from core.database import get_db
+from domain.enums import AppointmentStatus, PaymentStatus
 from models import Appointment, UnavailableSlot
 
 
@@ -34,33 +35,43 @@ class AppointmentRepository:
     def list_pending_payments(self) -> list[Appointment]:
         return (
             self.db.query(Appointment)
-            .filter(Appointment.pago_estado == "pendiente", Appointment.comprobante_path.isnot(None))
+            .filter(Appointment.pago_estado == PaymentStatus.PENDIENTE, Appointment.comprobante_path.isnot(None))
             .order_by(Appointment.fecha, Appointment.hora)
             .all()
         )
 
     def is_slot_occupied(self, fecha: str, hora: str) -> bool:
-        return self.db.query(Appointment).filter(
-            Appointment.fecha == fecha,
-            Appointment.hora == hora,
-            Appointment.estado != "cancelada",
-        ).first() is not None
+        return (
+            self.db.query(Appointment)
+            .filter(
+                Appointment.fecha == fecha,
+                Appointment.hora == hora,
+                Appointment.estado != AppointmentStatus.CANCELADA,
+            )
+            .first()
+            is not None
+        )
 
     def booked_horas(self, fecha: str) -> set[str]:
         return {
-            a.hora for a in self.db.query(Appointment).filter(
+            a.hora
+            for a in self.db.query(Appointment)
+            .filter(
                 Appointment.fecha == fecha,
-                Appointment.estado != "cancelada",
-            ).all()
+                Appointment.estado != AppointmentStatus.CANCELADA,
+            )
+            .all()
         }
 
     def booked_info_by_hora(self, fecha: str) -> dict[str, dict]:
         return {
             a.hora: {"user_nombre": a.user_nombre, "diagnostico": a.diagnostico}
-            for a in self.db.query(Appointment).filter(
+            for a in self.db.query(Appointment)
+            .filter(
                 Appointment.fecha == fecha,
-                Appointment.estado != "cancelada",
-            ).all()
+                Appointment.estado != AppointmentStatus.CANCELADA,
+            )
+            .all()
         }
 
     def create(self, appt: Appointment) -> Appointment:
@@ -78,20 +89,28 @@ class AppointmentRepository:
         return {s.hora for s in self.db.query(UnavailableSlot).filter(UnavailableSlot.fecha == fecha).all()}
 
     def blocked_ids_by_hora(self, fecha: str) -> dict[str, int]:
-        return {
-            s.hora: s.id
-            for s in self.db.query(UnavailableSlot).filter(UnavailableSlot.fecha == fecha).all()
-        }
+        return {s.hora: s.id for s in self.db.query(UnavailableSlot).filter(UnavailableSlot.fecha == fecha).all()}
 
     def is_slot_blocked(self, fecha: str, hora: str) -> bool:
-        return self.db.query(UnavailableSlot).filter(
-            UnavailableSlot.fecha == fecha, UnavailableSlot.hora == hora,
-        ).first() is not None
+        return (
+            self.db.query(UnavailableSlot)
+            .filter(
+                UnavailableSlot.fecha == fecha,
+                UnavailableSlot.hora == hora,
+            )
+            .first()
+            is not None
+        )
 
     def get_blocked_slot(self, fecha: str, hora: str) -> Optional[UnavailableSlot]:
-        return self.db.query(UnavailableSlot).filter(
-            UnavailableSlot.fecha == fecha, UnavailableSlot.hora == hora,
-        ).first()
+        return (
+            self.db.query(UnavailableSlot)
+            .filter(
+                UnavailableSlot.fecha == fecha,
+                UnavailableSlot.hora == hora,
+            )
+            .first()
+        )
 
     def add_blocked_slot(self, slot: UnavailableSlot) -> None:
         self.db.add(slot)

@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 
 from models import User
+from routes.dependencies import get_current_user
 from schemas.push import PushEndpointBody, PushSubscriptionBody
-from services.auth_service import get_current_user
 from services.push_service import PushService, get_push_service
 
 router = APIRouter(prefix="/push", tags=["push"])

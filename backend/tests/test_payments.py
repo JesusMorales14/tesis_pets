@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
 """
 Prueba el flujo de pagos: configuración de Yape/transferencia editable por
 el admin, subida de comprobante, y aprobación/rechazo por el admin. Usa una
 base de datos SQLite en memoria (no la veterinary.db real).
 """
+
 import io
 import os
 import sys
@@ -11,15 +11,15 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
 from sqlalchemy import create_engine  # noqa: E402
 from sqlalchemy.orm import sessionmaker  # noqa: E402
 from sqlalchemy.pool import StaticPool  # noqa: E402
-from fastapi.testclient import TestClient  # noqa: E402
 
+from core.database import get_db  # noqa: E402
+from core.security import ADMIN_CODE  # noqa: E402
 from main import app  # noqa: E402
-from database import get_db  # noqa: E402
 from models import Base  # noqa: E402
-from auth_utils import ADMIN_CODE  # noqa: E402
 
 
 @pytest.fixture()
@@ -56,8 +56,12 @@ def _book_appointment(client, token, metodo_pago="yape", hora="09:00"):
     r = client.post(
         "/appointments",
         json={
-            "fecha": "2099-01-15", "hora": hora, "diagnostico": "gastroenteritis",
-            "especie": "perro", "gravedad": "moderada", "metodo_pago": metodo_pago,
+            "fecha": "2099-01-15",
+            "hora": hora,
+            "diagnostico": "gastroenteritis",
+            "especie": "perro",
+            "gravedad": "moderada",
+            "metodo_pago": metodo_pago,
         },
         headers={"Authorization": f"Bearer {token}"},
     )
@@ -105,8 +109,12 @@ def test_admin_updates_payment_config(client):
     r = client.put(
         "/admin/payment-config",
         json={
-            "yape_phone": "987654321", "banco": "BCP", "tipo_cuenta": "Ahorros",
-            "numero_cuenta": "1234567890", "cci": "00212300123456789015", "titular": "CityVet SAC",
+            "yape_phone": "987654321",
+            "banco": "BCP",
+            "tipo_cuenta": "Ahorros",
+            "numero_cuenta": "1234567890",
+            "cci": "00212300123456789015",
+            "titular": "CityVet SAC",
         },
         headers={"Authorization": f"Bearer {admin_token}"},
     )

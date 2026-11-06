@@ -198,3 +198,19 @@
   padding: 4px 8px;
   border-radius: 8px;
 }
+
+// Ahora son enlaces (<a>): navegan, no ejecutan acciones.
+.back-btn,
+.link-btn {
+  text-decoration: none;
+}
+
+.back-btn,
+.link-btn,
+.auth-btn,
+.eye-btn {
+  &:focus-visible {
+    outline: 3px solid var(--ion-color-primary);
+    outline-offset: 2px;
+  }
+}

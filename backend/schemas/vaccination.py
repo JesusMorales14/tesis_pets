@@ -1,13 +1,14 @@
-from typing import Optional, Literal
 from datetime import date
+from typing import Literal, Optional
+
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 class VaccinationBody(BaseModel):
     nombre: str
-    estado: Literal['aplicada', 'programada'] = 'aplicada'
-    fecha_aplicacion: Optional[str] = None      # Requerida si estado='aplicada'
-    fecha_programada: Optional[str] = None      # Requerida si estado='programada'
+    estado: Literal["aplicada", "programada"] = "aplicada"
+    fecha_aplicacion: Optional[str] = None  # Requerida si estado='aplicada'
+    fecha_programada: Optional[str] = None  # Requerida si estado='programada'
     refuerzo_meses: int = Field(..., ge=1, le=60)  # Obligatorio (1-60 meses)
     notas: Optional[str] = None
 
@@ -24,13 +25,13 @@ class VaccinationBody(BaseModel):
             try:
                 date.fromisoformat(v)
             except ValueError:
-                raise ValueError("La fecha debe tener formato YYYY-MM-DD")
+                raise ValueError("La fecha debe tener formato YYYY-MM-DD") from None
         return v
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def validar_fechas_segun_estado(self):
         hoy = date.today().isoformat()
-        if self.estado == 'aplicada':
+        if self.estado == "aplicada":
             if not self.fecha_aplicacion:
                 raise ValueError("fecha_aplicacion es obligatoria para vacuna 'aplicada'")
             if self.fecha_programada:
@@ -38,7 +39,7 @@ class VaccinationBody(BaseModel):
             # Una vacuna aplicada no puede tener fecha futura.
             if self.fecha_aplicacion > hoy:
                 raise ValueError("La fecha de aplicación no puede ser posterior a hoy")
-        elif self.estado == 'programada':
+        elif self.estado == "programada":
             if not self.fecha_programada:
                 raise ValueError("fecha_programada es obligatoria para vacuna 'programada'")
             if self.fecha_aplicacion:

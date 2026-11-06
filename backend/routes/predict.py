@@ -3,8 +3,8 @@ from typing import Optional
 from fastapi import APIRouter, Depends
 
 from models import User
+from routes.dependencies import get_current_user_optional
 from schemas.predict import Sintomas
-from services.auth_service import get_current_user_optional
 from services.diagnosis_service import DiagnosisService, get_diagnosis_service
 
 router = APIRouter(tags=["predict"])

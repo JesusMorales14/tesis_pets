@@ -3,48 +3,13 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { PetClinicalRecord } from '../models/pet';
-
-export interface TimeSlot {
-  hora: string;
-  disponible: boolean;
-  tipo: 'libre' | 'ocupado' | 'bloqueado';
-}
-
-export interface AdminSlot extends TimeSlot {
-  block_id: number | null;
-  cita_info: { user_nombre: string; diagnostico: string } | null;
-}
-
-export interface AppointmentPayload {
-  fecha: string;
-  hora: string;
-  diagnostico: string;
-  especie: string;
-  gravedad: string;
-  metodo_pago: string;
-  probabilidad?: number;  // 0.0 - 1.0
-  pet_id?: number;  // ID de mascota registrada
-  sintomas_json?: string;
-}
-
-export interface Appointment {
-  id: number;
-  user_nombre?: string;
-  user_email?: string;
-  fecha: string;
-  hora: string;
-  diagnostico: string;
-  especie: string;
-  gravedad: string;
-  estado: string;
-  metodo_pago: string;
-  pago_estado: 'pendiente' | 'aprobado' | 'rechazado';
-  probabilidad?: number | null;  // 0.0 - 1.0
-  pet_id?: number | null;
-  /** Nombre de la mascota al reservar (se conserva aunque luego la eliminen). */
-  pet_nombre?: string | null;
-  comprobante_url: string | null;
-}
+import {
+  AdminSlot,
+  Appointment,
+  AppointmentEstado,
+  AppointmentPayload,
+  TimeSlot,
+} from '../models/appointment';
 
 @Injectable({ providedIn: 'root' })
 export class AppointmentService {
@@ -98,12 +63,12 @@ export class AppointmentService {
     return this.http.get<AdminSlot[]>(`${this.API}/admin/slots?fecha=${fecha}`);
   }
 
-  blockSlot(fecha: string, hora: string): Observable<any> {
-    return this.http.post(`${this.API}/admin/block`, { fecha, hora });
+  blockSlot(fecha: string, hora: string): Observable<{ ok: boolean }> {
+    return this.http.post<{ ok: boolean }>(`${this.API}/admin/block`, { fecha, hora });
   }
 
-  unblockSlot(fecha: string, hora: string): Observable<any> {
-    return this.http.delete(`${this.API}/admin/block/${fecha}/${hora}`);
+  unblockSlot(fecha: string, hora: string): Observable<{ ok: boolean }> {
+    return this.http.delete<{ ok: boolean }>(`${this.API}/admin/block/${fecha}/${hora}`);
   }
 
   getAllAppointments(fecha?: string): Observable<Appointment[]> {
@@ -111,8 +76,8 @@ export class AppointmentService {
     return this.http.get<Appointment[]>(`${this.API}/admin/appointments${q}`);
   }
 
-  updateAppointmentEstado(id: number, estado: string): Observable<any> {
-    return this.http.put(`${this.API}/admin/appointments/${id}/estado`, { estado });
+  updateAppointmentEstado(id: number, estado: AppointmentEstado): Observable<{ ok: boolean; estado: AppointmentEstado }> {
+    return this.http.put<{ ok: boolean; estado: AppointmentEstado }>(`${this.API}/admin/appointments/${id}/estado`, { estado });
   }
 
   getPendingPayments(): Observable<Appointment[]> {

@@ -1,0 +1,17 @@
+<section class="section appointment-section" aria-labelledby="cta-title">
+  <div class="appointment-card">
+    <div class="appointment-icon" aria-hidden="true">
+      <ion-icon name="calendar-outline"></ion-icon>
+    </div>
+    <div class="appointment-text">
+      <h2 class="cta-title" id="cta-title">Reserva una cita veterinaria</h2>
+      <p>
+        {{ urgent() ? 'Tu mascota necesita atención urgente. Agenda ahora.' : 'Confirma este diagnóstico con un profesional.' }}
+      </p>
+    </div>
+  </div>
+  <a class="schedule-btn" [class.urgent-btn]="urgent()" routerLink="/schedule">
+    <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+    <span>{{ urgent() ? 'Reservar cita urgente' : 'Reservar cita' }}</span>
+  </a>
+</section>

@@ -1,15 +1,16 @@
-# -*- coding: utf-8 -*-
 """
 Sin rate limiting, /auth/login es vulnerable a fuerza bruta de
 contraseñas y /auth/register a registro masivo de cuentas falsas.
 Este test confirma que el límite realmente corta el flujo tras N intentos.
 """
+
 import os
 import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from fastapi.testclient import TestClient  # noqa: E402
+
 from main import app  # noqa: E402
 
 client = TestClient(app)

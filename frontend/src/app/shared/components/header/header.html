@@ -24,7 +24,8 @@
       </button>
 
       <mat-menu #accountMenu="matMenu" class="account-menu" xPosition="before">
-        <div class="account-menu-header" (click)="$event.stopPropagation()">
+        <!-- Cabecera informativa del menú: el clic no debe cerrarlo. -->
+        <div class="account-menu-header" role="presentation" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
           <div class="user-avatar-wrap lg">
             <span class="user-initial">{{ auth.currentUser?.nombre?.charAt(0)?.toUpperCase() }}</span>
           </div>

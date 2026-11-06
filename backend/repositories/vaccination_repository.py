@@ -4,7 +4,7 @@ from fastapi import Depends
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from database import get_db
+from core.database import get_db
 from models import Vaccination
 
 
@@ -23,9 +23,14 @@ class VaccinationRepository:
         )
 
     def get_by_id_and_pet(self, vaccination_id: int, pet_id: int) -> Optional[Vaccination]:
-        return self.db.query(Vaccination).filter(
-            Vaccination.id == vaccination_id, Vaccination.pet_id == pet_id,
-        ).first()
+        return (
+            self.db.query(Vaccination)
+            .filter(
+                Vaccination.id == vaccination_id,
+                Vaccination.pet_id == pet_id,
+            )
+            .first()
+        )
 
     def create(self, vaccination: Vaccination) -> Vaccination:
         self.db.add(vaccination)

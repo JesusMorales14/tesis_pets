@@ -1,0 +1,85 @@
+@let cfg = config();
+<!-- Anuncia "Copiado" a lectores de pantalla -->
+<span class="visually-hidden" aria-live="polite">{{ copied() ? 'Copiado al portapapeles' : '' }}</span>
+
+@if (metodo() === 'yape') {
+<h2 class="section-label">Paga con Billetera Digital</h2>
+<div class="yape-card">
+  <div class="yape-header">
+    <div class="yape-logo-wrap wallet-logo-wrap" aria-hidden="true">
+      <img src="assets/img/yape-logo.png" alt="" class="billetera-icon" width="28" height="28" />
+      <img src="assets/img/plin-logo.png" alt="" class="billetera-icon" width="28" height="28" />
+    </div>
+    <div>
+      <span class="yape-brand">BILLETERA DIGITAL</span>
+      <span class="yape-sub">CityVet</span>
+    </div>
+  </div>
+  @if (cfg?.yape_qr_url; as qr) {
+  <img class="yape-qr" [src]="apiUrl + qr" alt="Código QR para pagar con Yape a CityVet" />
+  }
+  <div class="yape-to">
+    <span class="yape-to-label" id="yape-phone-label">Número Billetera Digital</span>
+    <button
+      type="button"
+      class="copy-row"
+      (click)="copy(cfg?.yape_phone, 'yape')"
+      aria-describedby="yape-phone-label"
+      [attr.aria-label]="cfg?.yape_phone ? 'Copiar número ' + cfg?.yape_phone : null"
+    >
+      <span class="yape-to-phone">{{ cfg?.yape_phone || 'No configurado todavía' }}</span>
+      @if (cfg?.yape_phone) {
+      <ion-icon [name]="copied() === 'yape' ? 'checkmark-outline' : 'copy-outline'" aria-hidden="true"></ion-icon>
+      }
+    </button>
+  </div>
+</div>
+} @else {
+<h2 class="section-label">Datos para transferencia</h2>
+<dl class="bank-card">
+  <div class="bank-row">
+    <dt class="bank-label">Banco</dt>
+    <dd class="bank-value">{{ cfg?.banco || 'No configurado todavía' }}</dd>
+  </div>
+  <div class="bank-row">
+    <dt class="bank-label">Tipo de cuenta</dt>
+    <dd class="bank-value">{{ cfg?.tipo_cuenta || '—' }}</dd>
+  </div>
+  <div class="bank-row">
+    <dt class="bank-label">N.° de cuenta</dt>
+    <dd>
+      <button
+        type="button"
+        class="copy-row"
+        (click)="copy(cfg?.numero_cuenta, 'cuenta')"
+        [attr.aria-label]="cfg?.numero_cuenta ? 'Copiar número de cuenta ' + cfg?.numero_cuenta : null"
+      >
+        <span class="bank-value">{{ cfg?.numero_cuenta || '—' }}</span>
+        @if (cfg?.numero_cuenta) {
+        <ion-icon [name]="copied() === 'cuenta' ? 'checkmark-outline' : 'copy-outline'" aria-hidden="true"></ion-icon>
+        }
+      </button>
+    </dd>
+  </div>
+  <div class="bank-row">
+    <dt class="bank-label">CCI</dt>
+    <dd>
+      <button
+        type="button"
+        class="copy-row"
+        (click)="copy(cfg?.cci, 'cci')"
+        [attr.aria-label]="cfg?.cci ? 'Copiar CCI ' + cfg?.cci : null"
+      >
+        <span class="bank-value">{{ cfg?.cci || '—' }}</span>
+        @if (cfg?.cci) {
+        <ion-icon [name]="copied() === 'cci' ? 'checkmark-outline' : 'copy-outline'" aria-hidden="true"></ion-icon>
+        }
+      </button>
+    </dd>
+  </div>
+  <div class="bank-row">
+    <dt class="bank-label">Titular</dt>
+    <dd class="bank-value">{{ cfg?.titular || '—' }}</dd>
+  </div>
+</dl>
+}

@@ -1,225 +1,169 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Router, RouterLink } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { PredictionResult } from '@core/services/prediction';
-import { AppointmentService, Appointment } from '@core/services/appointment';
-import { PaymentConfigService, PaymentConfig } from '@core/services/payment-config';
-import { ThemeService } from '@core/services/theme';
+import { MetodoPago } from '@core/models/appointment';
+import { PaymentConfig } from '@core/models/payment-config';
+import { AppointmentService } from '@core/services/appointment';
 import { AuthService } from '@core/services/auth';
-import { DiagnosisFlowService, SelectedSymptom } from '@core/services/diagnosis-flow';
-import { environment } from '../../../environments/environment';
+import { DiagnosisFlowState, DiagnosisFlowService } from '@core/services/diagnosis-flow';
+import { PaymentConfigService } from '@core/services/payment-config';
+import { getApiErrorMessage } from '@core/utils/http-error';
+import { PageToolbarComponent } from '@shared/components/page-toolbar/page-toolbar';
+import { AppDatePipe } from '@shared/pipes';
+import { BookingSummaryComponent } from './components/booking-summary/booking-summary';
+import { PaymentInstructionsComponent } from './components/payment-instructions/payment-instructions';
+import { PaymentMethodPickerComponent } from './components/payment-method-picker/payment-method-picker';
+import { PaymentSuccessComponent } from './components/payment-success/payment-success';
+import { ReceiptUploadComponent } from './components/receipt-upload/receipt-upload';
 
-const MONTHS = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
-const DAYS   = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+/** Estado del flujo con los datos que el pago necesita garantizados. */
+type Booking = DiagnosisFlowState & Required<Pick<DiagnosisFlowState, 'result' | 'fecha' | 'hora'>>;
 
-const ALLOWED_TYPES: Record<string, string> = { 'image/png': 'PNG', 'image/jpeg': 'JPG', 'image/webp': 'WEBP' };
-const MAX_FILE_BYTES = 5 * 1024 * 1024;
+/** Pasos del pago: elegir método → pagar y subir comprobante → confirmación. */
+type PaymentStep = 'method' | 'upload' | 'success';
 
+const STEP_TITLES: Record<PaymentStep, string> = {
+  method: 'Método de Pago',
+  upload: 'Enviar comprobante',
+  success: 'Confirmación',
+};
+
+/** Reserva con pago (contenedor). La cita se crea recién al enviar el comprobante. */
 @Component({
   selector: 'app-payment',
   templateUrl: './payment.html',
   styleUrls: ['./payment.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule],
+  imports: [
+    IonicModule,
+    RouterLink,
+    AppDatePipe,
+    PageToolbarComponent,
+    BookingSummaryComponent,
+    PaymentMethodPickerComponent,
+    PaymentInstructionsComponent,
+    ReceiptUploadComponent,
+    PaymentSuccessComponent,
+  ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PaymentComponent implements OnInit {
-  private router = inject(Router);
-  private appointmentService = inject(AppointmentService);
-  private paymentConfigService = inject(PaymentConfigService);
-  private auth = inject(AuthService);
-  private flow = inject(DiagnosisFlowService);
-  themeService = inject(ThemeService);
+  private readonly router = inject(Router);
+  private readonly appointmentApi = inject(AppointmentService);
+  private readonly paymentConfigApi = inject(PaymentConfigService);
+  private readonly auth = inject(AuthService);
+  private readonly flow = inject(DiagnosisFlowService);
 
-  result: PredictionResult | null = null;
-  especie = 'perro';
-  fecha = '';
-  hora = '';
-  petNombre: string | null = null;
-  selectedSymptoms: SelectedSymptom[] = [];
+  protected readonly booking = signal<Booking | null>(null);
+  protected readonly config = signal<PaymentConfig | null>(null);
+  protected readonly step = signal<PaymentStep>('method');
+  protected readonly metodo = signal<MetodoPago | null>(null);
+  protected readonly file = signal<File | null>(null);
+  protected readonly isUploading = signal(false);
+  protected readonly errorMsg = signal('');
+  protected readonly slotTaken = signal(false);
 
-  // Pasos: 1=elegir método, 3=pagar y subir comprobante, 4=éxito
-  step = 1;
-  metodo: 'yape' | 'transferencia' | null = null;
+  protected readonly title = computed(() => STEP_TITLES[this.step()]);
+  // En la confirmación ya no hay "volver": la reserva está hecha.
+  protected readonly backLink = computed(() => (this.step() === 'success' ? null : '/schedule'));
 
-  paymentConfig: PaymentConfig | null = null;
-  appointment: Appointment | null = null;
-
-  selectedFile: File | null = null;
-
-  isProcessing = false;
-  isUploading = false;
-  errorMsg = '';
-  slotTaken = false;
-  fechaLabel = '';
-  copiedField: string | null = null;
-
-  readonly apiUrl = environment.apiUrl;
-
-  ngOnInit() {
-    this.paymentConfigService.getConfig().subscribe({
-      next: (cfg) => (this.paymentConfig = cfg),
-    });
+  ngOnInit(): void {
+    this.paymentConfigApi.getConfig().subscribe({ next: (cfg) => this.config.set(cfg) });
   }
 
   // Ionic reutiliza la página desde su caché: cada entrada empieza un pago
-  // nuevo con los datos actuales del flujo (y no la pantalla de éxito de
-  // una reserva anterior).
-  ionViewWillEnter() {
+  // nuevo con los datos actuales del flujo (y no la pantalla de éxito anterior).
+  ionViewWillEnter(): void {
     const state = this.flow.state;
-    this.result = state?.result ?? null;
-    this.especie = state?.especie ?? 'perro';
-    this.fecha = state?.fecha ?? '';
-    this.hora = state?.hora ?? '';
-    this.selectedSymptoms = state?.selectedSymptoms ?? [];
-    this.petNombre = this.result?.mascota ?? state?.petNombre ?? null;
-
-    if (!this.result || !this.fecha || !this.hora) {
-      this.router.navigate(['/tabs/tab2']);
+    if (!state?.result || !state.fecha || !state.hora) {
+      void this.router.navigate(['/tabs/tab2']);
       return;
     }
-
-    this.step = 1;
-    this.metodo = null;
-    this.appointment = null;
-    this.errorMsg = '';
-    this.slotTaken = false;
-    this.selectedFile = null;
-
-    const d = new Date(this.fecha + 'T00:00:00');
-    this.fechaLabel = `${DAYS[d.getDay()]}, ${d.getDate()} de ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+    this.booking.set({ ...state, result: state.result, fecha: state.fecha, hora: state.hora });
+    this.step.set('method');
+    this.metodo.set(null);
+    this.file.set(null);
+    this.errorMsg.set('');
+    this.slotTaken.set(false);
   }
 
-  /** Formatea el diagnóstico reemplazando guiones bajos por espacios */
-  formatDiagnostico(diagnostico: string): string {
-    return (diagnostico ?? '').replace(/_/g, ' ');
+  /** En el paso de subida, "volver" regresa al método sin salir de la página. */
+  protected backToMethod(): void {
+    this.step.set('method');
+    this.errorMsg.set('');
   }
 
-  selectMetodo(m: 'yape' | 'transferencia') {
-    this.metodo = m;
+  // La cita NO se aparta en el servidor hasta que el usuario adjunte y
+  // envíe el comprobante, para no bloquear horarios si abandona el proceso.
+  protected continueToUpload(): void {
+    if (!this.metodo()) return;
+    this.step.set('upload');
+    this.errorMsg.set('');
   }
 
-  // Paso 1: Selecciona método y avanza a la pantalla de pago y comprobante.
-  // La cita NO se aparta en el servidor hasta que el usuario adjunte y envíe
-  // el comprobante, evitando bloquear horarios si abandona el proceso.
-  continuar() {
-    if (!this.metodo) return;
-    this.step = 3;
-    this.errorMsg = '';
+  protected onFileChange(file: File | null): void {
+    this.file.set(file);
+    this.errorMsg.set('');
   }
 
-  // Mismas reglas que valida el backend (config.py): se avisa al elegir el
-  // archivo en vez de al enviar la reserva.
-  onFileSelected(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0] ?? null;
-    input.value = ''; // permite volver a elegir el mismo archivo tras quitarlo
-    if (!file) return;
-
-    if (!ALLOWED_TYPES[file.type]) {
-      this.errorMsg = 'El comprobante debe ser una imagen PNG, JPG o WEBP.';
+  /** Reserva la cita y envía el comprobante en una sola petición. */
+  protected submit(): void {
+    const booking = this.booking();
+    const file = this.file();
+    const metodo = this.metodo();
+    if (!booking || !metodo) return;
+    if (!file) {
+      this.errorMsg.set('Adjunta la imagen de tu comprobante de pago.');
       return;
     }
-    if (file.size > MAX_FILE_BYTES) {
-      this.errorMsg = 'La imagen del comprobante no debe superar los 5 MB.';
-      return;
-    }
-    this.errorMsg = '';
-    this.selectedFile = file;
-  }
+    this.isUploading.set(true);
+    this.errorMsg.set('');
 
-  removeFile() {
-    this.selectedFile = null;
-    this.errorMsg = '';
-  }
-
-  /** "Imagen PNG · 245 KB" */
-  get fileDetails(): string {
-    if (!this.selectedFile) return '';
-    const kb = this.selectedFile.size / 1024;
-    const size = kb < 1024 ? `${Math.max(1, Math.round(kb))} KB` : `${(kb / 1024).toFixed(1)} MB`;
-    return `Imagen ${ALLOWED_TYPES[this.selectedFile.type] ?? ''} · ${size}`;
-  }
-
-  copyToClipboard(value: string | null, field: string) {
-    if (!value) return;
-    navigator.clipboard?.writeText(value);
-    this.copiedField = field;
-    setTimeout(() => (this.copiedField = null), 1500);
-  }
-
-  // Paso 3: Reserva la cita y envía el comprobante en una sola petición.
-  subirComprobante() {
-    if (!this.selectedFile) {
-      this.errorMsg = 'Adjunta la imagen de tu comprobante de pago.';
-      return;
-    }
-    this.isUploading = true;
-    this.errorMsg = '';
-
-    const sintomasJson = JSON.stringify(
-      Object.fromEntries(this.selectedSymptoms.map((s) => [s.key, s.severity])),
-    );
+    const { result } = booking;
+    const sintomas = Object.fromEntries((booking.selectedSymptoms ?? []).map((s) => [s.key, s.severity]));
     // La mascota solo se asocia si el flujo lo empezó este mismo usuario.
     const petId = this.flow.petIdFor(this.auth.currentUser?.id);
 
-    this.appointmentService.createWithComprobante({
-      fecha: this.fecha,
-      hora: this.hora,
-      diagnostico: this.result!.diagnostico,
-      especie: this.especie,
-      gravedad: this.result!.gravedad,
-      metodo_pago: this.metodo!,
-      sintomas_json: sintomasJson,
-      probabilidad: this.result!.probabilidad,
-      pet_id: petId ?? undefined,
-    }, this.selectedFile).subscribe({
-      next: (appt) => {
-        this.isUploading = false;
-        this.appointment = appt;
-        this.step = 4;
-        // El flujo terminó: un nuevo diagnóstico empieza de cero.
-        this.flow.clear();
-      },
-      error: (err) => {
-        this.isUploading = false;
-        if (err?.status === 401) {
-          // El flujo sigue guardado: tras iniciar sesión se vuelve aquí.
-          this.auth.logout();
-          this.router.navigate(['/login'], {
-            state: { returnTo: '/payment', expiredSession: true },
-          });
-          return;
-        }
-        if (err?.status === 409) {
-          this.slotTaken = true;
-          this.errorMsg = `${err.error?.detail ?? 'El horario ya no está disponible'}. Elige otro horario.`;
-          return;
-        }
-        this.errorMsg = err?.error?.detail || 'No se pudo completar la reserva. Intenta de nuevo.';
-      },
-    });
+    this.appointmentApi
+      .createWithComprobante(
+        {
+          fecha: booking.fecha,
+          hora: booking.hora,
+          diagnostico: result.diagnostico,
+          especie: booking.especie,
+          gravedad: result.gravedad,
+          metodo_pago: metodo,
+          sintomas_json: JSON.stringify(sintomas),
+          probabilidad: result.probabilidad,
+          pet_id: petId ?? undefined,
+        },
+        file,
+      )
+      .subscribe({
+        next: () => {
+          this.isUploading.set(false);
+          this.step.set('success');
+          // El flujo terminó: un nuevo diagnóstico empieza de cero.
+          this.flow.clear();
+        },
+        error: (err: HttpErrorResponse) => this.handleSubmitError(err),
+      });
   }
 
-  goHome() { this.router.navigate(['/tabs/tab1']); }
-
-  goToProfile() { this.router.navigate(['/profile']); }
-
-  goToDiagnostico() { this.router.navigate(['/tabs/tab2']); }
-
-  goToSchedule() { this.router.navigate(['/schedule']); }
-
-  goBack() {
-    if (this.step === 3) {
-      this.step = 1;
-      this.errorMsg = '';
+  private handleSubmitError(err: HttpErrorResponse): void {
+    this.isUploading.set(false);
+    if (err.status === 401) {
+      // El flujo sigue guardado: tras iniciar sesión se vuelve aquí.
+      this.auth.logout();
+      void this.router.navigate(['/login'], { state: { returnTo: '/payment', expiredSession: true } });
       return;
     }
-    if (this.step === 1) {
-      this.goToSchedule();
+    if (err.status === 409) {
+      this.slotTaken.set(true);
+      this.errorMsg.set(`${getApiErrorMessage(err, 'El horario ya no está disponible')}. Elige otro horario.`);
+      return;
     }
+    this.errorMsg.set(getApiErrorMessage(err, 'No se pudo completar la reserva. Intenta de nuevo.'));
   }
-
-  get userName(): string { return this.auth.currentUser?.nombre ?? ''; }
 }

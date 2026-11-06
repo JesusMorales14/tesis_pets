@@ -1,11 +1,12 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 
 import { IonicModule } from '@ionic/angular';
-import { Disease, DISEASES, CARE_GUIDE } from './disease-data';
-import { DiseaseListComponent } from './disease-list/disease-list';
-import { DiseaseDetailComponent } from './disease-detail/disease-detail';
-import { CareGuideComponent } from './care-guide/care-guide';
-import { EmergencyGuideComponent } from './emergency-guide/emergency-guide';
+import { Disease } from '@core/models/disease';
+import { CARE_GUIDE, DISEASES } from '@core/data/diseases.data';
+import { DiseaseListComponent } from './components/disease-list/disease-list';
+import { DiseaseDetailComponent } from './components/disease-detail/disease-detail';
+import { CareGuideComponent } from './components/care-guide/care-guide';
+import { EmergencyGuideComponent } from './components/emergency-guide/emergency-guide';
 
 @Component({
   selector: 'app-health-info',

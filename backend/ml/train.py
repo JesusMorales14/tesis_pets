@@ -1,11 +1,12 @@
+import os
+
+import joblib
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.model_selection import GridSearchCV, RepeatedStratifiedKFold, cross_val_predict
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import LabelEncoder, StandardScaler
-from sklearn.model_selection import RepeatedStratifiedKFold, GridSearchCV, cross_val_predict
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-import joblib
-import os
 
 # --- Paths ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -29,10 +30,10 @@ df["enfermedad"] = df["enfermedad"].astype(str).str.strip()
 
 # --- Codificar especie y enfermedad ---
 le_especie = LabelEncoder()
-df['especie'] = le_especie.fit_transform(df['especie'])  # 0=Gato, 1=Perro
+df["especie"] = le_especie.fit_transform(df["especie"])  # 0=Gato, 1=Perro
 
 le_enfermedad = LabelEncoder()
-df['enfermedad'] = le_enfermedad.fit_transform(df['enfermedad'])
+df["enfermedad"] = le_enfermedad.fit_transform(df["enfermedad"])
 
 # Guardar LabelEncoders
 joblib.dump(le_especie, LE_ESPECIE_PATH)
@@ -56,7 +57,7 @@ models_by_species = {}
 for especie_name in le_especie.classes_:
     print(f"\nEntrenando modelo para especie: {especie_name}")
     especie_num = le_especie.transform([especie_name])[0]
-    df_especie = df[df['especie'] == especie_num]
+    df_especie = df[df["especie"] == especie_num]
 
     X = df_especie.drop(columns=["enfermedad", "especie"])
     y = df_especie["enfermedad"]
@@ -69,10 +70,12 @@ for especie_name in le_especie.classes_:
     # una métrica confiable. 5 folds x 10 repeticiones = 50 evaluaciones.
     cv = RepeatedStratifiedKFold(n_splits=5, n_repeats=10, random_state=42)
 
-    pipeline = Pipeline([
-        ("scale", StandardScaler()),
-        ("clf", LogisticRegression(max_iter=5000)),
-    ])
+    pipeline = Pipeline(
+        [
+            ("scale", StandardScaler()),
+            ("clf", LogisticRegression(max_iter=5000)),
+        ]
+    )
 
     grid = GridSearchCV(pipeline, PARAM_GRID, cv=cv, scoring="accuracy", n_jobs=-1)
     grid.fit(X, y)
@@ -92,14 +95,19 @@ for especie_name in le_especie.classes_:
     # Modelo final: se reentrena con el 100% de los datos disponibles de la
     # especie (ya evaluado de forma honesta arriba vía CV) para maximizar
     # el rendimiento real en producción.
-    final_model = Pipeline([
-        ("scale", StandardScaler()),
-        ("clf", LogisticRegression(max_iter=5000, **{k.replace("clf__", ""): v for k, v in best_params.items()})),
-    ])
+    final_model = Pipeline(
+        [
+            ("scale", StandardScaler()),
+            ("clf", LogisticRegression(max_iter=5000, **{k.replace("clf__", ""): v for k, v in best_params.items()})),
+        ]
+    )
     final_model.fit(X, y)
 
     train_accuracy = accuracy_score(y, final_model.predict(X))
-    print(f"Precisión sobre datos de entrenamiento completos: {train_accuracy * 100:.2f}% (referencial, no usar como métrica de generalización)")
+    print(
+        f"Precisión sobre datos de entrenamiento completos: {train_accuracy * 100:.2f}% "
+        "(referencial, no usar como métrica de generalización)"
+    )
 
     # Guardar modelo como ruta relativa
     model_filename = f"model_{especie_name}.pkl"

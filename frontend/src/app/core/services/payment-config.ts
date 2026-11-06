@@ -2,25 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-
-export interface PaymentConfig {
-  yape_phone: string | null;
-  yape_qr_url: string | null;
-  banco: string | null;
-  tipo_cuenta: string | null;
-  numero_cuenta: string | null;
-  cci: string | null;
-  titular: string | null;
-}
-
-export interface PaymentConfigBody {
-  yape_phone?: string | null;
-  banco?: string | null;
-  tipo_cuenta?: string | null;
-  numero_cuenta?: string | null;
-  cci?: string | null;
-  titular?: string | null;
-}
+import { PaymentConfig, PaymentConfigBody } from '../models/payment-config';
 
 @Injectable({ providedIn: 'root' })
 export class PaymentConfigService {

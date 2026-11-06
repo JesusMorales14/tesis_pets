@@ -1,0 +1,49 @@
+<section class="section" aria-labelledby="slots-title">
+  <h2 class="section-label" id="slots-title">Horarios Disponibles</h2>
+
+  @if (loading()) {
+  <ion-grid class="slots-grid" aria-hidden="true">
+    <ion-row>
+      @for (i of skeletons; track i) {
+      <ion-col size="4" size-md="3" size-lg="2">
+        <ion-skeleton-text [animated]="true" class="sk-slot"></ion-skeleton-text>
+      </ion-col>
+      }
+    </ion-row>
+  </ion-grid>
+  } @else if (slots().length === 0) {
+  <div class="slots-empty" role="status">
+    <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
+    <span>No hay horarios disponibles para este día</span>
+  </div>
+  } @else {
+  <ion-grid class="slots-grid">
+    <ion-row role="group" aria-labelledby="slots-title">
+      @for (slot of slots(); track slot.hora) {
+      @let selected = selectedHora() === slot.hora;
+      @let urgent = slot.hora === firstAvailable();
+      <ion-col size="4" size-md="3" size-lg="2">
+        <button
+          type="button"
+          class="slot-btn"
+          [class.slot-selected]="selected"
+          [class.slot-urgente]="urgent"
+          [class.slot-disabled]="!slot.disponible"
+          [disabled]="!slot.disponible"
+          [attr.aria-pressed]="selected"
+          [attr.aria-label]="ariaLabel(slot)"
+          (click)="toggle(slot)"
+        >
+          <span class="slot-time">{{ slot.hora }}</span>
+          @if (selected) {
+          <span class="slot-tag" aria-hidden="true">TU SELECCIÓN</span>
+          } @else if (urgent) {
+          <span class="slot-tag urgente-tag" aria-hidden="true">URGENTE</span>
+          }
+        </button>
+      </ion-col>
+      }
+    </ion-row>
+  </ion-grid>
+  }
+</section>

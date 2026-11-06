@@ -1,0 +1,20 @@
+<app-collapsible-section heading="Privacidad y datos" icon="shield-checkmark-outline" [collapsible]="false">
+  <div class="privacy-actions">
+    <a class="privacy-btn" routerLink="/mis-datos">
+      <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+      <span>Ver y descargar mis datos</span>
+    </a>
+    <a class="privacy-link" routerLink="/privacy-policy">Ver política de privacidad</a>
+    <button type="button" class="privacy-btn danger" [disabled]="isDeleting()" (click)="deleteAccount()">
+      @if (isDeleting()) {
+      <ion-spinner name="crescent" aria-label="Eliminando cuenta"></ion-spinner>
+      } @else {
+      <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+      }
+      <span>Eliminar mi cuenta</span>
+    </button>
+    @if (error()) {
+    <p class="form-msg form-msg--error" role="alert">{{ error() }}</p>
+    }
+  </div>
+</app-collapsible-section>

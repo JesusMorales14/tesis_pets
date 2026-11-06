@@ -1,351 +1,147 @@
 <ion-header class="no-print">
-  <ion-toolbar class="custom-toolbar">
-    <ion-buttons slot="start">
-      <ion-button fill="clear" (click)="goBack()">
-        <ion-icon name="arrow-back-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-    <ion-title class="title">Resultado del Análisis</ion-title>
-    <ion-buttons slot="end">
-      <ion-button fill="clear" (click)="exportPdf()">
-        <ion-icon name="download-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
+  <app-page-toolbar title="Resultado del Análisis" [backLink]="backLink()">
+    <ion-button toolbarEnd fill="clear" (click)="exportPdf()">
+      <ion-icon slot="icon-only" name="download-outline" aria-hidden="true"></ion-icon>
+      <span class="visually-hidden">Guardar resultado en PDF</span>
+    </ion-button>
+  </app-page-toolbar>
 </ion-header>
 
 <ion-content class="result-content">
+  @if (result(); as r) {
+  <main>
+    <app-result-hero [percent]="percent()" [gravedad]="r.gravedad" [especie]="especie()"></app-result-hero>
 
-  <!-- ── HERO: confianza + gravedad ─────────────────────────────────── -->
-  <div class="hero" [class.leve]="result?.gravedad === 'leve'" [class.moderada]="result?.gravedad === 'moderada'"
-    [class.grave]="result?.gravedad === 'grave'">
-
-    <div class="confidence-ring-wrap">
-      <svg class="confidence-ring" viewBox="0 0 120 120">
-        <circle class="ring-bg" cx="60" cy="60" r="52" />
-        <circle class="ring-fill" cx="60" cy="60" r="52"
-          [style.stroke-dashoffset]="326.73 - (326.73 * getProbabilityPercent() / 100)" />
-      </svg>
-      <div class="ring-inner">
-        <span class="pct">{{ getProbabilityPercent() }}%</span>
-        <span class="pct-label">Confianza IA</span>
-      </div>
-    </div>
-
-    <div class="hero-badge">
-      <ion-icon [name]="getGravedadIcon()"></ion-icon>
-      <span>{{ result?.gravedad | titlecase }}</span>
-    </div>
-
-    <p class="hero-species">
-      <ion-icon name="paw-outline"></ion-icon>
-      {{ especie | titlecase }}
-    </p>
-  </div>
-
-  <!-- ── GUARDADO EN HISTORIAL ───────────────────────────────────────── -->
-  @if (savedToHistory) {
-  <div class="alert-banner-margin">
-    <div class="alert-banner safe">
-      <ion-icon name="bookmark"></ion-icon>
-      <div>
-        <strong>Guardado en el historial{{ petNombre ? ' de ' + petNombre : '' }}</strong>
-        <p>Puedes revisar este y otros diagnósticos anteriores desde tu perfil.</p>
-      </div>
-    </div>
-  </div>
-  }
-
-  <!-- ── DIAGNÓSTICO PRINCIPAL ──────────────────────────────────────── -->
-  <div class="section diagnosis-section">
-    <div class="diagnosis-heading-row">
-      <div>
-        <p class="section-eyebrow">Diagnóstico principal</p>
-        <h1 class="diagnosis-name">{{ getDiagnosticoLabel() | titlecase }}</h1>
-      </div>
-      <button class="export-pdf-btn no-print" (click)="exportPdf()">
-        <ion-icon name="download-outline"></ion-icon>
-        <span>Guardar PDF</span>
-      </button>
-    </div>
-    @if (diseaseInfo) {
-    <p class="diagnosis-desc">{{ diseaseInfo.descripcion }}</p>
+    @if (r.guardado_en_historial) {
+    <app-alert-banner
+      variant="safe"
+      icon="bookmark"
+      [heading]="'Guardado en el historial' + (petNombre() ? ' de ' + petNombre() : '')"
+    >
+      Puedes revisar este y otros diagnósticos anteriores desde tu perfil.
+    </app-alert-banner>
     }
 
-    <!-- ── ATENCIÓN INMEDIATA ─────────────────────────────────────────── -->
-    @if (diseaseInfo?.requiereAtencionInmediata) {
-    <div class="alert-banner urgent">
-      <ion-icon name="warning"></ion-icon>
-      <div>
-        <strong>Requiere atención veterinaria inmediata</strong>
-        <p>Este diagnóstico puede ser grave. Lleva a tu mascota al veterinario cuanto antes.</p>
-        <a class="call-now-btn" href="tel:+51956472846">
-          <ion-icon name="call"></ion-icon>
+    <!-- Diagnóstico principal -->
+    <section class="section diagnosis-section" aria-labelledby="diagnosis-name">
+      <div class="diagnosis-heading-row">
+        <div>
+          <p class="section-eyebrow">Diagnóstico principal</p>
+          <h2 class="diagnosis-name" id="diagnosis-name">{{ r.diagnostico | diagnosisLabel }}</h2>
+        </div>
+        <button type="button" class="export-pdf-btn no-print" (click)="exportPdf()">
+          <ion-icon name="download-outline" aria-hidden="true"></ion-icon>
+          <span>Guardar PDF</span>
+        </button>
+      </div>
+      @if (diseaseInfo(); as info) {
+      <p class="diagnosis-desc">{{ info.descripcion }}</p>
+      }
+      @if (urgent()) {
+      <app-alert-banner class="inline" variant="urgent" icon="warning" heading="Requiere atención veterinaria inmediata">
+        Este diagnóstico puede ser grave. Lleva a tu mascota al veterinario cuanto antes.
+        <a class="call-now-btn" [href]="clinicPhone">
+          <ion-icon name="call" aria-hidden="true"></ion-icon>
           Llamar a CityVet ahora
         </a>
-      </div>
-    </div>
-    }
-  </div>
-
-  <!-- Solo visible al imprimir/exportar: identifica el documento fuera de la app. -->
-  <div class="print-header">
-    <strong>CityVet</strong> · Reporte de diagnóstico generado el {{ todayLabel }}
-  </div>
-
-  <!-- ── DIAGNÓSTICO DIFERENCIAL ────────────────────────────────────── -->
-  <!-- Se muestra cuando el modelo detecta un segundo diagnóstico casi tan
-  probable como el principal: los síntomas por sí solos no alcanzan
-  para distinguirlos y se necesita confirmación veterinaria (p. ej.
-  análisis de sangre para Leucemia Felina vs. Inmunodeficiencia Felina). -->
-  @if (hasDifferential) {
-  <div class="alert-banner-margin">
-    <div class="alert-banner differential">
-      <ion-icon name="help-circle"></ion-icon>
-      <div>
-        <strong>Diagnóstico a confirmar</strong>
-        @if (!hasThirdOption) {
-        <p>
-          Los síntomas también son compatibles con <strong>{{ getDiagnosticoAlternativoLabel() | titlecase }}</strong>
-          ({{ getProbabilidadAlternativaPercent() }}% de probabilidad). Se recomienda una evaluación veterinaria
-          para confirmar con pruebas complementarias.
-        </p>
-        } @else {
-        <p>
-          Este caso es especialmente ambiguo por síntomas — también son compatibles
-          <strong>{{ getDiagnosticoAlternativoLabel() | titlecase }}</strong>
-          ({{ getProbabilidadAlternativaPercent() }}%) y
-          <strong>{{ getDiagnosticoTerceroLabel() | titlecase }}</strong>
-          ({{ getProbabilidadTerceroPercent() }}%). Se recomienda una evaluación veterinaria con pruebas
-          complementarias para distinguir entre las tres.
-        </p>
-        }
-      </div>
-    </div>
-  </div>
-  }
-
-  <!-- ── CONFIANZA BAJA (sin diferencial cercano) ───────────────────── -->
-  @if (hasLowConfidence) {
-  <div class="alert-banner-margin">
-    <div class="alert-banner differential">
-      <ion-icon name="help-circle"></ion-icon>
-      <div>
-        <strong>Confianza baja en este resultado</strong>
-        <p>
-          Los síntomas reportados no son suficientes para un diagnóstico certero.
-          Te recomendamos confirmarlo con una evaluación veterinaria presencial.
-        </p>
-      </div>
-    </div>
-  </div>
-  }
-
-  @if (diseaseInfo && !diseaseInfo.requiereAtencionInmediata) {
-  <div class="alert-banner-margin">
-    <div class="alert-banner safe">
-      <ion-icon name="checkmark-circle"></ion-icon>
-      <div>
-        <strong>No requiere atención de emergencia</strong>
-        <p>Agenda una consulta en los próximos días para confirmar el diagnóstico.</p>
-      </div>
-    </div>
-  </div>
-  }
-
-  <!-- ── NIVEL DE CUIDADO ───────────────────────────────────────────── -->
-  @if (diseaseInfo) {
-  <div class="section">
-    <p class="section-label">Nivel de cuidado requerido</p>
-    <div class="care-level-card" [class.care-bajo]="diseaseInfo.nivelCuidado === 'bajo'"
-      [class.care-medio]="diseaseInfo.nivelCuidado === 'medio'" [class.care-alto]="diseaseInfo.nivelCuidado === 'alto'"
-      [class.care-critico]="diseaseInfo.nivelCuidado === 'critico'">
-      <ion-icon [name]="getCareLevel().icon"></ion-icon>
-      <span class="care-label">{{ getCareLevel().label }}</span>
-    </div>
-  </div>
-  }
-
-  <!-- ── SÍNTOMAS SELECCIONADOS ─────────────────────────────────────── -->
-  @if (selectedSymptoms.length > 0) {
-  <div class="section">
-    <p class="section-label">Síntomas reportados</p>
-    <div class="chips-wrap">
-      @for (s of selectedSymptoms; track s) {
-      <span class="chip" [class.chip-leve]="s.severity === 1" [class.chip-moderado]="s.severity === 2"
-        [class.chip-grave]="s.severity === 3">
-        <ion-icon [name]="getSeverityIcon(s.severity)"></ion-icon>
-        {{ s.label }}
-        <em>· {{ getSeverityLabel(s.severity) }}</em>
-      </span>
+      </app-alert-banner>
       }
-    </div>
-  </div>
-  }
+    </section>
 
-  <!-- ── POR QUÉ ESTE DIAGNÓSTICO ──────────────────────────────────── -->
-  @if (selectedSymptoms.length > 0) {
-  <div class="section">
-    <p class="section-label">
-      <ion-icon name="analytics-outline"></ion-icon>
-      ¿Por qué este diagnóstico?
-    </p>
-    <div class="info-card reasoning-card">
-      <p>
-        El modelo de IA analizó
-        <strong>{{ selectedSymptoms.length }} síntoma{{ selectedSymptoms.length === 1 ? '' : 's' }}</strong>
-        reportados. Los síntomas de mayor peso en la predicción fueron:
-      </p>
-      <ul>
-        @for (s of selectedSymptoms; track s) {
-        <li>
-          <ion-icon [name]="getSeverityIcon(s.severity)" [class]="getSeverityClass(s.severity)"></ion-icon>
-          {{ s.label }}
-          <span class="sev-tag" [class]="getSeverityClass(s.severity)">{{ getSeverityLabel(s.severity) }}</span>
-        </li>
-        }
-      </ul>
-      <p class="disclaimer-small">
-        <ion-icon name="information-circle-outline"></ion-icon>
-        Este resultado es orientativo. Solo un veterinario puede confirmar el diagnóstico.
-      </p>
-    </div>
-  </div>
-  }
+    <!-- Solo visible al imprimir: identifica el documento fuera de la app. -->
+    <div class="print-header"><strong>CityVet</strong> · Reporte de diagnóstico generado el {{ todayLabel }}</div>
 
-  <!-- ── CUIDADOS RECOMENDADOS ─────────────────────────────────────── -->
-  @if (diseaseInfo) {
-  <div class="section">
-    <p class="section-label">
-      <ion-icon name="medkit-outline"></ion-icon>
-      Cuidados recomendados
-    </p>
-    <div class="info-card">
-      <ul>
-        @for (c of diseaseInfo.cuidados; track c) {
-        <li>
-          <ion-icon name="chevron-forward-outline"></ion-icon>
-          {{ c }}
-        </li>
-        }
-      </ul>
-    </div>
-  </div>
-  }
+    <!-- Diferencial: los síntomas por sí solos no alcanzan para distinguir
+         dos (o tres) diagnósticos y se necesita confirmación veterinaria. -->
+    @if (hasDifferential()) {
+    <app-alert-banner variant="differential" icon="help-circle" heading="Diagnóstico a confirmar">
+      @if (!r.diagnostico_tercero) {
+      Los síntomas también son compatibles con <strong>{{ r.diagnostico_alternativo | diagnosisLabel }}</strong>
+      ({{ altPercent() }}% de probabilidad). Se recomienda una evaluación veterinaria para confirmar con pruebas
+      complementarias.
+      } @else {
+      Este caso es especialmente ambiguo por síntomas — también son compatibles
+      <strong>{{ r.diagnostico_alternativo | diagnosisLabel }}</strong> ({{ altPercent() }}%) y
+      <strong>{{ r.diagnostico_tercero | diagnosisLabel }}</strong> ({{ thirdPercent() }}%). Se recomienda una
+      evaluación veterinaria con pruebas complementarias para distinguir entre las tres.
+      }
+    </app-alert-banner>
+    }
 
-  <!-- ── GUÍA DE ALIMENTACIÓN ─────────────────────────────────────── -->
-  @if (diseaseInfo) {
-  <div class="section">
-    <p class="section-label">
-      <ion-icon name="nutrition-outline"></ion-icon>
-      Guía de Alimentación
-    </p>
+    @if (lowConfidence()) {
+    <app-alert-banner variant="differential" icon="help-circle" heading="Confianza baja en este resultado">
+      Los síntomas reportados no son suficientes para un diagnóstico certero. Te recomendamos confirmarlo con una
+      evaluación veterinaria presencial.
+    </app-alert-banner>
+    }
 
-    <!-- Alimentos recomendados -->
-    <div class="info-card food-good-card">
-      <p class="food-card-title good">
-        <ion-icon name="checkmark-circle"></ion-icon>
-        Alimentos recomendados
-      </p>
-      <ul>
-        @for (a of diseaseInfo.alimentosRecomendados; track a) {
-        <li>
-          <ion-icon name="leaf-outline"></ion-icon>
-          {{ a }}
-        </li>
-        }
-      </ul>
-    </div>
+    @if (diseaseInfo(); as info) {
+    @if (!urgent()) {
+    <app-alert-banner variant="safe" icon="checkmark-circle" heading="No requiere atención de emergencia">
+      Agenda una consulta en los próximos días para confirmar el diagnóstico.
+    </app-alert-banner>
+    }
 
-    <!-- Alimentos a evitar -->
-    <div class="info-card food-bad-card">
-      <p class="food-card-title bad">
-        <ion-icon name="close-circle"></ion-icon>
-        Alimentos a evitar
-      </p>
-      <ul>
-        @for (a of diseaseInfo.alimentosEvitar; track a) {
-        <li>
-          <ion-icon name="ban-outline"></ion-icon>
-          {{ a }}
-        </li>
-        }
-      </ul>
-    </div>
-  </div>
-  }
-
-  <!-- ── QUÉ OBSERVAR ─────────────────────────────────────────────── -->
-  @if (diseaseInfo) {
-  <div class="section">
-    <p class="section-label">
-      <ion-icon name="eye-outline"></ion-icon>
-      Señales de alerta a vigilar
-    </p>
-    <div class="info-card warning-card">
-      <ul>
-        @for (o of diseaseInfo.queObservar; track o) {
-        <li>
-          <ion-icon name="alert-circle-outline"></ion-icon>
-          {{ o }}
-        </li>
-        }
-      </ul>
-    </div>
-  </div>
-  }
-
-  <!-- ── PREVENCIÓN ────────────────────────────────────────────────── -->
-  @if (diseaseInfo) {
-  <div class="section">
-    <p class="section-label">
-      <ion-icon name="shield-checkmark-outline"></ion-icon>
-      Cómo prevenir esta enfermedad
-    </p>
-    <div class="info-card prevention-card">
-      <ul>
-        @for (p of diseaseInfo.prevencion; track p) {
-        <li>
-          <ion-icon name="checkmark-outline"></ion-icon>
-          {{ p }}
-        </li>
-        }
-      </ul>
-    </div>
-  </div>
-  }
-
-  <!-- ── RESERVAR CITA ─────────────────────────────────────────────── -->
-  <div class="section appointment-section">
-    <div class="appointment-card">
-      <div class="appointment-icon">
-        <ion-icon name="calendar-outline"></ion-icon>
+    <section class="section" aria-labelledby="care-level-title">
+      <h2 class="section-label" id="care-level-title">Nivel de cuidado requerido</h2>
+      <div class="care-level-card" [class]="'care-level-card care-' + info.nivelCuidado">
+        <ion-icon [name]="careLevel().icon" aria-hidden="true"></ion-icon>
+        <span class="care-label">{{ careLevel().label }}</span>
       </div>
-      <div class="appointment-text">
-        <strong>Reserva una cita veterinaria</strong>
-        <p>
-          {{ diseaseInfo?.requiereAtencionInmediata
-          ? 'Tu mascota necesita atención urgente. Agenda ahora.'
-          : 'Confirma este diagnóstico con un profesional.' }}
-        </p>
-      </div>
-    </div>
-    <button class="schedule-btn no-print" [class.urgent-btn]="diseaseInfo?.requiereAtencionInmediata"
-      (click)="goToSchedule()">
-      <ion-icon name="calendar-outline"></ion-icon>
-      <span>{{ diseaseInfo?.requiereAtencionInmediata ? 'Reservar cita urgente' : 'Reservar cita' }}</span>
-    </button>
-  </div>
+    </section>
+    }
+
+    @if (symptoms().length > 0) {
+    <app-reported-symptoms [symptoms]="symptoms()"></app-reported-symptoms>
+    }
+
+    @if (diseaseInfo(); as info) {
+    <section class="section" aria-labelledby="care-title">
+      <h2 class="section-label" id="care-title">
+        <ion-icon name="medkit-outline" aria-hidden="true"></ion-icon> Cuidados recomendados
+      </h2>
+      <app-info-list-card [items]="info.cuidados"></app-info-list-card>
+    </section>
+
+    <section class="section" aria-labelledby="food-title">
+      <h2 class="section-label" id="food-title">
+        <ion-icon name="nutrition-outline" aria-hidden="true"></ion-icon> Guía de Alimentación
+      </h2>
+      <app-info-list-card
+        variant="good"
+        cardTitle="Alimentos recomendados"
+        cardTitleIcon="checkmark-circle"
+        itemIcon="leaf-outline"
+        [items]="info.alimentosRecomendados"
+      ></app-info-list-card>
+      <app-info-list-card
+        variant="bad"
+        cardTitle="Alimentos a evitar"
+        cardTitleIcon="close-circle"
+        itemIcon="ban-outline"
+        [items]="info.alimentosEvitar"
+      ></app-info-list-card>
+    </section>
+
+    <section class="section" aria-labelledby="watch-title">
+      <h2 class="section-label" id="watch-title">
+        <ion-icon name="eye-outline" aria-hidden="true"></ion-icon> Señales de alerta a vigilar
+      </h2>
+      <app-info-list-card variant="warning" itemIcon="alert-circle-outline" [items]="info.queObservar"></app-info-list-card>
+    </section>
+
+    <section class="section" aria-labelledby="prevention-title">
+      <h2 class="section-label" id="prevention-title">
+        <ion-icon name="shield-checkmark-outline" aria-hidden="true"></ion-icon> Cómo prevenir esta enfermedad
+      </h2>
+      <app-info-list-card variant="prevention" itemIcon="checkmark-outline" [items]="info.prevencion"></app-info-list-card>
+    </section>
+    }
+
+    <app-appointment-cta [urgent]="urgent()"></app-appointment-cta>
+  </main>
+  }
   <div class="bottom-spacer"></div>
 </ion-content>
 
-<!-- Botón flotante de tema (mobile) — en desktop el toggle vive en el sidebar -->
-@if (!breakpointService.isDesktop()) {
-<button class="theme-toggle-fab no-print" (click)="toggleTheme()"
-  [attr.aria-label]="themeService.isDark ? 'Activar modo claro' : 'Activar modo oscuro'">
-  <span class="toggle-track" [class.dark]="themeService.isDark">
-    <ion-icon class="toggle-icon sun" name="sunny" [class.visible]="themeService.isDark"></ion-icon>
-    <ion-icon class="toggle-icon moon" name="moon" [class.visible]="!themeService.isDark"></ion-icon>
-  </span>
-</button>
-}
+<app-theme-toggle-fab></app-theme-toggle-fab>

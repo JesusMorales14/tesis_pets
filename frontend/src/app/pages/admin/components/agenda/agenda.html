@@ -1,0 +1,90 @@
+<section class="section" aria-labelledby="agenda-title">
+  <div class="agenda-header">
+    <h2 class="section-label agenda-title" id="agenda-title">
+      Citas del día
+      @if (appointments().length > 0) {
+      <span class="agenda-count">{{ appointments().length }}</span>
+      }
+    </h2>
+    @if (date(); as d) {
+    <span class="agenda-date">{{ d | appDate: 'weekday' }}</span>
+    }
+  </div>
+
+  @if (appointments().length > 0) {
+  <div class="appt-toolbar">
+    <div class="chip-group" role="group" aria-label="Filtrar por especie">
+      @for (opt of especieOptions; track opt.value) {
+      <button
+        type="button"
+        class="chip"
+        [class.active]="especie() === opt.value"
+        [attr.aria-pressed]="especie() === opt.value"
+        (click)="setEspecie(opt.value)"
+      >
+        {{ opt.label }} ({{ count(opt.value) }})
+      </button>
+      }
+    </div>
+    <div class="chip-group" role="group" aria-label="Ordenar citas">
+      <span class="chip-label">Ordenar:</span>
+      <button
+        type="button"
+        class="chip"
+        [class.active]="order() === 'gravedad'"
+        [attr.aria-pressed]="order() === 'gravedad'"
+        (click)="setOrder('gravedad')"
+      >
+        <ion-icon name="warning-outline" aria-hidden="true"></ion-icon> Gravedad
+      </button>
+      <button
+        type="button"
+        class="chip"
+        [class.active]="order() === 'hora'"
+        [attr.aria-pressed]="order() === 'hora'"
+        (click)="setOrder('hora')"
+      >
+        <ion-icon name="time-outline" aria-hidden="true"></ion-icon> Hora
+      </button>
+    </div>
+  </div>
+  }
+
+  @if (loading()) {
+  <div class="agenda-grid" aria-hidden="true">
+    @for (i of [1, 2]; track i) {
+    <div class="agenda-skeleton">
+      <ion-skeleton-text [animated]="true" class="sk-55"></ion-skeleton-text>
+      <ion-skeleton-text [animated]="true" class="sk-75"></ion-skeleton-text>
+      <ion-skeleton-text [animated]="true" class="sk-65"></ion-skeleton-text>
+    </div>
+    }
+  </div>
+  } @else if (appointments().length === 0) {
+  <app-empty-state icon="calendar-outline" message="No hay citas para este día"></app-empty-state>
+  } @else if (visible().length === 0) {
+  <app-empty-state
+    icon="paw-outline"
+    [message]="'No hay citas de ' + (especie() === 'perro' ? 'perros' : 'gatos') + ' este día'"
+  ></app-empty-state>
+  } @else {
+  <div class="agenda-grid" role="list">
+    @for (a of paged(); track a.id) {
+    <app-agenda-card
+      [appointment]="a"
+      (openClinicalRecord)="openClinicalRecord.emit($event)"
+      (reviewPayment)="reviewPayment.emit($event)"
+      (viewComprobante)="viewComprobante.emit($event)"
+      (changeEstado)="changeEstado.emit($event)"
+    ></app-agenda-card>
+    }
+  </div>
+  }
+
+  <app-pagination
+    [totalItems]="visible().length"
+    [pageSize]="pageSize"
+    [page]="page()"
+    (pageChange)="page.set($event)"
+  ></app-pagination>
+</section>

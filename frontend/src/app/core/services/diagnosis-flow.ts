@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { PredictionResult } from './prediction';
+import { PredictionResult } from '../models/prediction';
+import { STORAGE_KEYS } from '../constants/storage-keys';
 
 export interface SelectedSymptom {
   key: string;
@@ -19,7 +20,7 @@ export interface DiagnosisFlowState {
   hora?: string;
 }
 
-const STORAGE_KEY = 'vet_diagnosis_flow';
+const STORAGE_KEY = STORAGE_KEYS.diagnosisFlow;
 
 /**
  * Estado del flujo mascota → síntomas → resultado → horario → pago.

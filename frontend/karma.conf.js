@@ -28,7 +28,9 @@ module.exports = function (config) {
       subdir: '.',
       reporters: [
         { type: 'html' },
-        { type: 'text-summary' }
+        { type: 'text-summary' },
+        // lcov.info: lo consume SonarQube/SonarCloud en CI.
+        { type: 'lcovonly', file: 'lcov.info' }
       ]
     },
     reporters: ['progress', 'kjhtml'],

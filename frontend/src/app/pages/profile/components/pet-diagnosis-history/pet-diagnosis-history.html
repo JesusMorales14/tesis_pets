@@ -1,0 +1,31 @@
+<h3 class="pet-subsection-title">
+  <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+  <span>Historial de diagnósticos</span>
+</h3>
+
+@if (loading()) {
+@for (i of [1, 2]; track i) {
+<div class="history-entry" aria-hidden="true">
+  <div class="history-entry-left">
+    <ion-skeleton-text [animated]="true" class="sk-date"></ion-skeleton-text>
+    <ion-skeleton-text [animated]="true" class="sk-diag"></ion-skeleton-text>
+  </div>
+  <ion-skeleton-text [animated]="true" class="sk-prob"></ion-skeleton-text>
+</div>
+}
+} @else {
+@for (entry of entries(); track entry.id) {
+<div class="history-entry">
+  <div class="history-entry-left">
+    <div class="history-date">{{ entry.created_at | appDate: 'timestamp' }}</div>
+    <div class="history-diag">{{ entry.diagnostico | diagnosisLabel }}</div>
+  </div>
+  <div class="history-prob">{{ entry.probabilidad * 100 | number: '1.0-0' }}%</div>
+</div>
+} @empty {
+<app-empty-state
+  icon="document-text-outline"
+  [message]="'Los diagnósticos que le hagas a ' + petName() + ' van a aparecer aquí'"
+></app-empty-state>
+}
+}

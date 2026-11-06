@@ -1,0 +1,71 @@
+:host {
+  display: block;
+}
+
+.section { padding: 20px 0 0; }
+
+.section-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: var(--ion-color-medium);
+  margin: 0 0 10px;
+}
+
+.diagnosis-card {
+  background: var(--app-surface);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 12px var(--app-shadow);
+  border-left: 4px solid var(--ion-color-primary);
+}
+
+.diag-left { flex: 1; }
+
+.species-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(47,109,246,0.1);
+  color: var(--ion-color-primary);
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 6px;
+
+  &.gato { background: rgba(155,93,0,0.1); color: #9b5e00; }
+  ion-icon { font-size: 13px; }
+}
+
+.diag-name {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ion-text-color);
+  margin: 0;
+  text-transform: capitalize;
+}
+
+.gravedad-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+
+  ion-icon { font-size: 20px; }
+
+  &.leve     { background: rgba(52,199,89,0.12); color: #1e8449; }
+  &.moderada { background: rgba(255,165,0,0.12); color: #d68910; }
+  &.grave    { background: rgba(255,59,48,0.1);  color: #c0392b; }
+}

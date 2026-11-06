@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
 """
 Prueba la lógica de recordatorios de citas (sin la parte de scheduler, que
 es de APScheduler y no hace falta reprobar). Usa una base de datos SQLite
 en memoria — nunca toca veterinary.db.
 """
+
 import os
 import sys
 from datetime import date, datetime, timedelta
@@ -11,14 +11,14 @@ from datetime import date, datetime, timedelta
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest  # noqa: E402
+from fastapi.testclient import TestClient  # noqa: E402
 from sqlalchemy import create_engine  # noqa: E402
 from sqlalchemy.orm import sessionmaker  # noqa: E402
 from sqlalchemy.pool import StaticPool  # noqa: E402
-from fastapi.testclient import TestClient  # noqa: E402
 
+from core.database import get_db  # noqa: E402
 from main import app  # noqa: E402
-from database import get_db  # noqa: E402
-from models import Base, Appointment  # noqa: E402
+from models import Appointment, Base  # noqa: E402
 from services.reminder_service import send_reminders_for_db  # noqa: E402
 
 TOMORROW = (date.today() + timedelta(days=1)).isoformat()
@@ -64,8 +64,12 @@ def _book(client, token, fecha, hora="09:00"):
     r = client.post(
         "/appointments",
         json={
-            "fecha": fecha, "hora": hora, "diagnostico": "gastroenteritis",
-            "especie": "perro", "gravedad": "moderada", "metodo_pago": "yape",
+            "fecha": fecha,
+            "hora": hora,
+            "diagnostico": "gastroenteritis",
+            "especie": "perro",
+            "gravedad": "moderada",
+            "metodo_pago": "yape",
         },
         headers={"Authorization": f"Bearer {token}"},
     )

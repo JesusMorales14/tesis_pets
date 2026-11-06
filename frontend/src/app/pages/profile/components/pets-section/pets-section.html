@@ -1,0 +1,41 @@
+<app-collapsible-section heading="Mis mascotas" icon="paw-outline" [count]="store.pets().length" [(expanded)]="expanded">
+  @if (store.isLoadingPets()) {
+  @for (i of [1, 2]; track i) {
+  <div class="pet-skeleton" aria-hidden="true">
+    <ion-skeleton-text [animated]="true" class="sk-name"></ion-skeleton-text>
+    <ion-skeleton-text [animated]="true" class="sk-meta"></ion-skeleton-text>
+  </div>
+  }
+  } @else {
+  @for (pet of store.pets(); track pet.id; let i = $index) {
+  <app-pet-card
+    [pet]="pet"
+    [color]="colorFor(i)"
+    [imageUrl]="store.images()[pet.id]"
+    [vaccinationBadge]="store.vaccinationBadges()[pet.id] ?? null"
+    [expanded]="store.expandedPetId() === pet.id"
+    [vaccinations]="store.vaccinations()[pet.id] ?? []"
+    [history]="store.histories()[pet.id] ?? []"
+    [loadingHistory]="store.loadingHistoryFor() === pet.id"
+    (toggleExpand)="store.togglePet(pet.id)"
+    (edit)="editPet(pet)"
+    (remove)="deletePet(pet)"
+    (addVaccination)="addVaccination(pet)"
+    (removeVaccination)="deleteVaccination(pet, $event)"
+    (imageError)="store.onImageError(pet)"
+  ></app-pet-card>
+  } @empty {
+  <app-empty-state
+    variant="rich"
+    icon="paw-outline"
+    heading="Registra a tu primera mascota"
+    message="Así vas a poder llevar su historial de salud, vacunas y diagnósticos en un solo lugar."
+  ></app-empty-state>
+  }
+  }
+
+  <button type="button" class="add-pet-btn" (click)="addPet()">
+    <ion-icon name="add-circle-outline" aria-hidden="true"></ion-icon>
+    <span>Agregar mascota</span>
+  </button>
+</app-collapsible-section>

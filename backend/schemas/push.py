@@ -9,4 +9,5 @@ class PushSubscriptionBody(BaseModel):
 
 class PushEndpointBody(BaseModel):
     """Identifica la suscripción de este navegador/dispositivo."""
+
     endpoint: str
