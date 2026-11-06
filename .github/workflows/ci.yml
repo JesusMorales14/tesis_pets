@@ -141,7 +141,7 @@ jobs:
 
       - name: Análisis SonarQube
         if: env.SONAR_TOKEN != ''
-        uses: SonarSource/sonarqube-scan-action@v5
+        uses: SonarSource/sonarqube-scan-action@v8
 
       - name: Verificar Quality Gate
         if: env.SONAR_TOKEN != ''
