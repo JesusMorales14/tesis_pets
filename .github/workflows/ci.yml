@@ -52,7 +52,7 @@ jobs:
         run: pip install pip-audit && pip-audit -r requirements.txt
 
       - name: Publicar cobertura
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: backend-coverage
           path: backend/coverage.xml
@@ -95,14 +95,14 @@ jobs:
         run: npm audit --omit=dev --audit-level=high
 
       - name: Publicar cobertura
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: frontend-coverage
           path: frontend/coverage/app/lcov.info
           retention-days: 7
 
       - name: Publicar build
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: frontend-www
           path: frontend/www
